@@ -1,309 +1,394 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { MessageCircle, Users, Zap, Award, TrendingUp, Share2, Heart, Flame, Star } from 'lucide-react'
+import Link from 'next/link';
+import { useEffect, useRef } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
+
 
 export default function DiscordPage() {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <section className="py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="discord-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#discord-pattern)" />
-          </svg>
-        </div>
-        <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-            <MessageCircle className="w-8 h-8" />
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Join Our Discord</h1>
-          <p className="text-xl text-white/90 mb-2">Connect with the One Last AI community</p>
-          <p className="text-lg text-white/75">10,000+ members sharing knowledge and building together</p>
-        </div>
-      </section>
+  const containerRef = useRef<HTMLDivElement>(null);
+  const benefitsRef = useRef<HTMLDivElement>(null);
 
-      {/* Main CTA */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom max-w-4xl">
-          <div className="bg-white rounded-3xl p-10 md:p-12 text-center mb-12 shadow-2xl border border-neural-200">
-            <div className="text-7xl mb-6 animate-bounce">💜</div>
-            <h2 className="text-3xl md:text-4xl font-bold text-neural-900 mb-4">Our Active Discord Community</h2>
-            <p className="text-lg text-neural-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of AI enthusiasts, developers, and innovators sharing tips, asking questions, and connecting with fellow One Last AI users worldwide.
-            </p>
+  const benefits = [
+    { icon: '💡', title: 'Share Ideas', desc: 'Discuss new features, improvements, and innovative use cases with the community' },
+    { icon: '❓', title: 'Get Help', desc: 'Connect with experts, get quick answers, and learn from experienced community members' },
+    { icon: '🎉', title: 'Events & Updates', desc: 'Participate in live events, competitions, and stay updated with latest platform news' }
+  ];
+
+  const reasons = [
+    { icon: '⚡', title: 'Real-Time Support', desc: 'Get instant help from community members and Maula AI team', color: 'from-purple-500 to-purple-600' },
+    { icon: '👥', title: 'Network & Collaborate', desc: 'Build connections with fellow developers and AI enthusiasts', color: 'from-indigo-500 to-indigo-600' },
+    { icon: '📈', title: 'Learn & Grow', desc: 'Access tutorials, case studies, and best practices shared by experts', color: 'from-pink-500 to-pink-600' },
+    { icon: '🏆', title: 'Exclusive Opportunities', desc: 'Get early access to features, special events, and recognition programs', color: 'from-green-500 to-green-600' },
+    { icon: '🔥', title: 'Active Channels', desc: 'Dedicated channels for different topics, agent types, and use cases', color: 'from-amber-500 to-orange-500' }
+  ];
+
+  const stats = [
+    { value: '10K+', label: 'Active Members', color: 'purple' },
+    { value: '50+', label: 'Active Channels', color: 'indigo' },
+    { value: '1K+', label: 'Daily Messages', color: 'pink' },
+    { value: '24/7', label: 'Community Support', color: 'green' }
+  ];
+
+  const guidelines = {
+    dos: ['Be respectful and inclusive to all members', 'Share knowledge and help others learn', 'Keep conversations relevant and focused', 'Use threads for extended discussions'],
+    donts: ['No spam, self-promotion, or harassment', 'No sharing of pirated or illegal content', 'No discussing inappropriate topics', 'No impersonating team members']
+  };
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero Animation
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSub = new SplitText('.hero-subtitle', { type: 'words' });
+      gsap.set(heroTitle.chars, { y: 120, opacity: 0, rotateX: -90, scale: 0.8 });
+      gsap.set(heroSub.words, { y: 50, opacity: 0 });
+      gsap.set('.hero-icon', { scale: 0, rotation: -540 });
+      gsap.set('.discord-cta', { y: 50, opacity: 0, scale: 0.9 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-icon', { scale: 1, rotation: 0, duration: 1.5, ease: 'elastic.out(1, 0.4)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, scale: 1, duration: 0.8, stagger: 0.015 }, '-=1')
+        .to(heroSub.words, { y: 0, opacity: 1, duration: 0.5, stagger: 0.02 }, '-=0.5')
+        .to('.discord-cta', { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' }, '-=0.3');
+
+      // 2. ScrambleText on stats
+      gsap.utils.toArray<HTMLElement>('.stat-value').forEach((el, i) => {
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 85%',
+          onEnter: () => {
+            gsap.to(el, {
+              duration: 2,
+              scrambleText: { text: el.dataset.value || el.innerText, chars: '0123456789+K/', speed: 0.4 },
+            });
+          },
+          once: true
+        });
+      });
+
+      // 3. ScrollTrigger for benefit cards with stagger
+      gsap.set('.benefit-card', { y: 80, opacity: 0, rotateY: -25 });
+      ScrollTrigger.batch('.benefit-card', {
+        start: 'top 85%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, rotateY: 0, duration: 0.7, stagger: 0.15, ease: 'back.out(1.5)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 80, opacity: 0, rotateY: -25, duration: 0.3 })
+      });
+
+      // 4. Flip animation for reason cards
+      gsap.set('.reason-card', { opacity: 0, x: -60, scale: 0.9 });
+      ScrollTrigger.batch('.reason-card', {
+        start: 'top 80%',
+        onEnter: (batch) => {
+          batch.forEach((el, i) => {
+            const state = Flip.getState(el);
+            gsap.set(el, { opacity: 1, x: 0, scale: 1 });
+            Flip.from(state, { duration: 0.5, delay: i * 0.08, ease: 'power2.out' });
+          });
+        }
+      });
+
+      // 5. Observer for parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.2, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.15, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-3', { y: scrollY * 0.1, x: scrollY * -0.05, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for decorative orbit
+      gsap.to('.orbit-particle', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 60, y: -25 }, { x: 120, y: 0 }, { x: 60, y: 25 }, { x: 0, y: 0 }],
+          curviness: 1.8,
+        },
+        duration: 7,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on Discord button
+      const discordBtn = document.querySelector('.discord-btn');
+      if (discordBtn) {
+        discordBtn.addEventListener('mouseenter', () => {
+          gsap.to(discordBtn, { rotation: 5, duration: 0.5, ease: 'discordWiggle' });
+          gsap.to('.discord-icon', { scale: 1.2, duration: 0.3 });
+        });
+        discordBtn.addEventListener('mouseleave', () => {
+          gsap.to(discordBtn, { rotation: 0, duration: 0.3 });
+          gsap.to('.discord-icon', { scale: 1, duration: 0.3 });
+        });
+      }
+
+      // 8. DrawSVG for connection lines
+      gsap.set('.connect-line', { drawSVG: '0%' });
+      ScrollTrigger.create({
+        trigger: '.guidelines-section',
+        start: 'top 75%',
+        onEnter: () => gsap.to('.connect-line', { drawSVG: '100%', duration: 1.2, stagger: 0.2, ease: 'power2.inOut' })
+      });
+
+      // 9. Stat cards entrance
+      gsap.set('.stat-card', { y: 60, opacity: 0, scale: 0.85 });
+      ScrollTrigger.batch('.stat-card', {
+        start: 'top 85%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(1.4)' })
+      });
+
+      // 10. Floating particles with random physics-like motion
+      gsap.utils.toArray<HTMLElement>('.float-dot').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-70, 70)`,
+          y: `random(-50, 50)`,
+          rotation: `random(-180, 180)`,
+          scale: `random(0.8, 1.3)`,
+          duration: `random(5, 9)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.2
+        });
+      });
+
+      // 11. Guidelines cards animation
+      gsap.set('.guideline-box', { y: 40, opacity: 0 });
+      ScrollTrigger.batch('.guideline-box', {
+        start: 'top 85%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, duration: 0.6, stagger: 0.15, ease: 'power3.out' })
+      });
+
+      // 12. Draggable benefit cards
+      if (benefitsRef.current) {
+        Draggable.create('.draggable-benefit', {
+          type: 'x,y',
+          bounds: benefitsRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.6)' });
+          }
+        });
+      }
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const handleCardHover = (e: React.MouseEvent, entering: boolean) => {
+    const card = e.currentTarget;
+    gsap.to(card, { y: entering ? -6 : 0, scale: entering ? 1.02 : 1, duration: 0.3 });
+    gsap.to(card.querySelector('.card-glow'), { opacity: entering ? 0.15 : 0, duration: 0.3 });
+  };
+
+  return (
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/5 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[150px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-indigo-500/15 rounded-full blur-[120px]" />
+        <div className="parallax-orb-3 absolute top-1/2 right-1/5 w-[300px] h-[300px] bg-pink-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px)',
+          backgroundSize: '80px 80px'
+        }} />
+        {[...Array(12)].map((_, i) => (
+          <div key={i} className="float-dot absolute w-1.5 h-1.5 bg-purple-400/40 rounded-full" style={{ left: `${8 + i * 7}%`, top: `${12 + (i % 4) * 20}%` }} />
+        ))}
+        <div className="orbit-particle absolute top-40 left-1/3 w-2 h-2 bg-indigo-400/60 rounded-full" />
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative z-10 pt-24 pb-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="hero-icon inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-sm rounded-3xl border border-purple-500/30 mb-8 shadow-2xl shadow-purple-500/20">
+            <span className="text-5xl">💬</span>
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <span className="hero-title bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">Join Our Discord</span>
+          </h1>
+          <p className="hero-subtitle text-xl md:text-2xl text-gray-400 mb-4">Connect with the Maula AI community</p>
+          <p className="text-gray-500 text-lg mb-10">10,000+ members sharing knowledge and building together</p>
+
+          {/* Main CTA */}
+          <div className="discord-cta relative inline-block">
             <a
               href="https://discord.gg/EXH6w9CH"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-purple-500/25"
+              className="discord-btn inline-flex items-center gap-3 px-12 py-5 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl font-bold text-lg hover:shadow-2xl hover:shadow-purple-500/30 transition-all transform hover:scale-105"
             >
-              <MessageCircle className="w-5 h-5" />
+              <span className="discord-icon text-2xl">💜</span>
               Join Discord Community
-              <span className="text-lg">→</span>
+              <span>→</span>
             </a>
           </div>
+        </div>
+      </section>
 
-          {/* Benefits Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 hover:border-purple-300 hover:shadow-xl transition-all">
-              <div className="text-5xl mb-4">💡</div>
-              <h3 className="text-xl font-bold text-neural-900 mb-2">Share Ideas</h3>
-              <p className="text-neural-600">Discuss new features, improvements, and innovative use cases with the community</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 hover:border-indigo-300 hover:shadow-xl transition-all">
-              <div className="text-5xl mb-4">❓</div>
-              <h3 className="text-xl font-bold text-neural-900 mb-2">Get Help</h3>
-              <p className="text-neural-600">Connect with experts, get quick answers, and learn from experienced community members</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 hover:border-pink-300 hover:shadow-xl transition-all">
-              <div className="text-5xl mb-4">🎉</div>
-              <h3 className="text-xl font-bold text-neural-900 mb-2">Events & Updates</h3>
-              <p className="text-neural-600">Participate in live events, competitions, and stay updated with latest platform news</p>
-            </div>
+      {/* Benefits Section */}
+      <section ref={benefitsRef} className="relative z-10 py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6">
+            {benefits.map((b, idx) => (
+              <div
+                key={idx}
+                className="benefit-card draggable-benefit relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center group hover:border-purple-500/50 transition-colors cursor-grab"
+                onMouseEnter={(e) => handleCardHover(e, true)}
+                onMouseLeave={(e) => handleCardHover(e, false)}
+              >
+                <div className="card-glow absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-2xl opacity-0" />
+                <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-purple-500/30 rounded-tr-lg" />
+                <div className="relative z-10">
+                  <span className="text-5xl mb-4 block">{b.icon}</span>
+                  <h3 className="text-xl font-bold text-white mb-3">{b.title}</h3>
+                  <p className="text-gray-400">{b.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Why Join Section */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom max-w-4xl">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl mb-3">
-              <Star className="w-6 h-6 text-white" />
+      <section className="relative z-10 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl mb-4 shadow-lg">
+              <span className="text-2xl">⭐</span>
             </div>
-            <h2 className="text-3xl font-bold text-neural-900">Why Join Our Discord?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Why Join Our Discord?</h2>
           </div>
 
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-purple-300 hover:shadow-xl transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Zap className="w-6 h-6 text-white" />
+            {reasons.map((r, idx) => (
+              <div
+                key={idx}
+                className="reason-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm flex gap-5 group hover:border-purple-500/50 transition-all"
+                onMouseEnter={(e) => handleCardHover(e, true)}
+                onMouseLeave={(e) => handleCardHover(e, false)}
+              >
+                <div className="card-glow absolute inset-0 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-2xl opacity-0" />
+                <div className={`relative z-10 w-14 h-14 bg-gradient-to-br ${r.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform`}>
+                  <span className="text-2xl">{r.icon}</span>
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-lg font-bold text-white mb-1">{r.title}</h3>
+                  <p className="text-gray-400">{r.desc}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-neural-900 mb-1">Real-Time Support</h3>
-                <p className="text-neural-600">Get instant help from community members and One Last AI team members</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-indigo-300 hover:shadow-xl transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-neural-900 mb-1">Network & Collaborate</h3>
-                <p className="text-neural-600">Build connections with fellow developers, entrepreneurs, and AI enthusiasts</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-pink-300 hover:shadow-xl transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-neural-900 mb-1">Learn & Grow</h3>
-                <p className="text-neural-600">Access tutorials, case studies, and best practices shared by experts</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-green-300 hover:shadow-xl transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Award className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-neural-900 mb-1">Exclusive Opportunities</h3>
-                <p className="text-neural-600">Get early access to features, special events, and community recognition programs</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-amber-300 hover:shadow-xl transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Flame className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-neural-900 mb-1">Active Channels</h3>
-                <p className="text-neural-600">Dedicated channels for different topics, agent types, and use cases</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Community Stats */}
-      <section className="py-16 md:py-20 bg-white/50">
-        <div className="container-custom max-w-4xl">
+      {/* Stats Section */}
+      <section className="relative z-10 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">Community Stats</h2>
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Community Stats</h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent mb-2">10K+</div>
-              <p className="text-neural-600">Active Members</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent mb-2">50+</div>
-              <p className="text-neural-600">Active Channels</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent mb-2">1K+</div>
-              <p className="text-neural-600">Daily Messages</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent mb-2">24/7</div>
-              <p className="text-neural-600">Community Support</p>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.map((s, idx) => (
+              <div key={idx} className="stat-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center group">
+                <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-purple-500/30 rounded-tr-lg" />
+                <div className="stat-value text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent" data-value={s.value}>
+                  {s.value}
+                </div>
+                <p className="text-gray-400 text-sm mt-2">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Community Guidelines */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom max-w-4xl">
+      {/* Guidelines Section */}
+      <section className="guidelines-section relative z-10 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">Community Guidelines</h2>
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Community Guidelines</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white rounded-2xl p-8 border border-green-200 shadow-lg">
-              <h3 className="text-lg font-bold text-green-700 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">✓</span> Do's
-              </h3>
-              <ul className="space-y-3 text-neural-700">
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">•</span>
-                  <span>Be respectful and inclusive to all members</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">•</span>
-                  <span>Share knowledge and help others learn</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">•</span>
-                  <span>Keep conversations relevant and focused</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">•</span>
-                  <span>Use threads for extended discussions</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 border border-red-200 shadow-lg">
-              <h3 className="text-lg font-bold text-red-700 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600">✗</span> Don'ts
-              </h3>
-              <ul className="space-y-3 text-neural-700">
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">•</span>
-                  <span>Spam or post promotional content</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">•</span>
-                  <span>Engage in harassment or bullying</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">•</span>
-                  <span>Share personal or sensitive information</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">•</span>
-                  <span>Violate Discord's community guidelines</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Discord Channels Preview */}
-      <section className="py-16 md:py-20 bg-white/50">
-        <div className="container-custom max-w-4xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">Popular Channels</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-purple-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">💬 #general</h3>
-              <p className="text-neural-600 text-sm">General discussion about One Last AI and the community</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-indigo-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">❓ #help</h3>
-              <p className="text-neural-600 text-sm">Ask questions and get support from the community</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-blue-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">🤖 #agents</h3>
-              <p className="text-neural-600 text-sm">Discuss agents, features, and agent-specific topics</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-amber-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">💡 #ideas</h3>
-              <p className="text-neural-600 text-sm">Share ideas and vote on feature requests</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-green-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">📰 #announcements</h3>
-              <p className="text-neural-600 text-sm">Official updates and important announcements</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-pink-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">🎉 #events</h3>
-              <p className="text-neural-600 text-sm">Community events, competitions, and activities</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-20 md:py-28 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          {/* SVG Decorative Lines */}
+          <svg className="absolute left-1/2 top-0 h-full w-1 opacity-20" style={{ transform: 'translateX(-50%)' }}>
+            <line className="connect-line" x1="0" y1="0" x2="0" y2="100%" stroke="url(#vLineGradient)" strokeWidth="2" />
             <defs>
-              <pattern id="cta-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
-              </pattern>
+              <linearGradient id="vLineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#a855f7" />
+                <stop offset="100%" stopColor="#6366f1" />
+              </linearGradient>
             </defs>
-            <rect width="100%" height="100%" fill="url(#cta-pattern)" />
           </svg>
-        </div>
-        <div className="container-custom max-w-3xl text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-            <MessageCircle className="w-8 h-8" />
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Do's */}
+            <div className="guideline-box relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-green-500/30 backdrop-blur-sm">
+              <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-green-500/30 rounded-tr-lg" />
+              <h3 className="text-lg font-bold text-green-400 mb-5 flex items-center gap-3">
+                <span className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">✓</span>
+                Do's
+              </h3>
+              <ul className="space-y-3">
+                {guidelines.dos.map((item, idx) => (
+                  <li key={idx} className="flex gap-3 text-gray-300">
+                    <span className="text-green-400 font-bold">•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Don'ts */}
+            <div className="guideline-box relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-red-500/30 backdrop-blur-sm">
+              <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-red-500/30 rounded-tr-lg" />
+              <h3 className="text-lg font-bold text-red-400 mb-5 flex items-center gap-3">
+                <span className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">✗</span>
+                Don'ts
+              </h3>
+              <ul className="space-y-3">
+                {guidelines.donts.map((item, idx) => (
+                  <li key={idx} className="flex gap-3 text-gray-300">
+                    <span className="text-red-400 font-bold">•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Join the Community?</h2>
-          <p className="text-white/90 mb-8 text-lg max-w-xl mx-auto">
-            Don't miss out! Join our Discord server now and connect with thousands of AI enthusiasts and developers.
-          </p>
-          <a
-            href="https://discord.gg/EXH6w9CH"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-10 py-4 bg-white text-indigo-600 font-bold rounded-xl transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl"
-          >
-            <MessageCircle className="w-5 h-5" />
-            Join Discord Server
-            <span className="text-lg">→</span>
-          </a>
-          <p className="text-white/60 mt-6 text-sm">
-            By joining, you agree to follow our community guidelines and Discord's terms of service.
-          </p>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="relative z-10 py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative p-12 rounded-3xl bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border border-purple-500/30 backdrop-blur-sm overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10" />
+            <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-purple-500/40 rounded-tr-lg" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-indigo-500/40 rounded-bl-lg" />
+            <div className="relative z-10">
+              <span className="text-7xl mb-6 block animate-bounce">💜</span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Join?</h2>
+              <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
+                Become part of our amazing community today!
+              </p>
+              <a
+                href="https://discord.gg/EXH6w9CH"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-bold hover:shadow-lg hover:shadow-purple-500/25 transition-all transform hover:scale-105"
+              >
+                Join Discord Now →
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

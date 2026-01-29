@@ -1,95 +1,340 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
-import Link from 'next/link'
-import { Code2, Copy, Check } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react';
+import Link from 'next/link';
+import { Link2, ArrowLeft, Copy, Check, Globe, Lock, Search, Hash, FileText } from 'lucide-react';
+import { gsap, ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase } from '@/lib/gsap';
 
-export default function UrlParserPage(){
-  const [urlStr, setUrlStr] = useState('https://example.com:8080/path/to/page?foo=1&bar=2#section')
-  const [copied, setCopied] = useState(false)
+gsap.registerPlugin(ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase);
 
-  const url = useMemo(()=>{
-    try{ return new URL(urlStr) }catch{ return null }
-  }, [urlStr])
+interface ParsedURL {
+  protocol: string;
+  username: string;
+  password: string;
+  hostname: string;
+  port: string;
+  pathname: string;
+  search: string;
+  hash: string;
+  origin: string;
+  host: string;
+  searchParams: [string, string][];
+}
 
-  const entries = url ? Array.from(url.searchParams.entries()) : []
-  const copy = async ()=>{ if(!url) return; await navigator.clipboard.writeText(url.toString()); setCopied(true); setTimeout(()=>setCopied(false),1200) }
+export default function URLParserPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [url, setUrl] = useState('https://user:pass@example.com:8080/path/to/page?name=value&foo=bar#section');
+  const [copied, setCopied] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const updateParam = (k:string,v:string)=>{
-    if(!url) return
-    const u = new URL(url)
-    u.searchParams.set(k,v)
-    setUrlStr(u.toString())
-  }
-  const removeParam = (k:string)=>{
-    if(!url) return
-    const u = new URL(url)
-    u.searchParams.delete(k)
-    setUrlStr(u.toString())
-  }
-  const addParam = ()=>{
-    const u = url ? new URL(url) : new URL('https://example.com')
-    u.searchParams.append('param','value')
-    setUrlStr(u.toString())
-  }
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      CustomWiggle.create('urlWiggle', { wiggles: 5, type: 'easeOut' });
+
+      gsap.to('.url-gradient-orb', {
+        x: 'random(-60, 60)',
+        y: 'random(-30, 30)',
+        scale: 'random(0.9, 1.15)',
+        duration: 6,
+        ease: 'sine.inOut',
+        stagger: { each: 0.8, repeat: -1, yoyo: true },
+      });
+
+      if (titleRef.current) {
+        const split = new SplitText(titleRef.current, { type: 'chars' });
+        gsap.from(split.chars, {
+          opacity: 0,
+          y: 50,
+          rotationX: -90,
+          stagger: 0.03,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          delay: 0.2,
+        });
+      }
+
+      gsap.to('.hero-url-icon', {
+        boxShadow: '0 0 50px rgba(249, 115, 22, 0.5)',
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+
+      gsap.from('.url-panel', {
+        opacity: 0,
+        y: 30,
+        stagger: 0.12,
+        duration: 0.6,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const parsedUrl = useMemo((): ParsedURL | null => {
+    try {
+      const parsed = new URL(url);
+      setError(null);
+      return {
+        protocol: parsed.protocol,
+        username: parsed.username,
+        password: parsed.password,
+        hostname: parsed.hostname,
+        port: parsed.port,
+        pathname: parsed.pathname,
+        search: parsed.search,
+        hash: parsed.hash,
+        origin: parsed.origin,
+        host: parsed.host,
+        searchParams: Array.from(parsed.searchParams.entries()),
+      };
+    } catch (err) {
+      setError('Invalid URL format');
+      return null;
+    }
+  }, [url]);
+
+  const copyValue = async (value: string, id: string) => {
+    await navigator.clipboard.writeText(value);
+    setCopied(id);
+    gsap.fromTo(`.copy-${id}`, { scale: 1.2 }, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.5)' });
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const encodeUrl = () => {
+    setUrl(encodeURIComponent(url));
+    gsap.fromTo('.encode-btn', { scale: 0.9 }, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.5)' });
+  };
+
+  const decodeUrl = () => {
+    try {
+      setUrl(decodeURIComponent(url));
+    } catch {
+      setError('Cannot decode - invalid encoding');
+    }
+    gsap.fromTo('.decode-btn', { scale: 0.9 }, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.5)' });
+  };
+
+  const sampleUrls = [
+    'https://api.example.com/v1/users?page=1&limit=10&sort=name',
+    'https://user:password@secure.example.com:443/dashboard',
+    'https://search.example.com/results?q=hello%20world&lang=en#top',
+    'ftp://files.example.com/downloads/file.zip',
+    'mailto:contact@example.com?subject=Hello&body=Test',
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-brand-600 to-accent-600">
-        <div className="container-custom py-6">
-          <Link href="/tools" className="text-blue-100 hover:text-white">← Back to Tools</Link>
-          <div className="mt-3 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"><Code2 className="w-6 h-6 text-white"/></div>
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="url-gradient-orb absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-orange-600/20 to-amber-600/20 blur-[100px]" />
+        <div className="url-gradient-orb absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-red-600/15 to-pink-600/15 blur-[80px]" />
+      </div>
+
+      <section className="relative py-12 border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <Link href="/tools" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Tools
+          </Link>
+
+          <div className="flex items-center gap-6 mb-8">
+            <div className="hero-url-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-600/30 to-amber-600/30 border border-orange-500/30 flex items-center justify-center">
+              <Link2 className="w-8 h-8 text-orange-400" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">URL Parser</h1>
-              <p className="text-blue-100">Parse URLs, inspect components, and edit query parameters</p>
+              <h1 ref={titleRef} className="text-3xl md:text-4xl font-bold text-white mb-1">
+                URL Parser
+              </h1>
+              <p className="text-gray-400">
+                Parse, analyze, and encode/decode URLs
+              </p>
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      <main className="container-custom py-8">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 mb-4">
-          <input className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={urlStr} onChange={(e)=>setUrlStr(e.target.value)} />
-          <div className="mt-3">
-            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center disabled:opacity-50" disabled={!url} onClick={copy}>{copied ? <Check className="w-4 h-4 mr-1"/> : <Copy className="w-4 h-4 mr-1"/>}Copy URL</button>
+      <div className="container mx-auto px-4 py-8">
+        <div className="url-panel bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-white flex items-center gap-2">
+              <Globe className="w-5 h-5 text-orange-400" />
+              Enter URL
+            </h3>
+            <div className="flex gap-2">
+              <button
+                onClick={encodeUrl}
+                className="encode-btn px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-sm transition-colors"
+              >
+                Encode
+              </button>
+              <button
+                onClick={decodeUrl}
+                className="decode-btn px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg text-sm transition-colors"
+              >
+                Decode
+              </button>
+            </div>
+          </div>
+
+          <div className="relative">
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full p-4 bg-[#0d0d12] border border-white/10 rounded-xl text-white font-mono text-sm focus:border-orange-500/50 outline-none"
+              placeholder="Enter URL to parse..."
+            />
+            <button
+              onClick={() => copyValue(url, 'fullurl')}
+              className="copy-fullurl absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              {copied === 'fullurl' ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5 text-gray-400" />}
+            </button>
+          </div>
+
+          {error && (
+            <p className="mt-2 text-red-400 text-sm">{error}</p>
+          )}
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {sampleUrls.map((sample, index) => (
+              <button
+                key={index}
+                onClick={() => setUrl(sample)}
+                className="px-3 py-1.5 bg-[#0d0d12] hover:bg-white/10 text-gray-400 hover:text-white rounded-lg text-xs transition-colors truncate max-w-xs"
+              >
+                {sample}
+              </button>
+            ))}
           </div>
         </div>
 
-        {!url ? (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 text-red-600">Invalid URL</div>
-        ) : (
+        {parsedUrl && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4"><div className="text-sm text-gray-500">Protocol</div><div className="font-mono text-gray-900">{url.protocol}</div></div>
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4"><div className="text-sm text-gray-500">Host</div><div className="font-mono text-gray-900">{url.host}</div></div>
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4"><div className="text-sm text-gray-500">Hostname</div><div className="font-mono text-gray-900">{url.hostname}</div></div>
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4"><div className="text-sm text-gray-500">Port</div><div className="font-mono text-gray-900">{url.port || '—'}</div></div>
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4"><div className="text-sm text-gray-500">Pathname</div><div className="font-mono text-gray-900 break-all">{url.pathname}</div></div>
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4"><div className="text-sm text-gray-500">Hash</div><div className="font-mono text-gray-900 break-all">{url.hash || '—'}</div></div>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="font-semibold text-gray-900">Query Parameters</h2>
-                <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center" onClick={addParam}>+ Add</button>
-              </div>
-              {!entries.length ? (
-                <div className="text-gray-500 text-sm">No query parameters</div>
-              ) : (
-                <div className="space-y-2">
-                  {entries.map(([k,v],i)=> (
-                    <div key={i} className="flex items-center gap-2">
-                      <input className="w-48 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900" value={k} readOnly/>
-                      <input className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={v} onChange={(e)=>updateParam(k, e.target.value)}/>
-                      <button className="text-red-500 hover:text-red-600" onClick={()=>removeParam(k)}>✕</button>
+            <div className="url-panel bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-400" />
+                URL Components
+              </h3>
+              <div className="space-y-3">
+                {[
+                  { label: 'Protocol', value: parsedUrl.protocol, icon: <Lock className="w-4 h-4" />, color: 'text-purple-400' },
+                  { label: 'Username', value: parsedUrl.username || '(none)', icon: null, color: 'text-gray-400' },
+                  { label: 'Password', value: parsedUrl.password ? '••••••••' : '(none)', icon: null, color: 'text-gray-400' },
+                  { label: 'Hostname', value: parsedUrl.hostname, icon: <Globe className="w-4 h-4" />, color: 'text-green-400' },
+                  { label: 'Port', value: parsedUrl.port || '(default)', icon: null, color: 'text-yellow-400' },
+                  { label: 'Origin', value: parsedUrl.origin, icon: null, color: 'text-blue-400' },
+                  { label: 'Host', value: parsedUrl.host, icon: null, color: 'text-cyan-400' },
+                  { label: 'Pathname', value: parsedUrl.pathname || '/', icon: <FileText className="w-4 h-4" />, color: 'text-orange-400' },
+                  { label: 'Search', value: parsedUrl.search || '(none)', icon: <Search className="w-4 h-4" />, color: 'text-pink-400' },
+                  { label: 'Hash', value: parsedUrl.hash || '(none)', icon: <Hash className="w-4 h-4" />, color: 'text-red-400' },
+                ].map((item) => (
+                  <div key={item.label} className="p-3 bg-[#0d0d12] rounded-xl flex justify-between items-center group hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className={`${item.color}`}>{item.icon}</span>
+                      <span className="text-gray-400 text-sm w-20 flex-shrink-0">{item.label}</span>
+                      <span className="text-white font-mono text-sm truncate">{item.value}</span>
                     </div>
-                  ))}
+                    {item.value !== '(none)' && item.value !== '(default)' && (
+                      <button
+                        onClick={() => copyValue(item.value, item.label)}
+                        className={`copy-${item.label} opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white/10 rounded transition-all flex-shrink-0`}
+                      >
+                        {copied === item.label ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="url-panel bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                  <Search className="w-5 h-5 text-pink-400" />
+                  Query Parameters
+                </h3>
+                {parsedUrl.searchParams.length > 0 ? (
+                  <div className="space-y-2">
+                    {parsedUrl.searchParams.map(([key, value], index) => (
+                      <div key={index} className="p-3 bg-[#0d0d12] rounded-xl flex justify-between items-center group hover:bg-white/5 transition-colors">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <span className="text-pink-400 font-mono text-sm">{key}</span>
+                          <span className="text-gray-500">=</span>
+                          <span className="text-white font-mono text-sm truncate">{value}</span>
+                        </div>
+                        <button
+                          onClick={() => copyValue(`${key}=${value}`, `param-${index}`)}
+                          className={`copy-param-${index} opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white/10 rounded transition-all flex-shrink-0`}
+                        >
+                          {copied === `param-${index}` ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No query parameters found</p>
+                )}
+              </div>
+
+              <div className="url-panel bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="font-semibold text-white mb-4">Path Segments</h3>
+                {parsedUrl.pathname && parsedUrl.pathname !== '/' ? (
+                  <div className="flex flex-wrap gap-2">
+                    {parsedUrl.pathname.split('/').filter(Boolean).map((segment, index) => (
+                      <button
+                        key={index}
+                        onClick={() => copyValue(segment, `seg-${index}`)}
+                        className="px-3 py-1.5 bg-[#0d0d12] hover:bg-white/10 text-orange-400 font-mono text-sm rounded-lg transition-colors"
+                      >
+                        /{segment}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">Root path only</p>
+                )}
+              </div>
+
+              <div className="url-panel bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="font-semibold text-white mb-4">Encoded Versions</h3>
+                <div className="space-y-3">
+                  <div className="p-3 bg-[#0d0d12] rounded-xl group">
+                    <p className="text-xs text-gray-500 mb-1">URI Encoded</p>
+                    <div className="flex justify-between items-start gap-2">
+                      <p className="text-white font-mono text-sm break-all">{encodeURIComponent(url)}</p>
+                      <button
+                        onClick={() => copyValue(encodeURIComponent(url), 'uriencoded')}
+                        className="copy-uriencoded p-1.5 hover:bg-white/10 rounded transition-all flex-shrink-0"
+                      >
+                        {copied === 'uriencoded' ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-[#0d0d12] rounded-xl group">
+                    <p className="text-xs text-gray-500 mb-1">Base64 Encoded</p>
+                    <div className="flex justify-between items-start gap-2">
+                      <p className="text-white font-mono text-sm break-all">{btoa(url)}</p>
+                      <button
+                        onClick={() => copyValue(btoa(url), 'base64url')}
+                        className="copy-base64url p-1.5 hover:bg-white/10 rounded transition-all flex-shrink-0"
+                      >
+                        {copied === 'base64url' ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
-  )
+  );
 }

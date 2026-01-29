@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Footer from '@/components/Footer';
+import FooterGSAP from '@/components/FooterGSAP';
 
 export default function ConditionalFooter() {
   const pathname = usePathname();
@@ -32,5 +32,5 @@ export default function ConditionalFooter() {
     return null;
   }
 
-  return <Footer />;
+  return <FooterGSAP />;
 }

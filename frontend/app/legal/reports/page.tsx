@@ -1,27 +1,23 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { AlertCircle, CheckCircle, Mail, Shield, AlertTriangle, FileText } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react';
+import { gsap, ScrollTrigger, SplitText, ScrambleTextPlugin, Flip, Observer, CustomWiggle, CustomEase, DrawSVGPlugin, MotionPathPlugin, Draggable } from '@/lib/gsap';
+import Link from 'next/link';
+import { AlertTriangle, Shield, FileText, Send, CheckCircle, AlertCircle, ArrowLeft, ChevronRight, Flag, Bug, UserX, Scale, MessageSquare, Clock, Eye, Lock } from 'lucide-react';
 
 interface FormData {
-  name: string
-  email: string
-  reportType: string
-  severity: string
-  description: string
-  evidence: string
-  agentName: string
-  timestamp: string
-  actions: string
-  contactPreference: string
-  agreeToTerms: boolean
-}
-
-interface FormErrors {
-  [key: string]: string
+  name: string;
+  email: string;
+  reportType: string;
+  severity: string;
+  description: string;
+  evidence: string;
+  agentName: string;
+  agreeToTerms: boolean;
 }
 
 export default function ReportsPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -30,168 +26,342 @@ export default function ReportsPage() {
     description: '',
     evidence: '',
     agentName: '',
-    timestamp: '',
-    actions: '',
-    contactPreference: 'email',
     agreeToTerms: false
-  })
-
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [submitted, setSubmitted] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const reportTypes = [
-    { value: 'inappropriate-content', label: 'Inappropriate Content' },
-    { value: 'abuse', label: 'Abuse or Harassment' },
-    { value: 'misuse', label: 'Misuse of Service' },
-    { value: 'security', label: 'Security Vulnerability' },
-    { value: 'false-information', label: 'False Information' },
-    { value: 'scam', label: 'Scam or Fraud' },
-    { value: 'other', label: 'Other' }
-  ]
+    { value: 'inappropriate-content', label: 'Inappropriate Content', icon: Flag, color: 'amber' },
+    { value: 'abuse', label: 'Abuse or Harassment', icon: UserX, color: 'red' },
+    { value: 'security', label: 'Security Vulnerability', icon: Shield, color: 'cyan' },
+    { value: 'bug', label: 'Technical Bug', icon: Bug, color: 'purple' },
+    { value: 'policy-violation', label: 'Policy Violation', icon: Scale, color: 'rose' },
+    { value: 'other', label: 'Other Issue', icon: MessageSquare, color: 'gray' },
+  ];
 
   const severityLevels = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
-    { value: 'critical', label: 'Critical' }
-  ]
+    { value: 'low', label: 'Low', color: 'emerald', desc: 'Minor issue, no immediate action needed' },
+    { value: 'medium', label: 'Medium', color: 'amber', desc: 'Significant issue, requires attention' },
+    { value: 'high', label: 'High', color: 'orange', desc: 'Serious issue, urgent response needed' },
+    { value: 'critical', label: 'Critical', color: 'red', desc: 'Emergency, immediate action required' },
+  ];
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required'
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = 'Please provide a detailed description of the issue'
-    } else if (formData.description.trim().length < 50) {
-      newErrors.description = 'Description must be at least 50 characters'
-    }
-
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the legal disclaimer'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
     if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }))
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }))
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }))
-    }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    setIsSubmitting(true);
+    // Simulate submission
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsSubmitting(false);
+    setSubmitted(true);
+  };
 
-    if (!validateForm()) {
-      return
-    }
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-    setIsSubmitting(true)
+    const ctx = gsap.context(() => {
+      // Register custom wiggle
+      CustomWiggle.create('reportWiggle', { wiggles: 5, type: 'uniform' });
 
-    try {
-      const response = await fetch('/api/reports', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      })
+      // Hero animations
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSubtitle = new SplitText('.hero-subtitle', { type: 'words' });
 
-      if (response.ok) {
-        setSubmitted(true)
-        setFormData({
-          name: '',
-          email: '',
-          reportType: 'inappropriate-content',
-          severity: 'medium',
-          description: '',
-          evidence: '',
-          agentName: '',
-          timestamp: '',
-          actions: '',
-          contactPreference: 'email',
-          agreeToTerms: false
+      gsap.set(heroTitle.chars, { y: 80, opacity: 0, rotateX: -90 });
+      gsap.set(heroSubtitle.words, { y: 25, opacity: 0 });
+      gsap.set('.hero-alert', { scale: 0, rotate: -180 });
+      gsap.set('.hero-badge', { y: 30, opacity: 0 });
+      gsap.set('.hero-line', { scaleX: 0 });
+      gsap.set('.floating-flag', { y: -50, opacity: 0, scale: 0 });
+
+      const heroTl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+      heroTl
+        .to('.hero-alert', {
+          scale: 1,
+          rotate: 0,
+          duration: 1,
+          ease: 'back.out(1.7)'
         })
+        .to('.floating-flag', {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.08
+        }, '-=0.5')
+        .to(heroTitle.chars, {
+          y: 0,
+          opacity: 1,
+          rotateX: 0,
+          duration: 0.7,
+          stagger: 0.02
+        }, '-=0.4')
+        .to(heroSubtitle.words, {
+          y: 0,
+          opacity: 1,
+          duration: 0.4,
+          stagger: 0.02
+        }, '-=0.3')
+        .to('.hero-line', {
+          scaleX: 1,
+          duration: 0.8,
+          ease: 'power2.inOut'
+        }, '-=0.2')
+        .to('.hero-badge', {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'back.out(1.5)'
+        }, '-=0.4');
 
-        setTimeout(() => {
-          setSubmitted(false)
-        }, 5000)
-      } else {
-        setErrors({ submit: 'Failed to submit report. Please try again.' })
-      }
-    } catch (error) {
-      setErrors({ submit: 'An error occurred. Please try again later.' })
-    } finally {
-      setIsSubmitting(false)
-    }
+      // Pulsing alert animation
+      gsap.to('.hero-alert', {
+        scale: 1.05,
+        duration: 1,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        delay: 1.2
+      });
+
+      // Floating flags animation
+      document.querySelectorAll('.floating-flag').forEach((flag, i) => {
+        gsap.to(flag, {
+          y: `random(-25, 25)`,
+          x: `random(-20, 20)`,
+          rotation: `random(-15, 15)`,
+          duration: `random(3, 5)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.2
+        });
+      });
+
+      // Form elements entrance
+      gsap.set('.form-section', { y: 50, opacity: 0 });
+      
+      ScrollTrigger.create({
+        trigger: '.form-container',
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.to('.form-section', {
+            y: 0,
+            opacity: 1,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: 'power3.out'
+          });
+        }
+      });
+
+      // Report type cards entrance
+      gsap.set('.report-type-card', { scale: 0.9, opacity: 0 });
+      
+      ScrollTrigger.create({
+        trigger: '.report-types-section',
+        start: 'top 85%',
+        onEnter: () => {
+          gsap.to('.report-type-card', {
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            stagger: 0.08,
+            ease: 'back.out(1.5)'
+          });
+        }
+      });
+
+      // Info cards entrance
+      gsap.set('.info-card', { y: 40, opacity: 0 });
+      
+      ScrollTrigger.batch('.info-card', {
+        start: 'top 85%',
+        onEnter: (batch) => {
+          gsap.to(batch, {
+            y: 0,
+            opacity: 1,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: 'power3.out'
+          });
+        }
+      });
+
+      // Gradient orbs
+      gsap.to('.gradient-orb-1', {
+        x: 60,
+        y: -40,
+        duration: 9,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+      gsap.to('.gradient-orb-2', {
+        x: -50,
+        y: 50,
+        duration: 11,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+      // Observer for scroll velocity
+      Observer.create({
+        target: containerRef.current,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const velocity = Math.min(Math.abs(self.velocityY) / 1500, 0.5);
+          gsap.to('.info-card', {
+            skewY: self.velocityY > 0 ? velocity : -velocity,
+            duration: 0.2
+          });
+        },
+        onStop: () => {
+          gsap.to('.info-card', {
+            skewY: 0,
+            duration: 0.4,
+            ease: 'elastic.out(1, 0.5)'
+          });
+        }
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  if (submitted) {
+    return (
+      <div ref={containerRef} className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+        <div className="max-w-lg text-center">
+          <div className="w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-emerald-400" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-4">Report Submitted</h1>
+          <p className="text-gray-400 mb-8">
+            Thank you for your report. Our trust and safety team will review it and take appropriate action. You will receive a confirmation email shortly.
+          </p>
+          <Link
+            href="/legal"
+            className="inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 text-white font-medium hover:shadow-lg hover:shadow-red-500/25 transition-all"
+          >
+            Back to Legal
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={containerRef} className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Background gradient orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="gradient-orb-1 absolute top-20 left-1/4 w-[500px] h-[500px] bg-red-500/8 rounded-full blur-3xl" />
+        <div className="gradient-orb-2 absolute bottom-40 right-1/4 w-[400px] h-[400px] bg-rose-500/8 rounded-full blur-3xl" />
+      </div>
+
       {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Report Inappropriate Activity</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto">
-            Help us maintain a safe and trustworthy platform. Report any misuse, inappropriate content, or violations of our policies.
+      <section className="relative min-h-[50vh] flex items-center justify-center py-20 px-6">
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/20 via-black to-black" />
+        
+        {/* Floating flags */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(5)].map((_, i) => (
+            <Flag
+              key={i}
+              className={`floating-flag absolute w-5 h-5 text-red-400/30`}
+              style={{
+                left: `${15 + i * 18}%`,
+                top: `${25 + (i % 3) * 18}%`
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+          {/* Back button */}
+          <Link 
+            href="/legal" 
+            className="inline-flex items-center text-gray-400 hover:text-red-400 transition-colors mb-8"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Legal
+          </Link>
+
+          {/* Alert Icon */}
+          <div className="hero-alert mb-8 inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-red-500/20 to-rose-500/20 border border-red-500/30">
+            <AlertTriangle className="w-12 h-12 text-red-400" />
+          </div>
+
+          <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-red-200 to-rose-200 bg-clip-text text-transparent">
+            Report an Issue
+          </h1>
+          
+          <p className="hero-subtitle text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+            Help us maintain a safe and respectful platform. Report inappropriate activities, violations, or security concerns.
           </p>
+
+          <div className="hero-line w-32 h-1 bg-gradient-to-r from-red-500 to-rose-500 mx-auto mb-8 rounded-full" />
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <div className="hero-badge px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 text-red-300 text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              24h Response Time
+            </div>
+            <div className="hero-badge px-4 py-2 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Confidential
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Overview Section */}
-      <section className="section-padding">
-        <div className="container-custom max-w-4xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white border border-neural-200 rounded-lg p-6 hover:border-red-400 transition-all shadow-lg">
-              <Shield className="w-8 h-8 text-red-500 mb-3" />
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Your Safety Matters</h3>
-              <p className="text-neural-600">
-                We take all reports seriously and investigate them thoroughly to protect our community.
+      {/* Info Cards Section */}
+      <section className="relative py-12 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="info-card p-6 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800">
+              <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mb-4">
+                <Eye className="w-6 h-6 text-cyan-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Review Process</h3>
+              <p className="text-gray-400 text-sm">
+                All reports are reviewed by our Trust & Safety team within 24 hours.
               </p>
             </div>
 
-            <div className="bg-white border border-neural-200 rounded-lg p-6 hover:border-orange-400 transition-all shadow-lg">
-              <FileText className="w-8 h-8 text-orange-500 mb-3" />
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Detailed Documentation</h3>
-              <p className="text-neural-600">
-                Provide as much detail as possible to help us understand and resolve the issue quickly.
+            <div className="info-card p-6 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Your Privacy</h3>
+              <p className="text-gray-400 text-sm">
+                Your identity remains confidential. We never share reporter information.
               </p>
             </div>
 
-            <div className="bg-white border border-neural-200 rounded-lg p-6 hover:border-yellow-400 transition-all shadow-lg">
-              <Mail className="w-8 h-8 text-yellow-500 mb-3" />
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Confidential Handling</h3>
-              <p className="text-neural-600">
-                Your report will be handled confidentially and processed by our trust and safety team.
+            <div className="info-card p-6 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-4">
+                <Scale className="w-6 h-6 text-emerald-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Fair Investigation</h3>
+              <p className="text-gray-400 text-sm">
+                We investigate all reports fairly and take appropriate action based on evidence.
               </p>
             </div>
           </div>
@@ -199,403 +369,186 @@ export default function ReportsPage() {
       </section>
 
       {/* Report Form Section */}
-      <section className="section-padding">
-        <div className="container-custom max-w-3xl">
-          <div className="bg-white border border-neural-200 rounded-lg p-8 shadow-lg">
-            {submitted && (
-              <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-lg flex gap-4">
-                <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="text-lg font-bold text-green-700 mb-1">Report Submitted Successfully</h3>
-                  <p className="text-green-700">
-                    Thank you for your report. Our team will review it and take appropriate action. You will be contacted via your preferred method if we need additional information.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {errors.submit && (
-              <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-lg flex gap-4">
-                <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="text-lg font-bold text-red-700 mb-1">Submission Error</h3>
-                  <p className="text-red-700">{errors.submit}</p>
-                </div>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name and Email */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-neural-900 mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Your full name"
-                    className={`w-full px-4 py-3 bg-neural-50 border ${
-                      errors.name ? 'border-red-500' : 'border-neural-300'
-                    } rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition`}
-                  />
-                  {errors.name && (
-                    <p className="text-red-600 text-sm mt-1">{errors.name}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-neural-900 mb-2">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="your.email@example.com"
-                    className={`w-full px-4 py-3 bg-neural-50 border ${
-                      errors.email ? 'border-red-500' : 'border-neural-300'
-                    } rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition`}
-                  />
-                  {errors.email && (
-                    <p className="text-red-600 text-sm mt-1">{errors.email}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Report Type and Severity */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="reportType" className="block text-sm font-semibold text-neural-900 mb-2">
-                    Report Type *
-                  </label>
-                  <select
-                    id="reportType"
-                    name="reportType"
-                    value={formData.reportType}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-neural-50 border border-neural-300 rounded-lg text-neural-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                  >
-                    {reportTypes.map(type => (
-                      <option key={type.value} value={type.value} className="bg-white">
+      <section className="form-container relative py-16 px-6">
+        <div className="max-w-3xl mx-auto">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Report Type Selection */}
+            <div className="form-section report-types-section">
+              <label className="block text-lg font-semibold text-white mb-4">What would you like to report?</label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {reportTypes.map((type) => {
+                  const IconComponent = type.icon;
+                  const isSelected = formData.reportType === type.value;
+                  return (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, reportType: type.value }))}
+                      className={`report-type-card p-4 rounded-xl border transition-all text-left ${
+                        isSelected 
+                          ? `bg-${type.color}-500/20 border-${type.color}-500/50` 
+                          : 'bg-gray-900/50 border-gray-800 hover:border-gray-700'
+                      }`}
+                    >
+                      <IconComponent className={`w-6 h-6 mb-2 ${isSelected ? `text-${type.color}-400` : 'text-gray-400'}`} />
+                      <p className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-300'}`}>
                         {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-                <div>
-                  <label htmlFor="severity" className="block text-sm font-semibold text-neural-900 mb-2">
-                    Severity Level *
-                  </label>
-                  <select
-                    id="severity"
-                    name="severity"
-                    value={formData.severity}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-neural-50 border border-neural-300 rounded-lg text-neural-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                  >
-                    {severityLevels.map(level => (
-                      <option key={level.value} value={level.value} className="bg-white">
+            {/* Severity Selection */}
+            <div className="form-section">
+              <label className="block text-lg font-semibold text-white mb-4">Severity Level</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {severityLevels.map((level) => {
+                  const isSelected = formData.severity === level.value;
+                  return (
+                    <button
+                      key={level.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, severity: level.value }))}
+                      className={`p-4 rounded-xl border transition-all text-center ${
+                        isSelected 
+                          ? `bg-${level.color}-500/20 border-${level.color}-500/50` 
+                          : 'bg-gray-900/50 border-gray-800 hover:border-gray-700'
+                      }`}
+                    >
+                      <p className={`font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>
                         {level.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">{level.desc}</p>
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Agent Name and Timestamp */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="agentName" className="block text-sm font-semibold text-neural-900 mb-2">
-                    Agent Name Involved (if applicable)
-                  </label>
-                  <input
-                    type="text"
-                    id="agentName"
-                    name="agentName"
-                    value={formData.agentName}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Tech Wizard, Chef Biew"
-                    className="w-full px-4 py-3 bg-neural-50 border border-neural-300 rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="timestamp" className="block text-sm font-semibold text-neural-900 mb-2">
-                    When Did This Occur?
-                  </label>
-                  <input
-                    type="datetime-local"
-                    id="timestamp"
-                    name="timestamp"
-                    value={formData.timestamp}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-neural-50 border border-neural-300 rounded-lg text-neural-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
+            {/* Contact Information */}
+            <div className="form-section grid md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="description" className="block text-sm font-semibold text-neural-900 mb-2">
-                  Detailed Description of the Issue * <span className="text-neural-500">(minimum 50 characters)</span>
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
+                <label className="block text-sm font-medium text-gray-300 mb-2">Your Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Please provide a clear and detailed description of the inappropriate activity or misuse you are reporting. Include specific examples and context that will help us understand the issue."
-                  rows={5}
-                  className={`w-full px-4 py-3 bg-neural-50 border ${
-                    errors.description ? 'border-red-500' : 'border-neural-300'
-                  } rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none`}
-                />
-                <div className="flex justify-between items-center mt-2">
-                  <p className={`text-sm ${errors.description ? 'text-red-600' : 'text-neural-500'}`}>
-                    {formData.description.length} characters
-                  </p>
-                  {errors.description && (
-                    <p className="text-red-600 text-sm">{errors.description}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Evidence */}
-              <div>
-                <label htmlFor="evidence" className="block text-sm font-semibold text-neural-900 mb-2">
-                  Evidence or Screenshots (URLs or descriptions)
-                </label>
-                <textarea
-                  id="evidence"
-                  name="evidence"
-                  value={formData.evidence}
-                  onChange={handleInputChange}
-                  placeholder="Provide links to screenshots, chat logs, or other evidence that supports your report. You can also describe what you saw or provide relevant details."
-                  rows={4}
-                  className="w-full px-4 py-3 bg-neural-50 border border-neural-300 rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none"
+                  required
+                  className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-gray-800 text-white placeholder-gray-500 focus:border-red-500/50 focus:outline-none transition-colors"
+                  placeholder="Enter your name"
                 />
               </div>
-
-              {/* Previous Actions */}
               <div>
-                <label htmlFor="actions" className="block text-sm font-semibold text-neural-900 mb-2">
-                  Actions Already Taken (if any)
-                </label>
-                <textarea
-                  id="actions"
-                  name="actions"
-                  value={formData.actions}
+                <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="Have you already blocked the user, reported them elsewhere, or taken any other action? Please describe."
-                  rows={3}
-                  className="w-full px-4 py-3 bg-neural-50 border border-neural-300 rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none"
+                  required
+                  className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-gray-800 text-white placeholder-gray-500 focus:border-red-500/50 focus:outline-none transition-colors"
+                  placeholder="your@email.com"
                 />
               </div>
+            </div>
 
-              {/* Contact Preference */}
-              <div>
-                <label htmlFor="contactPreference" className="block text-sm font-semibold text-neural-900 mb-2">
-                  Preferred Contact Method
-                </label>
-                <select
-                  id="contactPreference"
-                  name="contactPreference"
-                  value={formData.contactPreference}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-neural-50 border border-neural-300 rounded-lg text-neural-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
-                >
-                  <option value="email" className="bg-white">Email</option>
-                  <option value="phone" className="bg-white">Phone</option>
-                  <option value="no-contact" className="bg-white">Anonymous Report (No Follow-up Needed)</option>
-                </select>
-              </div>
+            {/* Agent Name (Optional) */}
+            <div className="form-section">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Agent Name (Optional)</label>
+              <input
+                type="text"
+                name="agentName"
+                value={formData.agentName}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-gray-800 text-white placeholder-gray-500 focus:border-red-500/50 focus:outline-none transition-colors"
+                placeholder="Which AI agent is this related to?"
+              />
+            </div>
 
-              {/* Legal Disclaimer */}
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                <div className="flex gap-4">
-                  <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="text-lg font-bold text-red-700 mb-3">Legal Disclaimer</h3>
-                    <p className="text-red-700 text-sm leading-relaxed mb-4">
-                      By submitting this report, you acknowledge that:
-                    </p>
-                    <ul className="space-y-2 text-red-700 text-sm mb-4">
-                      <li className="flex gap-2">
-                        <span className="text-red-600 font-bold">•</span>
-                        <span>You are providing truthful and accurate information to the best of your knowledge</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="text-red-600 font-bold">•</span>
-                        <span>You understand that submitting false or malicious reports is prohibited</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="text-red-600 font-bold">•</span>
-                        <span>You may be held legally liable for knowingly filing false reports or providing false information</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="text-red-600 font-bold">•</span>
-                        <span>False reports may result in legal action, including but not limited to civil litigation and criminal prosecution</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="text-red-600 font-bold">•</span>
-                        <span>Our team will investigate all reports and may share information with law enforcement if necessary</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="text-red-600 font-bold">•</span>
-                        <span>You grant us permission to use the information provided in your report for investigation and prevention purposes</span>
-                      </li>
-                    </ul>
-                    <p className="text-red-700 text-sm italic">
-                      We take false reports very seriously. By submitting this form, you accept full responsibility for the accuracy of the information provided. Deliberate false reporting is a serious matter that may result in legal consequences.
-                    </p>
-                  </div>
-                </div>
-              </div>
+            {/* Description */}
+            <div className="form-section">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Detailed Description *</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                required
+                rows={5}
+                className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-gray-800 text-white placeholder-gray-500 focus:border-red-500/50 focus:outline-none transition-colors resize-none"
+                placeholder="Please describe the issue in detail. Include what happened, when it occurred, and any other relevant information."
+              />
+              <p className="text-xs text-gray-500 mt-2">Minimum 50 characters required</p>
+            </div>
 
-              {/* Terms Agreement */}
-              <div className="flex items-start gap-3">
+            {/* Evidence */}
+            <div className="form-section">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Supporting Evidence (Optional)</label>
+              <textarea
+                name="evidence"
+                value={formData.evidence}
+                onChange={handleInputChange}
+                rows={3}
+                className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-gray-800 text-white placeholder-gray-500 focus:border-red-500/50 focus:outline-none transition-colors resize-none"
+                placeholder="Paste any relevant URLs, screenshots links, or additional evidence here."
+              />
+            </div>
+
+            {/* Agreement */}
+            <div className="form-section">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  id="agreeToTerms"
                   name="agreeToTerms"
                   checked={formData.agreeToTerms}
                   onChange={handleInputChange}
-                  className="mt-1 w-4 h-4 accent-red-600 cursor-pointer"
+                  required
+                  className="mt-1 w-5 h-5 rounded border-gray-700 bg-gray-900 text-red-500 focus:ring-red-500/50"
                 />
-                <label htmlFor="agreeToTerms" className="text-sm text-neural-700 cursor-pointer flex-1">
-                  <span className="text-red-600 font-semibold">I acknowledge and agree</span> that I understand the legal disclaimer above and certify that the information I have provided in this report is true and accurate to the best of my knowledge. I understand the legal consequences of submitting false information. *
-                </label>
-              </div>
-              {errors.agreeToTerms && (
-                <p className="text-red-600 text-sm">{errors.agreeToTerms}</p>
-              )}
+                <span className="text-sm text-gray-400">
+                  I confirm that the information provided is accurate to the best of my knowledge. I understand that filing false reports may result in action against my account. I agree to the <Link href="/legal/terms-of-service" className="text-red-400 hover:underline">Terms of Service</Link> and <Link href="/legal/privacy-policy" className="text-red-400 hover:underline">Privacy Policy</Link>.
+                </span>
+              </label>
+            </div>
 
-              {/* Submit Button */}
+            {/* Submit Button */}
+            <div className="form-section">
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full px-6 py-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-bold rounded-lg transition-all transform hover:scale-105 disabled:scale-100 flex items-center justify-center gap-2"
+                disabled={isSubmitting || !formData.agreeToTerms}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 text-white font-bold text-lg hover:shadow-2xl hover:shadow-red-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Submitting Report...</span>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Submitting...
                   </>
                 ) : (
                   <>
-                    <AlertTriangle className="w-5 h-5" />
-                    <span>Submit Report</span>
+                    <Send className="w-5 h-5" />
+                    Submit Report
                   </>
                 )}
               </button>
+            </div>
+          </form>
 
-              <p className="text-center text-neural-500 text-sm">
-                Your report will be reviewed by our trust and safety team within 24-48 hours.
-              </p>
-            </form>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="section-padding">
-        <div className="container-custom max-w-3xl">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8 text-center">Frequently Asked Questions</h2>
-
-          <div className="space-y-4">
-            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
-                <span className="text-red-500 text-lg">+</span>
-                <span>Will my identity be kept confidential?</span>
-              </summary>
-              <p className="text-neural-600 mt-4">
-                Yes, we handle all reports confidentially. Your identity will only be shared with law enforcement if required by law, and only after thorough investigation. We keep reporter information strictly private.
-              </p>
-            </details>
-
-            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
-                <span className="text-red-500 text-lg">+</span>
-                <span>What happens after I submit a report?</span>
-              </summary>
-              <p className="text-neural-600 mt-4">
-                Our trust and safety team reviews each report within 24-48 hours. We investigate the details provided and may contact you for additional information if needed. Based on our findings, we take appropriate action which may include warnings, suspensions, or permanent bans.
-              </p>
-            </details>
-
-            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
-                <span className="text-red-500 text-lg">+</span>
-                <span>Can I report anonymously?</span>
-              </summary>
-              <p className="text-neural-600 mt-4">
-                Yes! You can select "Anonymous Report (No Follow-up Needed)" as your contact preference. However, providing your contact information helps us reach out if we need clarification or can provide you with updates on the investigation.
-              </p>
-            </details>
-
-            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
-                <span className="text-red-500 text-lg">+</span>
-                <span>What types of issues can I report?</span>
-              </summary>
-              <p className="text-neural-600 mt-4">
-                You can report inappropriate content, abuse/harassment, service misuse, security vulnerabilities, false information, scams, fraud, or any other policy violations. Please be as specific as possible about the issue you're reporting.
-              </p>
-            </details>
-
-            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
-                <span className="text-red-500 text-lg">+</span>
-                <span>What if I file a false report?</span>
-              </summary>
-              <p className="text-neural-600 mt-4">
-                Filing a false report is a serious matter. By submitting this form, you certify that your information is truthful. We take false reporting very seriously and may pursue legal action against individuals who knowingly file false reports or provide false information, including civil and criminal prosecution.
-              </p>
-            </details>
-
-            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
-                <span className="text-red-500 text-lg">+</span>
-                <span>How will you use my report information?</span>
-              </summary>
-              <p className="text-neural-600 mt-4">
-                Your report will be used solely for investigation and prevention purposes. We may share information with law enforcement if required by law and if the report involves illegal activity. Your personal information will not be shared with third parties without your consent, except as required by law.
-              </p>
-            </details>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section className="section-padding bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
-        <div className="container-custom max-w-3xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Need Additional Help?</h2>
-          <p className="text-blue-100 mb-8">
-            If you prefer to contact our trust and safety team directly, please reach out to us.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="/support/contact-us"
-              className="px-8 py-3 bg-white hover:bg-neural-100 text-blue-600 font-semibold rounded-lg transition-all transform hover:scale-105"
-            >
-              Contact Us
-            </a>
-            <a
-              href="/legal/privacy-policy"
-              className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all transform hover:scale-105 border border-white/30"
-            >
-              Privacy Policy
-            </a>
+          {/* Legal Disclaimer */}
+          <div className="mt-12 p-6 rounded-2xl bg-gray-900/50 border border-gray-800">
+            <div className="flex items-start gap-4">
+              <AlertCircle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Legal Disclaimer</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  This reporting system is for platform-related issues only. For emergencies or immediate safety concerns, please contact local authorities. Filing false or malicious reports may result in account suspension. All reports are confidential and will be handled according to our privacy policy.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

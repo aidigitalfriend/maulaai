@@ -20,6 +20,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { AnalyticsData } from '@/models/analytics';
 import AdvancedCharts from '@/components/AdvancedCharts';
 import { exportAnalyticsToPDF } from '@/lib/pdfExport';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 
 export const dynamic = 'force-dynamic';
 
@@ -56,11 +59,11 @@ const formatTimestamp = (value: string) => {
 };
 
 const statusColorMap: Record<string, string> = {
-  success: 'bg-green-50 text-green-700 border-green-100',
-  completed: 'bg-green-50 text-green-700 border-green-100',
-  warning: 'bg-yellow-50 text-yellow-700 border-yellow-100',
-  failed: 'bg-red-50 text-red-600 border-red-100',
-  error: 'bg-red-50 text-red-600 border-red-100',
+  success: 'bg-green-900/20 text-green-400 border-green-500/30',
+  completed: 'bg-green-900/20 text-green-400 border-green-500/30',
+  warning: 'bg-yellow-900/20 text-yellow-400 border-yellow-500/30',
+  failed: 'bg-red-900/20 text-red-600 border-red-500/30',
+  error: 'bg-red-900/20 text-red-600 border-red-500/30',
 };
 
 export default function DashboardAnalyticsPage() {
@@ -217,10 +220,10 @@ export default function DashboardAnalyticsPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-            <p className="text-neural-600">Loading analytics...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading analytics...</p>
           </div>
         </div>
       </ProtectedRoute>
@@ -230,12 +233,12 @@ export default function DashboardAnalyticsPage() {
   if (!analyticsData) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center px-4">
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center px-4">
           <div className="max-w-lg text-center">
-            <h2 className="text-2xl font-semibold text-neural-900 mb-3">
+            <h2 className="text-2xl font-semibold text-white mb-3">
               {error || 'We could not load your analytics.'}
             </h2>
-            <p className="text-neural-600 mb-6">
+            <p className="text-gray-400 mb-6">
               Please verify your session is active and refresh to try again.
             </p>
             <button
@@ -255,9 +258,9 @@ export default function DashboardAnalyticsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
         {/* Hero Section */}
-        <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+        <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
           {/* Decorative Pattern */}
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -270,11 +273,11 @@ export default function DashboardAnalyticsPage() {
             </svg>
           </div>
           <div className="container-custom text-center relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
               <Activity className="w-10 h-10" />
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Analytics & Insights</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-4">
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-4">
               Real-time visibility into usage, performance, and costs
             </p>
             {lastUpdated && (
@@ -289,7 +292,7 @@ export default function DashboardAnalyticsPage() {
             <div className="flex flex-wrap items-center justify-center gap-3">
               <button
                 onClick={handleExportPDF}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
                 disabled={!analyticsData}
               >
                 <Download className="w-4 h-4" />
@@ -297,7 +300,7 @@ export default function DashboardAnalyticsPage() {
               </button>
               <button
                 onClick={() => fetchAnalytics()}
-                className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
                 disabled={isRefreshing}
               >
                 <RefreshCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -305,7 +308,7 @@ export default function DashboardAnalyticsPage() {
               </button>
               <Link
                 href="/dashboard"
-                className="inline-flex items-center bg-white text-brand-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition-all shadow-lg"
+                className="inline-flex items-center bg-white/5 text-purple-500 px-6 py-2 rounded-lg font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
               >
                 Back to Dashboard
               </Link>
@@ -314,15 +317,15 @@ export default function DashboardAnalyticsPage() {
         </section>
 
         {error && (
-          <section className="py-4 px-4 bg-yellow-50 border-b border-yellow-200">
+          <section className="py-4 px-4 bg-yellow-900/20 border-b border-yellow-200">
             <div className="container-custom">
               <p className="font-medium text-yellow-800">Live data warning</p>
-              <p className="text-sm mt-1 text-yellow-700">{error}</p>
+              <p className="text-sm mt-1 text-yellow-400">{error}</p>
             </div>
           </section>
         )}
 
-        <section className="py-12 px-4 bg-gray-50">
+        <section className="py-12 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
           <div className="container-custom space-y-10">
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
               {metricCards.map((metric, index) => (
@@ -331,13 +334,13 @@ export default function DashboardAnalyticsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="p-6 bg-white rounded-2xl border border-neural-200 shadow-sm"
+                  className="p-6 bg-white/5 rounded-2xl border border-white/10 shadow-sm"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-neural-500">{metric.label}</p>
-                    <metric.icon className="w-5 h-5 text-brand-500" />
+                    <p className="text-sm text-gray-500">{metric.label}</p>
+                    <metric.icon className="w-5 h-5 text-purple-400" />
                   </div>
-                  <p className="text-3xl font-bold text-neural-900">
+                  <p className="text-3xl font-bold text-white">
                     {metric.value}
                   </p>
                   <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
@@ -349,11 +352,11 @@ export default function DashboardAnalyticsPage() {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 bg-white rounded-3xl border border-neural-200 p-6">
+              <div className="lg:col-span-2 bg-white/5 rounded-3xl border border-white/10 p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-neural-500">Usage overview</p>
-                    <h3 className="text-xl font-semibold text-neural-900">
+                    <p className="text-sm text-gray-500">Usage overview</p>
+                    <h3 className="text-xl font-semibold text-white">
                       Last 7 days traffic
                     </h3>
                   </div>
@@ -372,16 +375,16 @@ export default function DashboardAnalyticsPage() {
                     );
                     return (
                       <div key={day.date} className="flex-1">
-                        <div className="w-full h-40 bg-neural-100/70 rounded-2xl relative overflow-hidden">
+                        <div className="w-full h-40 bg-[#13131a]100/70 rounded-2xl relative overflow-hidden">
                           <div
                             className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-600 via-brand-500 to-brand-400"
                             style={{ height: `${height}%` }}
                           ></div>
                         </div>
-                        <p className="mt-3 text-xs font-medium text-neural-600 text-center">
+                        <p className="mt-3 text-xs font-medium text-gray-400 text-center">
                           {formatDateLabel(day.date)}
                         </p>
-                        <p className="text-xs text-neural-500 text-center">
+                        <p className="text-xs text-gray-500 text-center">
                           {total.toLocaleString()} events
                         </p>
                       </div>
@@ -390,53 +393,53 @@ export default function DashboardAnalyticsPage() {
                 </div>
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <p className="text-neural-500">Conversations</p>
-                    <p className="text-lg font-semibold text-neural-900">
+                    <p className="text-gray-500">Conversations</p>
+                    <p className="text-lg font-semibold text-white">
                       {(analyticsData?.usage?.conversations?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-neural-500">Messages</p>
-                    <p className="text-lg font-semibold text-neural-900">
+                    <p className="text-gray-500">Messages</p>
+                    <p className="text-lg font-semibold text-white">
                       {(analyticsData?.usage?.messages?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-neural-500">API Calls</p>
-                    <p className="text-lg font-semibold text-neural-900">
+                    <p className="text-gray-500">API Calls</p>
+                    <p className="text-lg font-semibold text-white">
                       {(analyticsData?.usage?.apiCalls?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-neural-500">Total messages (30d)</p>
-                    <p className="text-lg font-semibold text-neural-900">
+                    <p className="text-gray-500">Total messages (30d)</p>
+                    <p className="text-lg font-semibold text-white">
                       {(totalMessages ?? 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl border border-neural-200 p-6">
+              <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm text-neural-500">Cost analysis</p>
-                    <h3 className="text-xl font-semibold text-neural-900">
+                    <p className="text-sm text-gray-500">Cost analysis</p>
+                    <h3 className="text-xl font-semibold text-white">
                       Spend overview
                     </h3>
                   </div>
-                  <DollarSign className="w-5 h-5 text-brand-500" />
+                  <DollarSign className="w-5 h-5 text-purple-400" />
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-xs uppercase text-neural-500">
+                    <p className="text-xs uppercase text-gray-500">
                       Current month
                     </p>
-                    <p className="text-3xl font-bold text-neural-900">
+                    <p className="text-3xl font-bold text-white">
                       {formatCurrency(analyticsData.costAnalysis.currentMonth)}
                     </p>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-neural-500">Projected spend</span>
+                    <span className="text-gray-500">Projected spend</span>
                     <span className="font-semibold">
                       {formatCurrency(
                         analyticsData.costAnalysis.projectedMonth
@@ -451,10 +454,10 @@ export default function DashboardAnalyticsPage() {
                       className="flex items-center justify-between text-sm"
                     >
                       <div>
-                        <p className="font-medium text-neural-900">
+                        <p className="font-medium text-white">
                           {item.category}
                         </p>
-                        <p className="text-neural-500">
+                        <p className="text-gray-500">
                           {item.percentage}% of spend
                         </p>
                       </div>
@@ -464,7 +467,7 @@ export default function DashboardAnalyticsPage() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-6 text-xs text-neural-500 flex items-center gap-2">
+                <p className="mt-6 text-xs text-gray-500 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Billing data updates hourly
                 </p>
@@ -472,11 +475,11 @@ export default function DashboardAnalyticsPage() {
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-3xl border border-neural-200 p-6">
+              <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm text-neural-500">Team performance</p>
-                    <h3 className="text-xl font-semibold text-neural-900">
+                    <p className="text-sm text-gray-500">Team performance</p>
+                    <h3 className="text-xl font-semibold text-white">
                       Agent response quality
                     </h3>
                   </div>
@@ -487,7 +490,7 @@ export default function DashboardAnalyticsPage() {
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead>
-                      <tr className="text-neural-500">
+                      <tr className="text-gray-500">
                         <th className="py-3 text-left font-medium">Agent</th>
                         <th className="py-3 text-left font-medium">
                           Conversations
@@ -502,27 +505,27 @@ export default function DashboardAnalyticsPage() {
                       {analyticsData.agentPerformance.map((agent) => (
                         <tr
                           key={agent.name}
-                          className="border-t border-neural-100"
+                          className="border-t border-white/10"
                         >
                           <td className="py-3">
-                            <p className="font-medium text-neural-900">
+                            <p className="font-medium text-white">
                               {agent.name || 'Unknown Agent'}
                             </p>
-                            <p className="text-xs text-neural-500">
+                            <p className="text-xs text-gray-500">
                               {(agent.messages ?? 0).toLocaleString()} messages
                             </p>
                           </td>
-                          <td className="py-3 text-neural-900">
+                          <td className="py-3 text-white">
                             {(agent.conversations ?? 0).toLocaleString()}
                           </td>
-                          <td className="py-3 text-neural-900">
+                          <td className="py-3 text-white">
                             {((agent.avgResponseTime ?? 0) / 1000).toFixed(1)}s
                           </td>
                           <td className="py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-24 h-2 bg-neural-200 rounded-full overflow-hidden">
+                              <div className="w-24 h-2 bg-[#13131a]200 rounded-full overflow-hidden">
                                 <div
-                                  className="h-2 bg-brand-500"
+                                  className="h-2 bg-purple-900/200"
                                   style={{
                                     width: `${Math.min(
                                       100,
@@ -531,7 +534,7 @@ export default function DashboardAnalyticsPage() {
                                   }}
                                 ></div>
                               </div>
-                              <span className="text-sm font-semibold text-neural-900">
+                              <span className="text-sm font-semibold text-white">
                                 {agent.successRate.toFixed(1)}%
                               </span>
                             </div>
@@ -543,15 +546,15 @@ export default function DashboardAnalyticsPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-3xl border border-neural-200 p-6">
+              <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm text-neural-500">Latest activity</p>
-                    <h3 className="text-xl font-semibold text-neural-900">
+                    <p className="text-sm text-gray-500">Latest activity</p>
+                    <h3 className="text-xl font-semibold text-white">
                       Audit trail
                     </h3>
                   </div>
-                  <TrendingDown className="w-5 h-5 text-brand-500" />
+                  <TrendingDown className="w-5 h-5 text-purple-400" />
                 </div>
                 <ul className="space-y-4">
                   {analyticsData.recentActivity.length > 0 ? (
@@ -561,17 +564,17 @@ export default function DashboardAnalyticsPage() {
                       : '';
                     const badgeClass =
                       statusColorMap[statusKey] ||
-                      'bg-neural-100 text-neural-600 border-neural-200';
+                      'bg-[#13131a]100 text-gray-400 border-white/10';
                     return (
                       <li
                         key={`${activity.timestamp}-${activity.agent}`}
-                        className="flex items-start justify-between gap-4 border-b border-neural-100 pb-4 last:border-b-0 last:pb-0"
+                        className="flex items-start justify-between gap-4 border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
                       >
                         <div>
-                          <p className="font-medium text-neural-900">
+                          <p className="font-medium text-white">
                             {activity.action}
                           </p>
-                          <p className="text-sm text-neural-500">
+                          <p className="text-sm text-gray-500">
                             {activity.agent}
                           </p>
                         </div>
@@ -581,7 +584,7 @@ export default function DashboardAnalyticsPage() {
                           >
                             {activity.status}
                           </span>
-                          <p className="text-xs text-neural-500 mt-2">
+                          <p className="text-xs text-gray-500 mt-2">
                             {formatTimestamp(activity.timestamp)}
                           </p>
                         </div>
@@ -590,11 +593,11 @@ export default function DashboardAnalyticsPage() {
                   })
                   ) : (
                     <li className="text-center py-8">
-                      <div className="text-neural-400 mb-2">
+                      <div className="text-gray-400 mb-2">
                         <Activity className="w-12 h-12 mx-auto opacity-50" />
                       </div>
-                      <p className="text-neural-500 font-medium">No recent activity</p>
-                      <p className="text-sm text-neural-400 mt-1">
+                      <p className="text-gray-500 font-medium">No recent activity</p>
+                      <p className="text-sm text-gray-400 mt-1">
                         Start chatting with AI agents to see your activity here
                       </p>
                     </li>
@@ -607,10 +610,10 @@ export default function DashboardAnalyticsPage() {
             <div className="mt-12">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-neural-900">
+                  <h2 className="text-2xl font-bold text-white">
                     Advanced Analytics
                   </h2>
-                  <p className="text-neural-600">
+                  <p className="text-gray-400">
                     Interactive charts and detailed insights
                   </p>
                 </div>

@@ -9,6 +9,9 @@ import {
   SparklesIcon,
   ChartBarIcon,
 } from '@heroicons/react/24/outline';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 
 export default function RewardsCenterPage() {
   const { state } = useAuth();
@@ -49,10 +52,10 @@ export default function RewardsCenterPage() {
   // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
-          <p className="text-neural-600">Loading your rewards...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading your rewards...</p>
         </div>
       </div>
     );
@@ -74,9 +77,9 @@ export default function RewardsCenterPage() {
       : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
         {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -89,16 +92,16 @@ export default function RewardsCenterPage() {
           </svg>
         </div>
         <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
             <TrophyIcon className="w-10 h-10" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">My Rewards</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
             Track your progress, earn rewards, and unlock achievements
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+            className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
           >
             Back to Dashboard
           </Link>
@@ -106,19 +109,19 @@ export default function RewardsCenterPage() {
       </section>
 
       {/* Rewards Content */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
         <div className="container-custom max-w-6xl">
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white">
               <div className="flex items-center justify-between mb-4">
                 <TrophyIcon className="w-8 h-8" />
                 <span className="text-2xl font-bold">Lv.{currentLevel}</span>
               </div>
               <h3 className="text-lg font-semibold mb-2">Current Level</h3>
-              <div className="w-full bg-white/20 rounded-full h-2 mb-2">
+              <div className="w-full bg-white/10 rounded-full h-2 mb-2">
                 <div
-                  className="bg-white rounded-full h-2 transition-all duration-300"
+                  className="bg-white/5 rounded-full h-2 transition-all duration-300"
                   style={{ width: `${levelProgress}%` }}
                 ></div>
               </div>
@@ -127,56 +130,56 @@ export default function RewardsCenterPage() {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-neural-100">
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
               <div className="flex items-center justify-between mb-4">
                 <StarIcon className="w-8 h-8 text-yellow-500" />
-                <span className="text-2xl font-bold text-neural-900">
+                <span className="text-2xl font-bold text-white">
                   {totalPoints.toLocaleString()}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-neural-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 Total Points
               </h3>
-              <p className="text-sm text-neural-600">Lifetime points earned</p>
+              <p className="text-sm text-gray-400">Lifetime points earned</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-neural-100">
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
               <div className="flex items-center justify-between mb-4">
                 <SparklesIcon className="w-8 h-8 text-purple-500" />
-                <span className="text-2xl font-bold text-neural-900">
+                <span className="text-2xl font-bold text-white">
                   {badgesEarned}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-neural-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 Badges Earned
               </h3>
-              <p className="text-sm text-neural-600">
+              <p className="text-sm text-gray-400">
                 Out of {totalBadges} available
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-neural-100">
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
               <div className="flex items-center justify-between mb-4">
                 <ChartBarIcon className="w-8 h-8 text-green-500" />
-                <span className="text-2xl font-bold text-neural-900">
+                <span className="text-2xl font-bold text-white">
                   #{leaderboardRank}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-neural-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 Leaderboard
               </h3>
-              <p className="text-sm text-neural-600">Current ranking</p>
+              <p className="text-sm text-gray-400">Current ranking</p>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex space-x-1 p-1 bg-neural-100 rounded-xl mb-8">
+          <div className="flex space-x-1 p-1 bg-[#13131a]100 rounded-xl mb-8">
             <button
               onClick={() => setActiveTab('overview')}
               className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg font-medium transition-colors ${
                 activeTab === 'overview'
-                  ? 'bg-white text-brand-600 shadow-sm'
-                  : 'text-neural-600 hover:text-neural-900'
+                  ? 'bg-white/5 text-purple-500 shadow-sm'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               <ChartBarIcon className="w-4 h-4 mr-2" />
@@ -186,8 +189,8 @@ export default function RewardsCenterPage() {
               onClick={() => setActiveTab('badges')}
               className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg font-medium transition-colors ${
                 activeTab === 'badges'
-                  ? 'bg-white text-brand-600 shadow-sm'
-                  : 'text-neural-600 hover:text-neural-900'
+                  ? 'bg-white/5 text-purple-500 shadow-sm'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               <SparklesIcon className="w-4 h-4 mr-2" />
@@ -198,8 +201,8 @@ export default function RewardsCenterPage() {
           {/* Tab Content */}
           <div className="space-y-8">
             {activeTab === 'overview' && (
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-                <h3 className="text-xl font-semibold text-neural-900 mb-6">
+              <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+                <h3 className="text-xl font-semibold text-white mb-6">
                   Recent Activity
                 </h3>
                 <div className="space-y-4">
@@ -210,24 +213,24 @@ export default function RewardsCenterPage() {
                       .map((reward, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-4 bg-neural-50 rounded-lg"
+                          className="flex items-center justify-between p-4 bg-[#0a0a0f] rounded-lg"
                         >
                           <div className="flex items-center">
-                            <div className="p-2 bg-purple-100 text-purple-600 rounded-lg mr-4">
+                            <div className="p-2 bg-purple-900/30 text-purple-600 rounded-lg mr-4">
                               <SparklesIcon className="w-4 h-4" />
                             </div>
                             <div>
-                              <h4 className="font-medium text-neural-900">
+                              <h4 className="font-medium text-white">
                                 {reward.title}
                               </h4>
-                              <p className="text-sm text-neural-600">
+                              <p className="text-sm text-gray-400">
                                 {reward.date
                                   ? new Date(reward.date).toLocaleDateString()
                                   : 'Recently'}
                               </p>
                             </div>
                           </div>
-                          <span className="font-semibold text-brand-600">
+                          <span className="font-semibold text-purple-500">
                             +{reward.points}
                           </span>
                         </div>
@@ -246,22 +249,22 @@ export default function RewardsCenterPage() {
                 {/* Show available badges */}
                 {rewardsData?.badges && rewardsData.badges.length > 0 && (
                   <div className="mt-8">
-                    <h4 className="text-lg font-semibold text-neural-900 mb-4">
+                    <h4 className="text-lg font-semibold text-white mb-4">
                       Your Badges
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {rewardsData.badges.map((badge, index) => (
                         <div
                           key={index}
-                          className="text-center p-4 bg-neural-50 rounded-lg"
+                          className="text-center p-4 bg-[#0a0a0f] rounded-lg"
                         >
                           <div className="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-full mx-auto mb-2 flex items-center justify-center">
                             <SparklesIcon className="w-6 h-6 text-white" />
                           </div>
-                          <h5 className="font-medium text-neural-900 text-sm">
+                          <h5 className="font-medium text-white text-sm">
                             {badge.name}
                           </h5>
-                          <p className="text-xs text-neural-600 mt-1">
+                          <p className="text-xs text-gray-400 mt-1">
                             {badge.description}
                           </p>
                         </div>
@@ -274,26 +277,26 @@ export default function RewardsCenterPage() {
 
             {activeTab !== 'overview' && (
               <div className="text-center py-16">
-                <div className="bg-white rounded-2xl p-12 shadow-sm border border-neural-100 max-w-2xl mx-auto">
-                  <div className="w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <SparklesIcon className="w-10 h-10 text-brand-500" />
+                <div className="bg-white/5 rounded-2xl p-12 border border-white/10 max-w-2xl mx-auto">
+                  <div className="w-20 h-20 bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <SparklesIcon className="w-10 h-10 text-purple-400" />
                   </div>
-                  <h3 className="text-2xl font-bold text-neural-900 mb-4">
+                  <h3 className="text-2xl font-bold text-white mb-4">
                     Coming Soon!
                   </h3>
-                  <p className="text-neural-600 mb-6">
+                  <p className="text-gray-400 mb-6">
                     We're working hard to bring you an amazing {activeTab}{' '}
                     experience. Stay tuned for exciting updates!
                   </p>
                   <div className="flex items-center justify-center space-x-4">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-purple-900/200 rounded-full animate-bounce"></div>
                       <div
-                        className="w-2 h-2 bg-brand-500 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-purple-900/200 rounded-full animate-bounce"
                         style={{ animationDelay: '0.1s' }}
                       ></div>
                       <div
-                        className="w-2 h-2 bg-brand-500 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-purple-900/200 rounded-full animate-bounce"
                         style={{ animationDelay: '0.2s' }}
                       ></div>
                     </div>

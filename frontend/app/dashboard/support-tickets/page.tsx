@@ -17,6 +17,9 @@ import {
   PlusIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 
 interface SupportTicket {
   ticketId: string;
@@ -58,7 +61,7 @@ const statusColors: Record<string, string> = {
   'waiting-customer': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
   'waiting-internal': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   'resolved': 'bg-green-500/20 text-green-400 border-green-500/30',
-  'closed': 'bg-neural-500/20 text-neural-400 border-neural-500/30',
+  'closed': 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 };
 
 const statusLabels: Record<string, string> = {
@@ -71,7 +74,7 @@ const statusLabels: Record<string, string> = {
 };
 
 const priorityColors: Record<string, string> = {
-  'low': 'text-neural-400',
+  'low': 'text-gray-400',
   'medium': 'text-blue-400',
   'high': 'text-orange-400',
   'urgent': 'text-red-400',
@@ -304,10 +307,10 @@ export default function SupportTicketsPage() {
   if (!authState.isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 flex items-center justify-center p-4">
-        <div className="bg-neural-800 rounded-2xl p-8 border border-neural-700 text-center max-w-md">
+        <div className="bg-[#13131a]800 rounded-2xl p-8 border border-neural-700 text-center max-w-md">
           <TicketIcon className="w-16 h-16 mx-auto mb-4 text-brand-400" />
           <h1 className="text-2xl font-bold text-white mb-4">Support Tickets</h1>
-          <p className="text-neural-400 mb-6">Please log in to view your support tickets.</p>
+          <p className="text-gray-400 mb-6">Please log in to view your support tickets.</p>
           <Link href="/auth/login" className="btn-primary">
             Sign In
           </Link>
@@ -323,7 +326,7 @@ export default function SupportTicketsPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Support Tickets</h1>
-            <p className="text-neural-400">View and manage your support requests</p>
+            <p className="text-gray-400">View and manage your support requests</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -347,16 +350,16 @@ export default function SupportTicketsPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
           {[
-            { label: 'Total', value: counts.total, color: 'bg-neural-700' },
+            { label: 'Total', value: counts.total, color: 'bg-[#13131a]700' },
             { label: 'Open', value: counts.open, color: 'bg-blue-500/20' },
             { label: 'In Progress', value: counts['in-progress'], color: 'bg-yellow-500/20' },
             { label: 'Waiting', value: counts['waiting-customer'], color: 'bg-orange-500/20' },
             { label: 'Resolved', value: counts.resolved, color: 'bg-green-500/20' },
-            { label: 'Closed', value: counts.closed, color: 'bg-neural-600/50' },
+            { label: 'Closed', value: counts.closed, color: 'bg-[#13131a]600/50' },
           ].map((stat) => (
             <div key={stat.label} className={`${stat.color} rounded-xl p-4 border border-neural-700`}>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="text-sm text-neural-400">{stat.label}</div>
+              <div className="text-sm text-gray-400">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -364,21 +367,21 @@ export default function SupportTicketsPage() {
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neural-400" />
+            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search tickets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-neural-800 border border-neural-700 rounded-xl focus:outline-none focus:border-brand-500 text-white placeholder-neural-500"
+              className="w-full pl-10 pr-4 py-3 bg-[#13131a]800 border border-neural-700 rounded-xl focus:outline-none focus:border-purple-500 text-white placeholder-neural-500"
             />
           </div>
           <div className="flex items-center gap-2">
-            <FunnelIcon className="w-5 h-5 text-neural-400" />
+            <FunnelIcon className="w-5 h-5 text-gray-400" />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="bg-neural-800 border border-neural-700 rounded-xl px-4 py-3 focus:outline-none focus:border-brand-500 text-white"
+              className="bg-[#13131a]800 border border-neural-700 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 text-white"
             >
               <option value="all">All Tickets</option>
               <option value="open">Open</option>
@@ -395,9 +398,9 @@ export default function SupportTicketsPage() {
           {/* Tickets List */}
           <div className="lg:col-span-1 space-y-3">
             {isLoading ? (
-              <div className="bg-neural-800 rounded-xl p-8 text-center border border-neural-700">
+              <div className="bg-[#13131a]800 rounded-xl p-8 text-center border border-neural-700">
                 <ArrowPathIcon className="w-8 h-8 mx-auto animate-spin text-brand-400 mb-4" />
-                <p className="text-neural-400">Loading tickets...</p>
+                <p className="text-gray-400">Loading tickets...</p>
               </div>
             ) : error ? (
               <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-6 text-center">
@@ -408,10 +411,10 @@ export default function SupportTicketsPage() {
                 </button>
               </div>
             ) : filteredTickets.length === 0 ? (
-              <div className="bg-neural-800 rounded-xl p-8 text-center border border-neural-700">
-                <TicketIcon className="w-12 h-12 mx-auto text-neural-600 mb-4" />
+              <div className="bg-[#13131a]800 rounded-xl p-8 text-center border border-neural-700">
+                <TicketIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Tickets Found</h3>
-                <p className="text-neural-400 mb-6">
+                <p className="text-gray-400 mb-6">
                   {filter !== 'all'
                     ? `No ${statusLabels[filter]?.toLowerCase() || filter} tickets.`
                     : "You haven't created any support tickets yet."}
@@ -425,14 +428,14 @@ export default function SupportTicketsPage() {
                 <button
                   key={ticket.ticketId}
                   onClick={() => setSelectedTicket(ticket)}
-                  className={`w-full text-left bg-neural-800 rounded-xl p-4 border transition-all hover:border-brand-500/50 ${
+                  className={`w-full text-left bg-[#13131a]800 rounded-xl p-4 border transition-all hover:border-purple-500/50 ${
                     selectedTicket?.ticketId === ticket.ticketId
-                      ? 'border-brand-500'
+                      ? 'border-purple-500'
                       : 'border-neural-700'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className="text-xs font-mono text-neural-500">
+                    <span className="text-xs font-mono text-gray-500">
                       #{ticket.ticketNumber}
                     </span>
                     <span
@@ -444,7 +447,7 @@ export default function SupportTicketsPage() {
                   <h3 className="font-medium text-white mb-2 line-clamp-2">
                     {ticket.subject}
                   </h3>
-                  <div className="flex items-center justify-between text-xs text-neural-400">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
                     <span>{categoryLabels[ticket.category] || ticket.category}</span>
                     <span>{formatDate(ticket.createdAt)}</span>
                   </div>
@@ -468,12 +471,12 @@ export default function SupportTicketsPage() {
           {/* Ticket Detail */}
           <div className="lg:col-span-2">
             {selectedTicket && ticketDetail ? (
-              <div className="bg-neural-800 rounded-xl border border-neural-700 overflow-hidden">
+              <div className="bg-[#13131a]800 rounded-xl border border-neural-700 overflow-hidden">
                 {/* Ticket Header */}
                 <div className="p-6 border-b border-neural-700">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <span className="text-sm font-mono text-neural-500">
+                      <span className="text-sm font-mono text-gray-500">
                         Ticket #{ticketDetail.ticketNumber}
                       </span>
                       <h2 className="text-xl font-bold mt-1">{ticketDetail.subject}</h2>
@@ -484,7 +487,7 @@ export default function SupportTicketsPage() {
                       {statusLabels[ticketDetail.status]}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-4 text-sm text-neural-400">
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-400">
                     <span>{categoryLabels[ticketDetail.category]}</span>
                     <span className={priorityColors[ticketDetail.priority]}>
                       {ticketDetail.priority.charAt(0).toUpperCase() + ticketDetail.priority.slice(1)} Priority
@@ -500,12 +503,12 @@ export default function SupportTicketsPage() {
                       key={idx}
                       className={`p-4 rounded-xl ${
                         msg.sender === 'customer'
-                          ? 'bg-brand-600/20 border border-brand-500/30 ml-8'
+                          ? 'bg-purple-600/20 border border-purple-500/30 ml-8'
                           : msg.sender === 'support'
                           ? 'bg-green-600/20 border border-green-500/30 mr-8'
                           : msg.sender === 'ai'
                           ? 'bg-purple-600/20 border border-purple-500/30 mr-8'
-                          : 'bg-neural-700 border border-neural-600'
+                          : 'bg-[#13131a]700 border border-neural-600'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -518,11 +521,11 @@ export default function SupportTicketsPage() {
                             ? '🤖 AI Assistant'
                             : 'System'}
                         </span>
-                        <span className="text-xs text-neural-500">
+                        <span className="text-xs text-gray-500">
                           {new Date(msg.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-neural-200 whitespace-pre-wrap">{msg.message}</p>
+                      <p className="text-gray-200 whitespace-pre-wrap">{msg.message}</p>
                     </div>
                   ))}
                 </div>
@@ -537,7 +540,7 @@ export default function SupportTicketsPage() {
                         onChange={(e) => setReplyText(e.target.value)}
                         placeholder="Type your reply..."
                         rows={3}
-                        className="w-full p-3 bg-neural-900 border border-neural-700 rounded-xl focus:outline-none focus:border-brand-500 text-white placeholder-neural-500 resize-none"
+                        className="w-full p-3 bg-[#13131a]900 border border-neural-700 rounded-xl focus:outline-none focus:border-purple-500 text-white placeholder-neural-500 resize-none"
                       />
                       <div className="flex items-center justify-between">
                         <button
@@ -564,8 +567,8 @@ export default function SupportTicketsPage() {
 
                   {/* Rating (for resolved tickets) */}
                   {ticketDetail.status === 'resolved' && !ticketDetail.satisfaction?.rating && (
-                    <div className="bg-neural-700/50 rounded-xl p-4">
-                      <p className="text-sm text-neural-300 mb-3">
+                    <div className="bg-[#13131a]700/50 rounded-xl p-4">
+                      <p className="text-sm text-gray-300 mb-3">
                         How was your support experience?
                       </p>
                       <div className="flex items-center gap-2">
@@ -578,7 +581,7 @@ export default function SupportTicketsPage() {
                             {ratingValue >= star ? (
                               <StarIconSolid className="w-8 h-8 text-yellow-400" />
                             ) : (
-                              <StarIcon className="w-8 h-8 text-neural-500 hover:text-yellow-400" />
+                              <StarIcon className="w-8 h-8 text-gray-500 hover:text-yellow-400" />
                             )}
                           </button>
                         ))}
@@ -597,7 +600,7 @@ export default function SupportTicketsPage() {
                             className={`w-6 h-6 ${
                               star <= ticketDetail.satisfaction.rating
                                 ? 'text-yellow-400'
-                                : 'text-neural-600'
+                                : 'text-gray-400'
                             }`}
                           />
                         ))}
@@ -607,10 +610,10 @@ export default function SupportTicketsPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-neural-800 rounded-xl border border-neural-700 p-12 text-center">
-                <ChatBubbleLeftRightIcon className="w-16 h-16 mx-auto text-neural-600 mb-4" />
+              <div className="bg-[#13131a]800 rounded-xl border border-neural-700 p-12 text-center">
+                <ChatBubbleLeftRightIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Select a Ticket</h3>
-                <p className="text-neural-400">
+                <p className="text-gray-400">
                   Click on a ticket from the list to view details and respond.
                 </p>
               </div>

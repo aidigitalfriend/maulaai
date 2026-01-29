@@ -86,6 +86,7 @@ export default function Footer() {
     { name: 'Agents', href: '/agents' },
     { name: 'AI Studio', href: '/studio' },
     { name: 'AI Lab', href: '/lab' },
+    { name: 'Industries', href: '/industries' },
     { name: 'Pricing', href: '/pricing/overview' },
     { name: 'Dashboard', href: '/dashboard/overview' },
     { name: 'Documentation', href: '/docs' },

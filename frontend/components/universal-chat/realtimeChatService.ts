@@ -2,7 +2,7 @@
 const API_BASE =
   process.env.NODE_ENV === 'production'
     ? 'https://onelastai.co/api'
-    : 'http://localhost:3000/api';
+    : '/api';  // Use relative path for local dev to avoid port issues
 
 export interface ChatMessage {
   id: string;

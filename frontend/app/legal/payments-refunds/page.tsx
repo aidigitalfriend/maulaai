@@ -1,828 +1,634 @@
 'use client';
 
-import { useState } from 'react';
-import { X, DollarSign, CreditCard, Shield, AlertCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, ScrollTrigger, SplitText, ScrambleTextPlugin, Flip, Observer, CustomWiggle, CustomEase, DrawSVGPlugin, MotionPathPlugin, Draggable } from '@/lib/gsap';
+import Link from 'next/link';
+import { CreditCard, DollarSign, RefreshCcw, Clock, Shield, AlertTriangle, CheckCircle, ArrowLeft, ChevronDown, ChevronRight, Wallet, Ban, Zap, Calendar, XCircle, HelpCircle } from 'lucide-react';
 
 export default function PaymentsRefundsPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+
+  const pricingTiers = [
+    { duration: '1 Day', price: '$1', perDay: '$1/day', color: 'cyan', popular: false },
+    { duration: '1 Week', price: '$5', perDay: '$0.71/day', color: 'purple', popular: true },
+    { duration: '1 Month', price: '$15', perDay: '$0.50/day', color: 'emerald', popular: false },
+  ];
+
+  const sections = [
+    {
+      id: 'pricing',
+      icon: DollarSign,
+      title: 'Pricing Structure',
+      color: 'emerald',
+      content: [
+        {
+          subtitle: 'Per-Agent Pricing',
+          text: 'Each AI agent is priced individually. You pay only for the agents you want to access, with no bundled packages or hidden fees.'
+        },
+        {
+          subtitle: 'Access Durations',
+          text: 'Choose from daily ($1), weekly ($5), or monthly ($15) access for any agent. The longer your access period, the more you save per day.'
+        },
+        {
+          subtitle: 'One-Time Purchase',
+          text: 'All purchases are one-time. There are no automatic renewals, subscriptions, or recurring charges. You buy access only when you want it.'
+        },
+        {
+          subtitle: 'Multiple Agents',
+          text: 'You can purchase access to multiple agents simultaneously. Each agent purchase is independent and tracked separately.'
+        }
+      ]
+    },
+    {
+      id: 'payment-methods',
+      icon: CreditCard,
+      title: 'Payment Methods',
+      color: 'blue',
+      content: [
+        {
+          subtitle: 'Credit & Debit Cards',
+          text: 'We accept all major credit and debit cards including Visa, Mastercard, American Express, and Discover through our secure payment processor.'
+        },
+        {
+          subtitle: 'Digital Wallets',
+          text: 'Pay conveniently with Apple Pay, Google Pay, or other supported digital wallet services for faster checkout.'
+        },
+        {
+          subtitle: 'Payment Security',
+          text: 'All transactions are processed through Stripe, a PCI-DSS Level 1 certified payment processor. We never store your full card details.'
+        },
+        {
+          subtitle: 'Currency',
+          text: 'All prices are displayed and charged in USD. Your bank may apply currency conversion fees for non-USD payments.'
+        }
+      ]
+    },
+    {
+      id: 'access-duration',
+      icon: Clock,
+      title: 'Access Duration & Expiration',
+      color: 'purple',
+      content: [
+        {
+          subtitle: 'Start Time',
+          text: 'Your access period begins immediately upon successful payment. You can start using the agent right away.'
+        },
+        {
+          subtitle: 'Expiration',
+          text: 'Access expires automatically at the end of your purchased period. You will receive a notification 24 hours before expiration.'
+        },
+        {
+          subtitle: 'No Auto-Renewal',
+          text: 'Your access will not automatically renew. To continue using an agent after expiration, you must make a new purchase.'
+        },
+        {
+          subtitle: 'Access History',
+          text: 'View your complete purchase and access history in your account dashboard, including current and past agent access periods.'
+        }
+      ]
+    },
+    {
+      id: 'refund-policy',
+      icon: RefreshCcw,
+      title: 'Refund Policy',
+      color: 'amber',
+      content: [
+        {
+          subtitle: 'General Policy',
+          text: 'Due to the instant-access nature of our digital services, all purchases are final and non-refundable once access has been granted.'
+        },
+        {
+          subtitle: 'Technical Issues',
+          text: 'If you experience technical issues that prevent you from accessing your purchased agent, contact support within 24 hours for assistance or potential credit.'
+        },
+        {
+          subtitle: 'Duplicate Purchases',
+          text: 'If you accidentally make a duplicate purchase for the same agent and period, contact us within 24 hours for a refund of the duplicate charge.'
+        },
+        {
+          subtitle: 'Service Credits',
+          text: 'In lieu of refunds, we may offer service credits for future purchases in cases of significant service disruptions or documented issues.'
+        }
+      ]
+    },
+    {
+      id: 'cancellation',
+      icon: XCircle,
+      title: 'Cancellation',
+      color: 'rose',
+      content: [
+        {
+          subtitle: 'No Cancellation Needed',
+          text: 'Since all purchases are one-time with no auto-renewal, there is nothing to cancel. Your access simply expires at the end of your paid period.'
+        },
+        {
+          subtitle: 'Early Termination',
+          text: 'If you wish to stop using an agent before your access expires, you may do so at any time. However, no partial refunds are provided for unused time.'
+        },
+        {
+          subtitle: 'Account Deletion',
+          text: 'If you delete your account while you have active agent access, your remaining access time will be forfeited without refund.'
+        },
+        {
+          subtitle: 'Violation Termination',
+          text: 'If your access is terminated due to Terms of Service violations, no refund will be provided for any remaining access time.'
+        }
+      ]
+    },
+    {
+      id: 'billing-issues',
+      icon: AlertTriangle,
+      title: 'Billing Issues & Support',
+      color: 'red',
+      content: [
+        {
+          subtitle: 'Failed Payments',
+          text: 'If your payment fails, no access will be granted. You can retry the payment or use a different payment method.'
+        },
+        {
+          subtitle: 'Disputed Charges',
+          text: 'If you believe you were charged incorrectly, contact our billing support before initiating a chargeback with your bank.'
+        },
+        {
+          subtitle: 'Receipts & Invoices',
+          text: 'A receipt is sent to your email after every successful purchase. You can also download receipts from your account dashboard.'
+        },
+        {
+          subtitle: 'Support Contact',
+          text: 'For billing questions or issues, email billing@maula.ai or use our in-app support chat. We typically respond within 24 hours.'
+        }
+      ]
+    },
+    {
+      id: 'promotions',
+      icon: Zap,
+      title: 'Promotions & Discounts',
+      color: 'cyan',
+      content: [
+        {
+          subtitle: 'Promotional Codes',
+          text: 'We occasionally offer promotional codes for discounts. Enter codes at checkout. Codes cannot be applied after purchase.'
+        },
+        {
+          subtitle: 'Referral Program',
+          text: 'Refer friends to Maula AI and earn credits when they make their first purchase. Check your account for your referral link.'
+        },
+        {
+          subtitle: 'Combining Offers',
+          text: 'Unless otherwise stated, promotional offers cannot be combined with other discounts or credits.'
+        },
+        {
+          subtitle: 'Offer Expiration',
+          text: 'Promotional offers have expiration dates and usage limits. Check offer terms for specific conditions.'
+        }
+      ]
+    }
+  ];
+
+  const toggleSection = (id: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Register custom wiggle
+      CustomWiggle.create('paymentWiggle', { wiggles: 5, type: 'uniform' });
+
+      // Hero animations
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSubtitle = new SplitText('.hero-subtitle', { type: 'words' });
+
+      gsap.set(heroTitle.chars, { y: 80, opacity: 0, rotateX: -90 });
+      gsap.set(heroSubtitle.words, { y: 25, opacity: 0 });
+      gsap.set('.hero-card', { scale: 0, rotate: -15 });
+      gsap.set('.hero-badge', { y: 30, opacity: 0 });
+      gsap.set('.hero-line', { scaleX: 0 });
+      gsap.set('.floating-coin', { y: -60, opacity: 0, scale: 0 });
+
+      const heroTl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+      heroTl
+        .to('.hero-card', {
+          scale: 1,
+          rotate: 0,
+          duration: 1,
+          ease: 'back.out(1.7)'
+        })
+        .to('.floating-coin', {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.08
+        }, '-=0.5')
+        .to(heroTitle.chars, {
+          y: 0,
+          opacity: 1,
+          rotateX: 0,
+          duration: 0.7,
+          stagger: 0.02
+        }, '-=0.4')
+        .to(heroSubtitle.words, {
+          y: 0,
+          opacity: 1,
+          duration: 0.4,
+          stagger: 0.02
+        }, '-=0.3')
+        .to('.hero-line', {
+          scaleX: 1,
+          duration: 0.8,
+          ease: 'power2.inOut'
+        }, '-=0.2')
+        .to('.hero-badge', {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'back.out(1.5)'
+        }, '-=0.4');
+
+      // Floating card animation
+      gsap.to('.hero-card', {
+        y: -12,
+        rotate: 5,
+        duration: 2.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        delay: 1.2
+      });
+
+      // Floating coins animation
+      document.querySelectorAll('.floating-coin').forEach((coin, i) => {
+        gsap.to(coin, {
+          y: `random(-30, 30)`,
+          x: `random(-20, 20)`,
+          rotation: `random(-20, 20)`,
+          duration: `random(3, 5)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.2
+        });
+      });
+
+      // Pricing cards entrance
+      gsap.set('.pricing-card', { y: 50, opacity: 0, scale: 0.9 });
+      
+      ScrollTrigger.create({
+        trigger: '.pricing-section',
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.to('.pricing-card', {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.7,
+            stagger: 0.15,
+            ease: 'back.out(1.5)'
+          });
+        }
+      });
+
+      // Pricing card hover effects
+      document.querySelectorAll('.pricing-card').forEach((card) => {
+        card.addEventListener('mouseenter', () => {
+          gsap.to(card, {
+            y: -10,
+            scale: 1.05,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+
+        card.addEventListener('mouseleave', () => {
+          gsap.to(card, {
+            y: 0,
+            scale: 1,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+      });
+
+      // Section cards entrance
+      gsap.set('.section-card', { y: 60, opacity: 0 });
+      
+      ScrollTrigger.batch('.section-card', {
+        start: 'top 85%',
+        onEnter: (batch) => {
+          gsap.to(batch, {
+            y: 0,
+            opacity: 1,
+            duration: 0.7,
+            stagger: 0.1,
+            ease: 'power3.out'
+          });
+        }
+      });
+
+      // Section card hover effects
+      document.querySelectorAll('.section-card').forEach((card) => {
+        const icon = card.querySelector('.section-icon');
+
+        card.addEventListener('mouseenter', () => {
+          gsap.to(card, {
+            scale: 1.01,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+          gsap.to(icon, {
+            scale: 1.2,
+            rotate: 10,
+            duration: 0.3,
+            ease: 'back.out(2)'
+          });
+        });
+
+        card.addEventListener('mouseleave', () => {
+          gsap.to(card, {
+            scale: 1,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+          gsap.to(icon, {
+            scale: 1,
+            rotate: 0,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+      });
+
+      // Gradient orbs
+      gsap.to('.gradient-orb-1', {
+        x: 70,
+        y: -40,
+        duration: 9,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+      gsap.to('.gradient-orb-2', {
+        x: -60,
+        y: 50,
+        duration: 11,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+      // Observer for scroll velocity
+      Observer.create({
+        target: containerRef.current,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const velocity = Math.min(Math.abs(self.velocityY) / 1500, 0.5);
+          gsap.to('.section-card', {
+            skewY: self.velocityY > 0 ? velocity : -velocity,
+            duration: 0.2
+          });
+        },
+        onStop: () => {
+          gsap.to('.section-card', {
+            skewY: 0,
+            duration: 0.4,
+            ease: 'elastic.out(1, 0.5)'
+          });
+        }
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const getColorClasses = (color: string) => {
+    const colors: Record<string, { bg: string; border: string; text: string; iconBg: string; gradient: string }> = {
+      emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', iconBg: 'bg-emerald-500/20', gradient: 'from-emerald-500 to-teal-500' },
+      blue: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', iconBg: 'bg-blue-500/20', gradient: 'from-blue-500 to-cyan-500' },
+      purple: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', iconBg: 'bg-purple-500/20', gradient: 'from-purple-500 to-pink-500' },
+      amber: { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', iconBg: 'bg-amber-500/20', gradient: 'from-amber-500 to-orange-500' },
+      rose: { bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', iconBg: 'bg-rose-500/20', gradient: 'from-rose-500 to-red-500' },
+      red: { bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400', iconBg: 'bg-red-500/20', gradient: 'from-red-500 to-rose-500' },
+      cyan: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-400', iconBg: 'bg-cyan-500/20', gradient: 'from-cyan-500 to-blue-500' },
+    };
+    return colors[color] || colors.emerald;
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 text-neural-900">
+    <div ref={containerRef} className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Background gradient orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="gradient-orb-1 absolute top-20 right-1/4 w-[500px] h-[500px] bg-emerald-500/8 rounded-full blur-3xl" />
+        <div className="gradient-orb-2 absolute bottom-40 left-1/4 w-[400px] h-[400px] bg-teal-500/8 rounded-full blur-3xl" />
+      </div>
+
       {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Payments & Refunds Policy</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto">
-            Last updated: November 6, 2025 • Effective Date: November 6, 2025
+      <section className="relative min-h-[60vh] flex items-center justify-center py-20 px-6">
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/20 via-black to-black" />
+        
+        {/* Floating coins */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(6)].map((_, i) => (
+            <DollarSign
+              key={i}
+              className={`floating-coin absolute w-5 h-5 text-emerald-400/30`}
+              style={{
+                left: `${12 + i * 15}%`,
+                top: `${22 + (i % 3) * 20}%`
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+          {/* Back button */}
+          <Link 
+            href="/legal" 
+            className="inline-flex items-center text-gray-400 hover:text-emerald-400 transition-colors mb-8"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Legal
+          </Link>
+
+          {/* Card Icon */}
+          <div className="hero-card mb-8 inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
+            <CreditCard className="w-12 h-12 text-emerald-400" />
+          </div>
+
+          <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-emerald-200 to-teal-200 bg-clip-text text-transparent">
+            Payments & Refunds
+          </h1>
+          
+          <p className="hero-subtitle text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+            Simple, transparent pricing with no subscriptions. Pay once for the access you need.
           </p>
+
+          <div className="hero-line w-32 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 mx-auto mb-8 rounded-full" />
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <div className="hero-badge px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm flex items-center gap-2">
+              <Ban className="w-4 h-4" />
+              No Subscriptions
+            </div>
+            <div className="hero-badge px-4 py-2 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-sm flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Secure Payments
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Content */}
-      <div className="container-custom section-padding max-w-5xl">
-        <div className="space-y-12">
-          {/* Introduction */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              1. Overview
-            </h2>
-            <p className="text-neural-700 leading-relaxed mb-4">
-              This Payments & Refunds Policy explains the pricing structure,
-              payment methods, billing procedures, and refund policy for One
-              Last AI services. By purchasing access to our services, you agree
-              to these terms.
-            </p>
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200 mt-4">
-              <div className="flex gap-3">
-                <DollarSign
-                  className="text-blue-600 flex-shrink-0 mt-1"
-                  size={32}
-                />
-                <div>
-                  <p className="text-neural-900 font-bold text-xl mb-2">
-                    One-Time Purchases - No Auto-Renewal
-                  </p>
-                  <p className="text-neural-700">
-                    Choose from $1/day, $5/week, or $15/month access to any AI
-                    agent. Each purchase is one-time only with NO automatic
-                    renewal. You only pay when you want access.
-                  </p>
+      {/* Pricing Cards Section */}
+      <section className="pricing-section relative py-16 px-6">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-white mb-4">Simple Per-Agent Pricing</h2>
+          <p className="text-gray-400 text-center mb-12">No hidden fees. No auto-renewals. Pay only for what you need.</p>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            {pricingTiers.map((tier, index) => (
+              <div
+                key={tier.duration}
+                className={`pricing-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border ${
+                  tier.popular ? 'border-purple-500/50' : 'border-gray-800'
+                } overflow-hidden`}
+              >
+                {tier.popular && (
+                  <div className="absolute top-0 right-0 px-3 py-1 bg-purple-500 text-white text-xs font-bold rounded-bl-lg">
+                    BEST VALUE
+                  </div>
+                )}
+                <div className={`w-12 h-12 rounded-xl bg-${tier.color}-500/20 border border-${tier.color}-500/30 flex items-center justify-center mb-4`}>
+                  <Calendar className={`w-6 h-6 text-${tier.color}-400`} />
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Pricing Structure */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              2. Pricing Structure
-            </h2>
-
-            <div className="space-y-6">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                <h3 className="text-2xl font-bold mb-4 text-neural-900 flex items-center gap-2">
-                  <DollarSign className="text-blue-600" />
-                  Simple Per-Agent Pricing
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1">✓</span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        One-Time Purchase
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        $1/day, $5/week, or $15/month - NO auto-renewal
-                      </p>
-                    </div>
+                <h3 className="text-xl font-bold text-white mb-1">{tier.duration}</h3>
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className="text-4xl font-bold text-white">{tier.price}</span>
+                  <span className="text-gray-400 text-sm">/ agent</span>
+                </div>
+                <p className="text-gray-400 text-sm mb-4">{tier.perDay}</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-gray-300 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    Full agent access
                   </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1">✓</span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        Single Agent Access
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        Choose one AI agent per purchase
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-2 text-gray-300 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    No auto-renewal
                   </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1">✓</span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        No Recurring Charges
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        Manually repurchase when access expires if you want to
-                        continue
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1">✓</span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        Immediate Access
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        Start using your chosen agent right away
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-2 text-gray-300 text-sm">
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    Instant access
                   </div>
                 </div>
               </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  2.1 What's Included
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-blue-600 mb-2">
-                      🤖 AI Agents
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      Access to 90+ specialized AI personalities
-                    </p>
-                  </div>
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-blue-600 mb-2">
-                      🛠️ Developer Tools
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      19 network utilities and WHOIS services
-                    </p>
-                  </div>
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-blue-600 mb-2">
-                      🗣️ Voice Features
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      Emotional TTS with 15+ voices
-                    </p>
-                  </div>
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-blue-600 mb-2">
-                      💬 Community
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      Connect with users worldwide
-                    </p>
-                  </div>
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-blue-600 mb-2">
-                      📊 Analytics
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      Track usage and performance
-                    </p>
-                  </div>
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-blue-600 mb-2">
-                      🔒 Priority Support
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      Email support within 24 hours
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  2.2 No Free Tier
-                </h3>
-                <p className="text-neural-700">
-                  One Last AI does not offer a free tier. All agent access
-                  requires a one-time payment starting at $1/day. This low-cost
-                  model ensures:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2 mt-2">
-                  <li>High-quality AI services without ads</li>
-                  <li>Continuous platform improvements</li>
-                  <li>Responsive customer support</li>
-                  <li>Data privacy and security investments</li>
-                  <li>No surprise recurring charges</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Payment Methods */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              3. Payment Methods
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900 flex items-center gap-2">
-                  <CreditCard className="text-blue-600" size={24} />
-                  Accepted Payment Methods
-                </h3>
-                <div className="space-y-3">
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      💳 Credit & Debit Cards
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      Visa, MasterCard, American Express, Discover, Diners Club,
-                      JCB
-                    </p>
-                  </div>
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">🅿️ PayPal</p>
-                    <p className="text-neural-700 text-sm">
-                      Link your PayPal account for convenient payments
-                    </p>
-                  </div>
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      🌐 International Payments
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      We accept payments from most countries worldwide
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  3.1 Payment Processing
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  Payments are processed securely through:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>
-                    <strong className="text-neural-900">Stripe:</strong> PCI DSS
-                    Level 1 certified payment processor
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">PayPal:</strong>{' '}
-                    Industry-leading payment platform
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Encryption:</strong> All
-                    transactions use 256-bit SSL encryption
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">No Storage:</strong> We do
-                    not store full credit card numbers
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                <div className="flex gap-3">
-                  <Shield
-                    className="text-blue-600 flex-shrink-0 mt-1"
-                    size={28}
-                  />
-                  <div>
-                    <p className="text-neural-900 font-bold text-lg mb-2">
-                      Secure Payment Guarantee
-                    </p>
-                    <p className="text-neural-700">
-                      Your payment information is never stored on our servers.
-                      All transactions are processed through PCI-compliant
-                      third-party providers with bank-level security.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Billing Terms */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              4. Payment Terms
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  4.1 One-Time Purchase - No Auto-Renewal
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  Your payment method will be charged{' '}
-                  <strong className="text-neural-900">once</strong> when you purchase
-                  access:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>Charge occurs immediately upon purchase</li>
-                  <li>
-                    <strong className="text-neural-900">NO automatic renewal</strong>{' '}
-                    - you will NOT be charged again
-                  </li>
-                  <li>
-                    Access expires after your chosen period (1 day, 1 week, or 1
-                    month)
-                  </li>
-                  <li>
-                    You must manually purchase again if you want continued
-                    access
-                  </li>
-                  <li>No surprises - you control when you pay</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  4.2 Payment Failures
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  If a payment fails during purchase:
-                </p>
-                <div className="space-y-3">
-                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-                    <p className="text-neural-700">
-                      <strong className="text-neural-900">Immediate:</strong> You'll
-                      see an error message and can retry with a different
-                      payment method
-                    </p>
-                  </div>
-                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-                    <p className="text-neural-700">
-                      <strong className="text-neural-900">No Access:</strong> Access
-                      is not granted until payment succeeds
-                    </p>
-                  </div>
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                    <p className="text-neural-700">
-                      <strong className="text-neural-900">No Retries:</strong> Since
-                      there's no auto-renewal, we don't retry failed payments -
-                      you simply try again when ready
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  4.3 Currency and Taxes
-                </h3>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>
-                    All prices are in{' '}
-                    <strong className="text-neural-900">
-                      USD (United States Dollars)
-                    </strong>
-                  </li>
-                  <li>Your bank may apply currency conversion fees</li>
-                  <li>Sales tax or VAT may be added based on your location</li>
-                  <li>Final charges will be clearly shown before payment</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  4.4 Updating Payment Information
-                </h3>
-                <p className="text-neural-700">
-                  You can update your payment method at any time in your account
-                  settings. Updated payment information applies to future
-                  charges immediately.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* NO REFUND POLICY - EMPHASIZED */}
-          <section className="bg-gradient-to-br from-red-900/30 via-amber-900/30 to-red-900/30 rounded-2xl p-8 border-2 border-red-500/50">
-            <div className="flex items-start gap-4 mb-6">
-              <AlertCircle
-                className="text-red-400 flex-shrink-0 mt-1"
-                size={40}
-              />
-              <div>
-                <h2 className="text-3xl font-bold mb-2 text-red-400">
-                  5. NO REFUND POLICY
-                </h2>
-                <p className="text-lg font-semibold text-white">
-                  All Payments Are Final and Non-Refundable
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl p-6 border border-red-200 shadow-sm">
-                <h3 className="text-xl font-bold mb-3 text-neural-900">
-                  5.1 Policy Statement
-                </h3>
-                <p className="text-neural-700 leading-relaxed mb-4 text-lg">
-                  <strong className="text-red-600">
-                    ONE LAST AI DOES NOT OFFER REFUNDS FOR ANY REASON.
-                  </strong>
-                </p>
-                <p className="text-neural-700 leading-relaxed">
-                  {' '}
-                  All payments made to One Last AI are{' '}
-                  <strong className="text-neural-900">
-                    final, non-refundable, and non-transferable
-                  </strong>
-                  . This includes but is not limited to:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2 mt-3">
-                  <li>Daily access charges ($1.00 per day)</li>
-                  <li>Weekly access charges ($5.00 per week)</li>
-                  <li>Monthly access charges ($15.00 per month)</li>
-                  <li>Any one-time purchase fees</li>
-                  <li>Payments made in error</li>
-                  <li>Duplicate payments</li>
-                </ul>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-amber-200 shadow-sm">
-                <h3 className="text-xl font-bold mb-3 text-neural-900">
-                  5.2 Rationale for No Refund Policy
-                </h3>
-                <p className="text-neural-700 mb-4">
-                  Our no-refund policy exists because:
-                </p>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1 text-xl">
-                      1.
-                    </span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        Extremely Low Cost
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        At just $1.00 per day, our service is priced affordably
-                        for everyone. The minimal cost reflects immediate value
-                        delivery.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1 text-xl">
-                      2.
-                    </span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        Immediate Access
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        You receive full platform access immediately upon
-                        payment. AI services, tools, and features are consumed
-                        instantly.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1 text-xl">
-                      3.
-                    </span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        Digital Service Nature
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        Our AI services cannot be "returned" once used.
-                        Computational resources, API calls, and AI processing
-                        are consumed in real-time.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1 text-xl">
-                      4.
-                    </span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        Transparent Pricing
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        You know exactly what you're paying upfront with no
-                        hidden fees or recurring charges. Make an informed
-                        decision before purchase.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-blue-600 font-bold mt-1 text-xl">
-                      5.
-                    </span>
-                    <div>
-                      <p className="text-neural-900 font-semibold">
-                        Operational Sustainability
-                      </p>
-                      <p className="text-neural-600 text-sm">
-                        Low pricing requires efficient operations. Processing
-                        refunds would increase costs, ultimately raising prices
-                        for all users.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-red-200 shadow-sm">
-                <h3 className="text-xl font-bold mb-3 text-neural-900">
-                  5.3 No Exceptions
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  We do not make exceptions to this policy for any circumstance,
-                  including:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>❌ Dissatisfaction with service</li>
-                  <li>❌ Technical issues or bugs</li>
-                  <li>❌ Accidental purchases</li>
-                  <li>❌ Change of mind</li>
-                  <li>❌ Lack of usage</li>
-                  <li>
-                    ❌ Early cancellation (access expires naturally, no
-                    pro-rated refunds)
-                  </li>
-                  <li>❌ Billing disputes</li>
-                  <li>❌ Feature requests not implemented</li>
-                  <li>❌ Competitor comparisons</li>
-                </ul>
-                <p className="text-red-600 mt-4 font-semibold">
-                  By purchasing, you acknowledge and accept this no-refund
-                  policy.
-                </p>
-              </div>
-
-              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                <h3 className="text-xl font-bold mb-3 text-blue-600">
-                  5.4 Alternatives to Refunds
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  If you're experiencing issues, we encourage you to:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>
-                    <strong className="text-neural-900">Contact Support:</strong>{' '}
-                    Email{' '}
-                    <a
-                      href="mailto:support@onelastai.co"
-                      className="text-blue-600 hover:text-blue-700 underline"
-                    >
-                      support@onelastai.co
-                    </a>{' '}
-                    for technical assistance
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Cancel Your Access:</strong>{' '}
-                    Stop using the agent and prevent accidental duplicate
-                    purchases
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Provide Feedback:</strong>{' '}
-                    Help us improve the platform for future users
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">
-                      Review Documentation:
-                    </strong>{' '}
-                    Explore guides and tutorials at{' '}
-                    <a
-                      href="https://onelastai.co/docs"
-                      className="text-blue-600 hover:text-blue-700 underline"
-                    >
-                      onelastai.co/docs
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Cancellation */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              6. Cancellation & Access Management
-            </h2>
-
-            <div className="space-y-6">
-              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200 mb-6">
-                <h3 className="text-xl font-semibold mb-3 text-blue-600">
-                  Important: No Auto-Renewal = Simple Management
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  Since all purchases are one-time with{' '}
-                  <strong className="text-neural-900">NO auto-renewal</strong>,
-                  there's nothing to "cancel" in the traditional sense. You're
-                  never automatically charged again. Your access simply expires
-                  after your chosen period (1 day, 1 week, or 1 month), and you
-                  can re-purchase whenever you want.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  6.1 Stopping Access Early (Optional)
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  If you want to stop using an agent before your access expires,
-                  you can cancel through:
-                </p>
-                <div className="space-y-3">
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      Method 1: Agent Page
-                    </p>
-                    <ol className="list-decimal pl-6 text-neural-700 text-sm space-y-1">
-                      <li>Go to /subscribe page</li>
-                      <li>Find your active agent</li>
-                      <li>Click "Cancel Subscription" button</li>
-                      <li>Confirm cancellation</li>
-                    </ol>
-                  </div>
-                  <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      Method 2: Email Request
-                    </p>
-                    <p className="text-neural-700 text-sm">
-                      Email{' '}
-                      <a
-                        href="mailto:support@onelastai.co"
-                        className="text-blue-600 hover:text-blue-700 underline"
-                      >
-                        support@onelastai.co
-                      </a>{' '}
-                      with your account email, agent name, and "CANCEL ACCESS"
-                      in the subject line
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  6.2 What Happens When You Cancel
-                </h3>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>
-                    <strong className="text-neural-900">Immediate Effect:</strong>{' '}
-                    Access is terminated and you can no longer use the agent
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">No Future Charges:</strong>{' '}
-                    Since there's no auto-renewal anyway, you won't be charged
-                    again
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Data Retention:</strong> Your
-                    conversation history is kept for 30 days
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">No Refund:</strong> Current
-                    purchase is not refunded (all sales final)
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Can Re-purchase:</strong> You
-                    can buy access again anytime you want
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                <h3 className="text-xl font-semibold mb-3 text-blue-600">
-                  6.3 Re-purchasing Access
-                </h3>
-                <p className="text-neural-700 mb-2">
-                  You can purchase access again at any time after expiration or
-                  cancellation:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-1">
-                  <li>Go to /subscribe page</li>
-                  <li>Choose the same or different agent</li>
-                  <li>
-                    Select your preferred plan ($1/day, $5/week, or $15/month)
-                  </li>
-                  <li>Complete payment - access starts immediately</li>
-                  <li>
-                    Your previous conversation history is restored if within 30
-                    days
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Chargebacks */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              7. Chargebacks and Disputes
-            </h2>
-
-            <div className="space-y-4">
-              <div className="bg-amber-50 rounded-xl p-6 border border-amber-200">
-                <h3 className="text-xl font-semibold mb-3 text-amber-700">
-                  7.1 Contact Us First
-                </h3>
-                <p className="text-neural-700">
-                  Before filing a chargeback or payment dispute with your bank,
-                  please contact us at{' '}
-                  <a
-                    href="mailto:billing@onelastai.co"
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    billing@onelastai.co
-                  </a>
-                  . We're committed to resolving billing issues quickly.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  7.2 Chargeback Policy
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  Filing a chargeback for a legitimate charge may result in:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>Immediate account suspension</li>
-                  <li>Permanent ban from future services</li>
-                  <li>Legal action for fraudulent chargebacks</li>
-                  <li>Collection of chargeback fees ($15-25)</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  7.3 Legitimate Disputes
-                </h3>
-                <p className="text-neural-700">
-                  We will work with you on legitimate billing errors such as:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-1 mt-2">
-                  <li>Charges after proper cancellation</li>
-                  <li>Duplicate transactions</li>
-                  <li>Unauthorized account access</li>
-                  <li>System processing errors</li>
-                  <li>Charged for duplicate active access to the same agent</li>
-                </ul>
-                <p className="text-neural-500 mt-3 text-sm">
-                  These issues will be investigated and resolved within 5-7
-                  business days.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Price Changes */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              8. Price Changes
-            </h2>
-            <p className="text-neural-700 mb-4">
-              We reserve the right to change our pricing at any time. Price
-              changes will:
-            </p>
-            <ul className="list-disc pl-6 text-neural-700 space-y-2">
-              <li>Be communicated at least 30 days in advance via email</li>
-              <li>Apply to all new purchases immediately upon announcement</li>
-              <li>
-                Not affect any active access periods already purchased at the
-                old price
-              </li>
-              <li>
-                Allow you to make final purchases at current prices before
-                changes take effect
-              </li>
-            </ul>
-            <p className="text-neural-500 mt-4 text-sm">
-              Since there's no auto-renewal, you're never locked into new
-              pricing - you simply choose whether to purchase again at the new
-              rates.
-            </p>
-          </section>
-
-          {/* Contact */}
-          <section className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-8">
-            <h2 className="text-3xl font-bold mb-6 text-white">
-              9. Contact Billing Support
-            </h2>
-            <div className="space-y-3 text-blue-100">
-              <p>
-                <strong className="text-white">Billing Questions:</strong>
-              </p>
-              <p>
-                Email:{' '}
-                <a
-                  href="mailto:billing@onelastai.co"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  billing@onelastai.co
-                </a>
-              </p>
-              <p>
-                Support:{' '}
-                <a
-                  href="mailto:support@onelastai.co"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  support@onelastai.co
-                </a>
-              </p>
-              <p>
-                Website:{' '}
-                <a
-                  href="https://onelastai.co"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  https://onelastai.co
-                </a>
-              </p>
-
-              <div className="mt-6 pt-6 border-t border-blue-400/30">
-                <p className="text-sm text-blue-200">
-                  <strong className="text-white">Response Time:</strong> We
-                  respond to all billing inquiries within 24-48 hours
-                  (Monday-Friday, excluding holidays).
-                </p>
-              </div>
-            </div>
-          </section>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Content Section */}
+      <section className="content-section relative py-16 px-6">
+        <div className="max-w-5xl mx-auto">
+          {/* Important Notice */}
+          <div className="mb-12 p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Important: No Refunds Policy</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Due to the instant-access nature of our digital services, all purchases are final and non-refundable. Please review your purchase carefully before completing payment.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sections */}
+          <div className="space-y-6">
+            {sections.map((section) => {
+              const IconComponent = section.icon;
+              const colors = getColorClasses(section.color);
+              const isExpanded = expandedSections.has(section.id);
+
+              return (
+                <div
+                  key={section.id}
+                  id={section.id}
+                  className="section-card"
+                >
+                  <button
+                    onClick={() => toggleSection(section.id)}
+                    className={`w-full p-6 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-gray-700 transition-all text-left`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`section-icon w-12 h-12 rounded-xl ${colors.iconBg} border ${colors.border} flex items-center justify-center`}>
+                          <IconComponent className={`w-6 h-6 ${colors.text}`} />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">{section.title}</h3>
+                      </div>
+                      <ChevronDown 
+                        className={`section-chevron w-6 h-6 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                      />
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-6 pt-6 border-t border-gray-800 space-y-6">
+                        {section.content.map((item, idx) => (
+                          <div key={idx} className="pl-16">
+                            <h4 className={`text-lg font-semibold ${colors.text} mb-2`}>
+                              {item.subtitle}
+                            </h4>
+                            <p className="text-gray-400 text-sm leading-relaxed">
+                              {item.text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Contact Section */}
+          <div className="mt-16 p-8 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800">
+            <h3 className="text-2xl font-bold text-white mb-4">Billing Questions?</h3>
+            <p className="text-gray-400 mb-6">
+              If you have any questions about billing, payments, or need assistance with a purchase, our billing team is here to help.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="mailto:billing@maula.ai"
+                className="inline-flex items-center px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-medium hover:bg-emerald-500/30 transition-colors"
+              >
+                billing@maula.ai
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center px-6 py-3 rounded-xl bg-gray-800 border border-gray-700 text-white font-medium hover:bg-gray-700 transition-colors"
+              >
+                Contact Support
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,882 +1,411 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import {
-  Database,
-  Copy,
-  Download,
-  Check,
-  RefreshCw,
-  User,
-  ShoppingCart,
-  FileText,
-  BarChart3,
-  MessageSquare,
-  Mail,
-  Building2,
-  MapPin,
-  CreditCard,
-  Calendar,
-  Hash,
-  Sparkles,
-} from 'lucide-react';
+import { Database, ArrowLeft, Copy, Check, RefreshCw, Plus, Download, User, Mail, Phone, MapPin, Building, Calendar, CreditCard, Globe } from 'lucide-react';
+import { gsap, ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase } from '@/lib/gsap';
 
-// Template definitions
-const templates = [
-  {
-    id: 'users',
-    name: 'Users',
-    icon: User,
-    color: 'from-blue-500 to-cyan-500',
-    description: 'User accounts with profiles',
-    fields: ['id', 'name', 'email', 'role', 'avatar', 'createdAt'],
-  },
-  {
-    id: 'products',
-    name: 'Products',
-    icon: ShoppingCart,
-    color: 'from-green-500 to-emerald-500',
-    description: 'E-commerce product catalog',
-    fields: ['id', 'name', 'price', 'category', 'stock', 'description'],
-  },
-  {
-    id: 'posts',
-    name: 'Blog Posts',
-    icon: FileText,
-    color: 'from-purple-500 to-pink-500',
-    description: 'Blog articles and content',
-    fields: ['id', 'title', 'content', 'author', 'tags', 'publishedAt'],
-  },
-  {
-    id: 'analytics',
-    name: 'Analytics',
-    icon: BarChart3,
-    color: 'from-orange-500 to-red-500',
-    description: 'Analytics events and metrics',
-    fields: ['id', 'event', 'userId', 'metadata', 'timestamp'],
-  },
-  {
-    id: 'comments',
-    name: 'Comments',
-    icon: MessageSquare,
-    color: 'from-indigo-500 to-purple-500',
-    description: 'User comments and reviews',
-    fields: ['id', 'userId', 'postId', 'content', 'rating', 'createdAt'],
-  },
-  {
-    id: 'emails',
-    name: 'Emails',
-    icon: Mail,
-    color: 'from-pink-500 to-rose-500',
-    description: 'Email addresses and contacts',
-    fields: ['id', 'email', 'name', 'verified', 'subscribedAt'],
-  },
-  {
-    id: 'companies',
-    name: 'Companies',
-    icon: Building2,
-    color: 'from-teal-500 to-cyan-500',
-    description: 'Business and company data',
-    fields: ['id', 'name', 'industry', 'size', 'website', 'foundedYear'],
-  },
-  {
-    id: 'addresses',
-    name: 'Addresses',
-    icon: MapPin,
-    color: 'from-amber-500 to-orange-500',
-    description: 'Location and address data',
-    fields: ['id', 'street', 'city', 'state', 'country', 'zipCode'],
-  },
-  {
-    id: 'transactions',
-    name: 'Transactions',
-    icon: CreditCard,
-    color: 'from-emerald-500 to-green-500',
-    description: 'Payment and transaction records',
-    fields: ['id', 'userId', 'amount', 'currency', 'status', 'createdAt'],
-  },
-  {
-    id: 'events',
-    name: 'Events',
-    icon: Calendar,
-    color: 'from-violet-500 to-purple-500',
-    description: 'Calendar events and schedules',
-    fields: ['id', 'title', 'description', 'startDate', 'endDate', 'location'],
-  },
-];
+gsap.registerPlugin(ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase);
 
-// Data generation functions
-const firstNames = [
-  'James',
-  'Sarah',
-  'Michael',
-  'Emily',
-  'David',
-  'Jessica',
-  'Daniel',
-  'Ashley',
-  'Matthew',
-  'Amanda',
-  'Andrew',
-  'Stephanie',
-  'Joshua',
-  'Nicole',
-  'Christopher',
-  'Elizabeth',
-  'Brandon',
-  'Samantha',
-  'Ryan',
-  'Katherine',
-];
-const lastNames = [
-  'Smith',
-  'Johnson',
-  'Williams',
-  'Brown',
-  'Jones',
-  'Garcia',
-  'Miller',
-  'Davis',
-  'Rodriguez',
-  'Martinez',
-  'Hernandez',
-  'Lopez',
-  'Gonzalez',
-  'Wilson',
-  'Anderson',
-  'Thomas',
-  'Taylor',
-  'Moore',
-  'Jackson',
-  'Martin',
-];
-const domains = [
-  'gmail.com',
-  'yahoo.com',
-  'outlook.com',
-  'company.com',
-  'business.org',
-  'example.com',
-];
-const roles = ['admin', 'user', 'moderator', 'editor', 'viewer'];
-const categories = [
-  'Electronics',
-  'Clothing',
-  'Home & Garden',
-  'Sports',
-  'Books',
-  'Toys',
-  'Beauty',
-  'Automotive',
-];
-const productAdjectives = [
-  'Premium',
-  'Professional',
-  'Ultra',
-  'Smart',
-  'Classic',
-  'Modern',
-  'Deluxe',
-  'Essential',
-];
-const productNouns = [
-  'Widget',
-  'Gadget',
-  'Device',
-  'Kit',
-  'Set',
-  'Bundle',
-  'System',
-  'Tool',
-];
-const blogTitles = [
-  'Getting Started with',
-  'The Ultimate Guide to',
-  'How to Master',
-  '10 Tips for',
-  'Understanding',
-  'Best Practices for',
-  'Introduction to',
-  'Advanced Techniques in',
-];
-const topics = [
-  'AI Development',
-  'Web Design',
-  'Data Science',
-  'Cloud Computing',
-  'Mobile Apps',
-  'DevOps',
-  'Machine Learning',
-  'Cybersecurity',
-];
-const eventTypes = [
-  'page_view',
-  'button_click',
-  'form_submit',
-  'purchase',
-  'signup',
-  'login',
-  'search',
-  'share',
-];
-const industries = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Education',
-  'Retail',
-  'Manufacturing',
-  'Media',
-  'Consulting',
-];
-const companySizes = [
-  '1-10',
-  '11-50',
-  '51-200',
-  '201-500',
-  '501-1000',
-  '1000+',
-];
-const cities = [
-  'New York',
-  'Los Angeles',
-  'Chicago',
-  'Houston',
-  'Phoenix',
-  'Philadelphia',
-  'San Antonio',
-  'San Diego',
-  'Dallas',
-  'San Jose',
-];
-const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX', 'CA'];
-const countries = [
-  'USA',
-  'Canada',
-  'UK',
-  'Germany',
-  'France',
-  'Australia',
-  'Japan',
-  'Brazil',
-];
-const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
-const transactionStatuses = ['completed', 'pending', 'failed', 'refunded'];
-const ratings = [1, 2, 3, 4, 5];
-const tags = [
-  'technology',
-  'business',
-  'lifestyle',
-  'tutorial',
-  'news',
-  'review',
-  'guide',
-  'tips',
-];
-
-function randomItem<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+interface GeneratedData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  country: string;
+  company: string;
+  jobTitle: string;
+  dateOfBirth: string;
+  creditCard: string;
+  uuid: string;
+  ipAddress: string;
+  username: string;
+  password: string;
 }
 
-function randomId(prefix: string): string {
-  return `${prefix}_${Math.random().toString(36).substring(2, 10)}`;
-}
-
-function randomDate(start: Date, end: Date): string {
-  const date = new Date(
-    start.getTime() + Math.random() * (end.getTime() - start.getTime())
-  );
-  return date.toISOString().split('T')[0];
-}
-
-function randomEmail(name: string): string {
-  const cleanName = name.toLowerCase().replace(' ', '.');
-  return `${cleanName}@${randomItem(domains)}`;
-}
-
-function generateRecord(
-  templateId: string,
-  index: number
-): Record<string, any> {
-  const now = new Date();
-  const yearAgo = new Date(
-    now.getFullYear() - 1,
-    now.getMonth(),
-    now.getDate()
-  );
-
-  switch (templateId) {
-    case 'users': {
-      const firstName = randomItem(firstNames);
-      const lastName = randomItem(lastNames);
-      const name = `${firstName} ${lastName}`;
-      return {
-        id: randomId('usr'),
-        name,
-        email: randomEmail(name),
-        role: randomItem(roles),
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}`,
-        createdAt: randomDate(yearAgo, now),
-      };
-    }
-    case 'products':
-      return {
-        id: randomId('prod'),
-        name: `${randomItem(productAdjectives)} ${randomItem(productNouns)}`,
-        price: parseFloat((Math.random() * 500 + 9.99).toFixed(2)),
-        category: randomItem(categories),
-        stock: Math.floor(Math.random() * 1000),
-        description: `High-quality ${randomItem(productNouns).toLowerCase()} for all your needs.`,
-      };
-    case 'posts':
-      return {
-        id: randomId('post'),
-        title: `${randomItem(blogTitles)} ${randomItem(topics)}`,
-        content: `This comprehensive article covers everything you need to know about ${randomItem(topics).toLowerCase()}. Learn the best practices and tips from industry experts.`,
-        author: `${randomItem(firstNames)} ${randomItem(lastNames)}`,
-        tags: [randomItem(tags), randomItem(tags), randomItem(tags)].filter(
-          (v, i, a) => a.indexOf(v) === i
-        ),
-        publishedAt: randomDate(yearAgo, now),
-      };
-    case 'analytics':
-      return {
-        id: randomId('evt'),
-        event: randomItem(eventTypes),
-        userId: randomId('usr'),
-        metadata: {
-          source: randomItem(['web', 'mobile', 'api']),
-          version: '2.0',
-        },
-        timestamp: new Date(
-          yearAgo.getTime() +
-            Math.random() * (now.getTime() - yearAgo.getTime())
-        ).toISOString(),
-      };
-    case 'comments':
-      return {
-        id: randomId('cmt'),
-        userId: randomId('usr'),
-        postId: randomId('post'),
-        content: `This is ${randomItem(['great', 'helpful', 'interesting', 'informative', 'amazing'])} content! ${randomItem(['Thanks for sharing.', 'Keep it up!', 'Very useful.', 'Well written.'])}`,
-        rating: randomItem(ratings),
-        createdAt: randomDate(yearAgo, now),
-      };
-    case 'emails':
-      const emailName = `${randomItem(firstNames)} ${randomItem(lastNames)}`;
-      return {
-        id: randomId('email'),
-        email: randomEmail(emailName),
-        name: emailName,
-        verified: Math.random() > 0.2,
-        subscribedAt: randomDate(yearAgo, now),
-      };
-    case 'companies':
-      return {
-        id: randomId('comp'),
-        name: `${randomItem(lastNames)} ${randomItem(['Inc', 'Corp', 'LLC', 'Group', 'Solutions', 'Technologies'])}`,
-        industry: randomItem(industries),
-        size: randomItem(companySizes),
-        website: `https://www.${randomItem(lastNames).toLowerCase()}${randomItem(['tech', 'corp', 'inc', 'co'])}.com`,
-        foundedYear: 1990 + Math.floor(Math.random() * 35),
-      };
-    case 'addresses': {
-      const cityIndex = Math.floor(Math.random() * cities.length);
-      return {
-        id: randomId('addr'),
-        street: `${Math.floor(Math.random() * 9999) + 1} ${randomItem(lastNames)} ${randomItem(['St', 'Ave', 'Blvd', 'Dr', 'Ln'])}`,
-        city: cities[cityIndex],
-        state: states[cityIndex],
-        country: randomItem(countries),
-        zipCode: String(10000 + Math.floor(Math.random() * 89999)),
-      };
-    }
-    case 'transactions':
-      return {
-        id: randomId('txn'),
-        userId: randomId('usr'),
-        amount: parseFloat((Math.random() * 1000 + 1).toFixed(2)),
-        currency: randomItem(currencies),
-        status: randomItem(transactionStatuses),
-        createdAt: randomDate(yearAgo, now),
-      };
-    case 'events':
-      const startDate = new Date(
-        now.getTime() + Math.random() * 90 * 24 * 60 * 60 * 1000
-      );
-      const endDate = new Date(
-        startDate.getTime() + Math.random() * 4 * 60 * 60 * 1000
-      );
-      return {
-        id: randomId('event'),
-        title: `${randomItem(['Annual', 'Weekly', 'Monthly', 'Special'])} ${randomItem(['Meeting', 'Conference', 'Workshop', 'Webinar', 'Summit'])}`,
-        description: `Join us for an exciting ${randomItem(topics).toLowerCase()} event.`,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        location: `${randomItem(cities)}, ${randomItem(countries)}`,
-      };
-    default:
-      return { id: randomId('item'), index };
-  }
-}
-
-function generateData(templateId: string, count: number): any[] {
-  return Array.from({ length: count }, (_, i) => generateRecord(templateId, i));
-}
-
-function convertToCSV(data: any[]): string {
-  if (data.length === 0) return '';
-  const headers = Object.keys(data[0]);
-  const rows = data.map((row) =>
-    headers
-      .map((header) => {
-        const value = row[header];
-        if (typeof value === 'object') return JSON.stringify(value);
-        if (typeof value === 'string' && value.includes(','))
-          return `"${value}"`;
-        return value;
-      })
-      .join(',')
-  );
-  return [headers.join(','), ...rows].join('\n');
-}
-
-function convertToSQL(data: any[], tableName: string): string {
-  if (data.length === 0) return '';
-  const columns = Object.keys(data[0]);
-  const values = data.map((row) => {
-    const vals = columns.map((col) => {
-      const val = row[col];
-      if (val === null || val === undefined) return 'NULL';
-      if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
-      if (typeof val === 'number') return val;
-      if (typeof val === 'object')
-        return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
-      return `'${String(val).replace(/'/g, "''")}'`;
-    });
-    return `(${vals.join(', ')})`;
-  });
-  return `INSERT INTO ${tableName} (${columns.join(', ')})\nVALUES\n${values.join(',\n')};`;
-}
+const firstNames = ['James', 'Emma', 'Oliver', 'Sophia', 'William', 'Ava', 'Benjamin', 'Isabella', 'Lucas', 'Mia', 'Henry', 'Charlotte', 'Alexander', 'Amelia', 'Daniel', 'Harper'];
+const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Anderson', 'Taylor', 'Thomas', 'Moore', 'Jackson', 'Martin'];
+const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'proton.me', 'icloud.com', 'example.com', 'company.com'];
+const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose', 'Austin', 'Jacksonville'];
+const countries = ['United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Australia', 'Japan', 'Brazil', 'India', 'Mexico'];
+const companies = ['TechCorp', 'InnoSoft', 'DataDrive', 'CloudNine', 'ByteWorks', 'NetPlex', 'DigiFlow', 'CodeBase', 'SynergyAI', 'NexGen Solutions'];
+const jobTitles = ['Software Engineer', 'Product Manager', 'Data Analyst', 'UX Designer', 'DevOps Engineer', 'Marketing Manager', 'Sales Director', 'HR Specialist', 'Financial Analyst', 'Project Manager'];
+const streets = ['Main St', 'Oak Ave', 'Maple Dr', 'Cedar Ln', 'Pine Rd', 'Elm St', 'Washington Blvd', 'Park Ave', 'Lake View Dr', 'Highland Ave'];
 
 export default function DataGeneratorPage() {
-  const [selectedTemplate, setSelectedTemplate] = useState('users');
-  const [recordCount, setRecordCount] = useState(10);
-  const [outputFormat, setOutputFormat] = useState<'json' | 'csv' | 'sql'>(
-    'json'
-  );
-  const [generatedData, setGeneratedData] = useState<any[]>([]);
-  const [copied, setCopied] = useState(false);
-  const [seed, setSeed] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [count, setCount] = useState(5);
+  const [generatedData, setGeneratedData] = useState<GeneratedData[]>([]);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [selectedFields, setSelectedFields] = useState({
+    firstName: true,
+    lastName: true,
+    email: true,
+    phone: true,
+    address: true,
+    city: true,
+    country: true,
+    company: true,
+    jobTitle: true,
+    dateOfBirth: true,
+    creditCard: false,
+    uuid: true,
+    ipAddress: true,
+    username: true,
+    password: false,
+  });
 
-  const currentTemplate = templates.find((t) => t.id === selectedTemplate)!;
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      CustomWiggle.create('dataWiggle', { wiggles: 6, type: 'easeOut' });
 
-  const handleGenerate = () => {
-    if (seed) {
-      // Simple seeded random (not cryptographically secure, but reproducible)
-      let seedNum = 0;
-      for (let i = 0; i < seed.length; i++) {
-        seedNum = (seedNum << 5) - seedNum + seed.charCodeAt(i);
-        seedNum = seedNum & seedNum;
+      gsap.to('.data-gradient-orb', {
+        x: 'random(-60, 60)',
+        y: 'random(-30, 30)',
+        scale: 'random(0.9, 1.15)',
+        duration: 5.5,
+        ease: 'sine.inOut',
+        stagger: { each: 0.7, repeat: -1, yoyo: true },
+      });
+
+      if (titleRef.current) {
+        const split = new SplitText(titleRef.current, { type: 'chars' });
+        gsap.from(split.chars, {
+          opacity: 0,
+          y: 50,
+          rotationX: -90,
+          stagger: 0.03,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          delay: 0.2,
+        });
       }
-      // Reset Math.random isn't possible, but we simulate by using seed in generation
-    }
-    const data = generateData(selectedTemplate, recordCount);
-    setGeneratedData(data);
-    setCopied(false);
-  };
 
-  const formattedOutput = useMemo(() => {
-    if (generatedData.length === 0) return '';
-    switch (outputFormat) {
-      case 'json':
-        return JSON.stringify(generatedData, null, 2);
-      case 'csv':
-        return convertToCSV(generatedData);
-      case 'sql':
-        return convertToSQL(generatedData, selectedTemplate);
-      default:
-        return JSON.stringify(generatedData, null, 2);
-    }
-  }, [generatedData, outputFormat, selectedTemplate]);
+      gsap.to('.hero-data-icon', {
+        boxShadow: '0 0 50px rgba(139, 92, 246, 0.5)',
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(formattedOutput);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+      gsap.from('.data-panel', {
+        opacity: 0,
+        y: 30,
+        stagger: 0.12,
+        duration: 0.6,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
 
-  const handleDownload = () => {
-    const extensions = { json: 'json', csv: 'csv', sql: 'sql' };
-    const mimeTypes = {
-      json: 'application/json',
-      csv: 'text/csv',
-      sql: 'text/plain',
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const random = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+  const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+  const generatePerson = (): GeneratedData => {
+    const firstName = random(firstNames);
+    const lastName = random(lastNames);
+    const domain = random(domains);
+
+    return {
+      firstName,
+      lastName,
+      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${randomInt(1, 99)}@${domain}`,
+      phone: `+1 (${randomInt(200, 999)}) ${randomInt(200, 999)}-${randomInt(1000, 9999)}`,
+      address: `${randomInt(100, 9999)} ${random(streets)}`,
+      city: random(cities),
+      country: random(countries),
+      company: random(companies),
+      jobTitle: random(jobTitles),
+      dateOfBirth: `${randomInt(1970, 2005)}-${String(randomInt(1, 12)).padStart(2, '0')}-${String(randomInt(1, 28)).padStart(2, '0')}`,
+      creditCard: `${randomInt(4000, 4999)} ${randomInt(1000, 9999)} ${randomInt(1000, 9999)} ${randomInt(1000, 9999)}`,
+      uuid: crypto.randomUUID(),
+      ipAddress: `${randomInt(1, 255)}.${randomInt(0, 255)}.${randomInt(0, 255)}.${randomInt(1, 255)}`,
+      username: `${firstName.toLowerCase()}${lastName.toLowerCase().charAt(0)}${randomInt(1, 999)}`,
+      password: generatePassword(),
     };
-    const blob = new Blob([formattedOutput], { type: mimeTypes[outputFormat] });
+  };
+
+  const generatePassword = () => {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    return Array.from({ length: 16 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  };
+
+  const generateData = () => {
+    const data = Array.from({ length: count }, () => generatePerson());
+    setGeneratedData(data);
+    gsap.fromTo('.generate-btn', { scale: 0.9 }, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.5)' });
+    gsap.from('.data-row', { opacity: 0, x: -20, stagger: 0.05, duration: 0.3 });
+  };
+
+  const copyValue = async (value: string, id: string) => {
+    await navigator.clipboard.writeText(value);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const exportAsJSON = () => {
+    const filteredData = generatedData.map((item) => {
+      const filtered: Partial<GeneratedData> = {};
+      Object.entries(selectedFields).forEach(([key, selected]) => {
+        if (selected) {
+          filtered[key as keyof GeneratedData] = item[key as keyof GeneratedData];
+        }
+      });
+      return filtered;
+    });
+
+    const blob = new Blob([JSON.stringify(filteredData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${selectedTemplate}-data.${extensions[outputFormat]}`;
-    document.body.appendChild(a);
+    a.download = 'generated-data.json';
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
+  const exportAsCSV = () => {
+    const headers = Object.entries(selectedFields)
+      .filter(([, selected]) => selected)
+      .map(([key]) => key);
+
+    const rows = generatedData.map((item) =>
+      headers.map((key) => `"${item[key as keyof GeneratedData]}"`).join(',')
+    );
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'generated-data.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const toggleField = (field: keyof typeof selectedFields) => {
+    setSelectedFields((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const fieldIcons: Record<string, React.ReactNode> = {
+    firstName: <User className="w-4 h-4" />,
+    lastName: <User className="w-4 h-4" />,
+    email: <Mail className="w-4 h-4" />,
+    phone: <Phone className="w-4 h-4" />,
+    address: <MapPin className="w-4 h-4" />,
+    city: <MapPin className="w-4 h-4" />,
+    country: <Globe className="w-4 h-4" />,
+    company: <Building className="w-4 h-4" />,
+    jobTitle: <Building className="w-4 h-4" />,
+    dateOfBirth: <Calendar className="w-4 h-4" />,
+    creditCard: <CreditCard className="w-4 h-4" />,
+    uuid: <Database className="w-4 h-4" />,
+    ipAddress: <Globe className="w-4 h-4" />,
+    username: <User className="w-4 h-4" />,
+    password: <CreditCard className="w-4 h-4" />,
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom">
-          <Link href="/tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
-            ← Back to Tools
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="data-gradient-orb absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-purple-600/20 to-violet-600/20 blur-[100px]" />
+        <div className="data-gradient-orb absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-indigo-600/15 to-blue-600/15 blur-[80px]" />
+      </div>
+
+      <section className="relative py-12 border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <Link href="/tools" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Tools
           </Link>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center">
-              <Database className="w-8 h-8 text-white" />
+
+          <div className="flex items-center gap-6 mb-8">
+            <div className="hero-data-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600/30 to-violet-600/30 border border-purple-500/30 flex items-center justify-center">
+              <Database className="w-8 h-8 text-purple-400" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold">
-                AI Data Generator
+              <h1 ref={titleRef} className="text-3xl md:text-4xl font-bold text-white mb-1">
+                Data Generator
               </h1>
-              <p className="text-lg opacity-90">
-                Generate realistic test data in seconds
+              <p className="text-gray-400">
+                Generate realistic mock data for testing and development
               </p>
             </div>
           </div>
-          <p className="text-white/80 max-w-2xl">
-            Choose a template, set the number of records, and generate realistic
-            test data for your databases, APIs, and applications. Export as
-            JSON, CSV, or SQL.
-          </p>
         </div>
       </section>
 
-      <div className="container-custom py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Panel - Template Selection */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Templates */}
-            <div className="bg-white rounded-2xl p-6 border border-neural-100 shadow-sm">
-              <h2 className="text-lg font-semibold text-neural-800 mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-yellow-500" />
-                Select Template
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {templates.map((template) => {
-                  const Icon = template.icon;
-                  const isSelected = selectedTemplate === template.id;
-                  return (
-                    <button
-                      key={template.id}
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={`p-3 rounded-xl text-left transition-all ${
-                        isSelected
-                          ? 'bg-gradient-to-br ' +
-                            template.color +
-                            ' text-white shadow-lg'
-                          : 'bg-gray-50 text-neural-700 hover:bg-gray-100 border border-neural-100'
-                      }`}
-                    >
-                      <Icon
-                        className={`w-5 h-5 mb-1 ${isSelected ? 'text-white' : 'text-neural-500'}`}
-                      />
-                      <div className="text-sm font-medium">{template.name}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Configuration */}
-            <div className="bg-white rounded-2xl p-6 border border-neural-100 shadow-sm">
-              <h2 className="text-lg font-semibold text-neural-800 mb-4 flex items-center gap-2">
-                <Hash className="w-5 h-5 text-blue-500" />
-                Configuration
-              </h2>
-
-              {/* Record Count Slider */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <div className="data-panel bg-white/5 border border-white/10 rounded-2xl p-6 sticky top-6">
+              <h3 className="font-semibold text-white mb-4">Configuration</h3>
+              
               <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm text-neural-600">
-                    Number of Records
-                  </label>
-                  <span className="text-sm font-mono text-brand-600 font-semibold">
-                    {recordCount}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="1000"
-                  value={recordCount}
-                  onChange={(e) => setRecordCount(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-500"
-                />
-                <div className="flex justify-between text-xs text-neural-500 mt-1">
-                  <span>1</span>
-                  <span>500</span>
-                  <span>1000</span>
+                <label className="text-sm text-gray-400 mb-2 block">Number of Records</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={count}
+                    onChange={(e) => setCount(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-white font-mono w-8 text-center">{count}</span>
                 </div>
               </div>
 
-              {/* Quick Presets */}
-              <div className="flex gap-2 mb-6">
-                {[10, 50, 100, 500, 1000].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => setRecordCount(num)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      recordCount === num
-                        ? 'bg-brand-500 text-white'
-                        : 'bg-gray-100 text-neural-600 hover:bg-gray-200 border border-neural-100'
-                    }`}
-                  >
-                    {num}
-                  </button>
-                ))}
-              </div>
-
-              {/* Output Format */}
               <div className="mb-6">
-                <label className="text-sm text-neural-600 block mb-2">
-                  Output Format
-                </label>
-                <div className="flex gap-2">
-                  {(['json', 'csv', 'sql'] as const).map((format) => (
+                <label className="text-sm text-gray-400 mb-3 block">Fields to Generate</label>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {Object.entries(selectedFields).map(([field, selected]) => (
                     <button
-                      key={format}
-                      onClick={() => setOutputFormat(format)}
-                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium uppercase transition-all ${
-                        outputFormat === format
-                          ? 'bg-brand-600 text-white'
-                          : 'bg-gray-100 text-neural-600 hover:bg-gray-200 border border-neural-100'
+                      key={field}
+                      onClick={() => toggleField(field as keyof typeof selectedFields)}
+                      className={`w-full p-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors ${
+                        selected
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                          : 'bg-[#0d0d12] text-gray-500 border border-white/5 hover:bg-white/5'
                       }`}
                     >
-                      {format}
+                      {fieldIcons[field]}
+                      <span className="capitalize">{field.replace(/([A-Z])/g, ' $1').trim()}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Seed Input (Optional) */}
-              <div className="mb-6">
-                <label className="text-sm text-neural-600 block mb-2">
-                  Seed (optional, for reproducible data)
-                </label>
-                <input
-                  type="text"
-                  value={seed}
-                  onChange={(e) => setSeed(e.target.value)}
-                  placeholder="Enter seed value..."
-                  className="w-full px-4 py-2 bg-gray-50 border border-neural-200 rounded-lg text-neural-800 placeholder-neural-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Generate Button */}
               <button
-                onClick={handleGenerate}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-500 to-accent-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-brand-500/25 transition-all"
+                onClick={generateData}
+                className="generate-btn w-full py-3 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white rounded-xl flex items-center justify-center gap-2 transition-all"
               >
                 <RefreshCw className="w-5 h-5" />
-                Generate {recordCount} Records
+                Generate Data
               </button>
-            </div>
 
-            {/* Selected Template Info */}
-            <div className="bg-white rounded-2xl p-6 border border-neural-100 shadow-sm">
-              <h3 className="text-sm font-semibold text-neural-500 uppercase tracking-wider mb-3">
-                Template Fields
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {currentTemplate.fields.map((field) => (
-                  <span
-                    key={field}
-                    className="px-2 py-1 bg-gray-100 border border-neural-100 rounded text-xs text-neural-700 font-mono"
+              {generatedData.length > 0 && (
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={exportAsJSON}
+                    className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-sm transition-colors flex items-center justify-center gap-1"
                   >
-                    {field}
-                  </span>
-                ))}
-              </div>
+                    <Download className="w-4 h-4" />
+                    JSON
+                  </button>
+                  <button
+                    onClick={exportAsCSV}
+                    className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-sm transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Download className="w-4 h-4" />
+                    CSV
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Panel - Terminal Output */}
-          <div className="lg:col-span-2">
-            <div className="bg-[#1e1e2e] rounded-2xl border border-gray-300 overflow-hidden shadow-xl">
-              {/* Terminal Title Bar */}
-              <div className="flex items-center justify-between px-4 py-3 bg-[#313244] border-b border-[#45475a]">
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#ff5f56] shadow-inner"></div>
-                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e] shadow-inner"></div>
-                    <div className="w-3 h-3 rounded-full bg-[#27ca3f] shadow-inner"></div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <Hash className="w-3.5 h-3.5 text-neural-500" />
-                    <span className="text-xs text-neural-400 font-mono">
-                      {selectedTemplate}-data.{outputFormat}
-                    </span>
-                  </div>
+          <div className="lg:col-span-3">
+            {generatedData.length === 0 ? (
+              <div className="data-panel bg-white/5 border border-white/10 rounded-2xl p-12 text-center">
+                <Database className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">No Data Generated</h3>
+                <p className="text-gray-400 mb-6">Configure your fields and click Generate to create mock data</p>
+                <button
+                  onClick={generateData}
+                  className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl inline-flex items-center gap-2 transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                  Generate Data
+                </button>
+              </div>
+            ) : (
+              <div className="data-panel bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                  <h3 className="font-semibold text-white">
+                    Generated Records ({generatedData.length})
+                  </h3>
+                  <button
+                    onClick={() => {
+                      const filteredData = generatedData.map((item) => {
+                        const filtered: Partial<GeneratedData> = {};
+                        Object.entries(selectedFields).forEach(([key, selected]) => {
+                          if (selected) {
+                            filtered[key as keyof GeneratedData] = item[key as keyof GeneratedData];
+                          }
+                        });
+                        return filtered;
+                      });
+                      copyValue(JSON.stringify(filteredData, null, 2), 'all');
+                    }}
+                    className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-sm transition-colors flex items-center gap-1"
+                  >
+                    {copied === 'all' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    Copy All
+                  </button>
                 </div>
-                <div className="flex items-center gap-2">
-                  {generatedData.length > 0 && (
-                    <>
-                      <button
-                        onClick={handleCopy}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neural-700/50 hover:bg-neural-600 rounded-md text-xs text-neural-300 transition-colors border border-neural-600/50"
-                      >
-                        {copied ? (
-                          <Check className="w-3.5 h-3.5 text-green-400" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                        {copied ? 'Copied!' : 'Copy'}
-                      </button>
-                      <button
-                        onClick={handleDownload}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neural-700/50 hover:bg-neural-600 rounded-md text-xs text-neural-300 transition-colors border border-neural-600/50"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Download
-                      </button>
-                    </>
-                  )}
+                <div className="overflow-x-auto">
+                  <div className="max-h-[600px] overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="bg-[#0d0d12] sticky top-0">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">#</th>
+                          {Object.entries(selectedFields)
+                            .filter(([, selected]) => selected)
+                            .map(([field]) => (
+                              <th key={field} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase whitespace-nowrap">
+                                {field.replace(/([A-Z])/g, ' $1').trim()}
+                              </th>
+                            ))}
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {generatedData.map((item, index) => (
+                          <tr key={index} className="data-row hover:bg-white/5 transition-colors">
+                            <td className="px-4 py-3 text-gray-500 text-sm">{index + 1}</td>
+                            {Object.entries(selectedFields)
+                              .filter(([, selected]) => selected)
+                              .map(([field]) => (
+                                <td key={field} className="px-4 py-3 text-white text-sm font-mono whitespace-nowrap">
+                                  {item[field as keyof GeneratedData]}
+                                </td>
+                              ))}
+                            <td className="px-4 py-3">
+                              <button
+                                onClick={() => {
+                                  const filtered: Partial<GeneratedData> = {};
+                                  Object.entries(selectedFields).forEach(([key, selected]) => {
+                                    if (selected) {
+                                      filtered[key as keyof GeneratedData] = item[key as keyof GeneratedData];
+                                    }
+                                  });
+                                  copyValue(JSON.stringify(filtered), `row-${index}`);
+                                }}
+                                className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                              >
+                                {copied === `row-${index}` ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-
-              {/* Terminal Content - Fixed Height with Scroll */}
-              <div className="h-[500px] overflow-y-auto bg-[#1e1e2e] custom-scrollbar">
-                {generatedData.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                    <div className="w-16 h-16 rounded-full bg-[#313244] flex items-center justify-center mb-4">
-                      <Database className="w-8 h-8 text-[#6c7086]" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-[#cdd6f4] mb-2">
-                      Ready to Generate
-                    </h3>
-                    <p className="text-[#6c7086] text-sm max-w-sm">
-                      Select a template and click Generate to create your test
-                      data
-                    </p>
-                    <div className="mt-4 flex items-center gap-2 text-[#585b70] text-xs font-mono">
-                      <span className="text-[#a6e3a1]">$</span>
-                      <span className="animate-pulse">awaiting command...</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4">
-                    {/* Terminal prompt line */}
-                    <div className="flex items-center gap-2 text-xs font-mono mb-3 text-[#6c7086]">
-                      <span className="text-[#a6e3a1]">→</span>
-                      <span className="text-[#89dceb]">onelastai</span>
-                      <span className="text-[#585b70]">$</span>
-                      <span className="text-[#bac2de]">
-                        generate --template {selectedTemplate} --count{' '}
-                        {generatedData.length} --format {outputFormat}
-                      </span>
-                    </div>
-                    {/* Output */}
-                    <pre className="text-sm font-mono text-[#cdd6f4] whitespace-pre leading-relaxed">
-                      <code className="block">{formattedOutput}</code>
-                    </pre>
-                  </div>
-                )}
-              </div>
-
-              {/* Terminal Status Bar */}
-              <div className="px-4 py-2 bg-[#313244] border-t border-[#45475a] flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <span className="text-[10px] text-[#6c7086] font-mono uppercase tracking-wider">
-                    {generatedData.length > 0 ? 'OUTPUT' : 'IDLE'}
-                  </span>
-                  {generatedData.length > 0 && (
-                    <span className="text-[10px] text-[#6c7086] font-mono">
-                      {generatedData.length} records
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-4">
-                  {generatedData.length > 0 && (
-                    <>
-                      <span className="text-[10px] text-[#6c7086] font-mono">
-                        {(new Blob([formattedOutput]).size / 1024).toFixed(2)}{' '}
-                        KB
-                      </span>
-                      <span className="flex items-center gap-1 text-[10px] text-[#a6e3a1] font-mono">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#a6e3a1] animate-pulse"></span>
-                        Ready
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Features Section */}
-      <section className="py-12 border-t border-gray-200">
-        <div className="container-custom">
-          <h2 className="text-2xl font-bold text-neural-800 text-center mb-8">
-            Why Use Our Data Generator?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: '⚡',
-                title: 'Instant Generation',
-                description:
-                  'Generate up to 1000 records in seconds with realistic, varied data.',
-              },
-              {
-                icon: '🎯',
-                title: 'Multiple Formats',
-                description:
-                  'Export as JSON, CSV, or SQL - ready for any database or application.',
-              },
-              {
-                icon: '🔒',
-                title: 'Privacy First',
-                description:
-                  'All data is generated client-side. Nothing is sent to any server.',
-              },
-            ].map((feature, idx) => (
-              <div
-                key={idx}
-                className="p-6 bg-white rounded-2xl border border-neural-100 shadow-sm hover:shadow-lg hover:border-brand-200 transition-all duration-300"
-              >
-                <div className="text-3xl mb-3">{feature.icon}</div>
-                <h3 className="text-lg font-semibold text-neural-800 mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-neural-600 text-sm">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* CTA Section */}
-          <div className="max-w-4xl mx-auto mt-16">
-            <div className="bg-gradient-to-r from-brand-600 to-accent-500 rounded-2xl p-8 md:p-12 text-center text-white">
-              <h2 className="text-3xl font-bold mb-4">Explore More Tools</h2>
-              <p className="text-lg opacity-90 mb-8">
-                Check out our full suite of developer and network tools to boost your productivity.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/tools" className="btn-primary bg-white text-brand-600 hover:bg-neural-50">
-                  All Tools
-                </Link>
-                <Link href="/agents" className="btn-primary border-2 border-white bg-transparent hover:bg-white hover:text-brand-600">
-                  Explore AI Agents
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

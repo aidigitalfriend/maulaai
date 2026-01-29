@@ -1,363 +1,353 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useState, useEffect, useMemo } from 'react'
-import Link from 'next/link'
-import { BookOpen, Pen, Sparkles, Save, Share2, RefreshCw, Download, Check, Copy } from 'lucide-react'
+import Link from 'next/link';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
+
+
+interface StoryMetrics {
+  words: number;
+  chapters: number;
+  characters: number;
+  readTime: string;
+}
+
+interface StoryGenre {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
 
 export default function StoryWeaverPage() {
-  const [story, setStory] = useState('')
-  const [genre, setGenre] = useState('fantasy')
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [stats, setStats] = useState({ activeUsers: 0, totalCreated: 0 })
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
-  const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle')
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [storyPrompt, setStoryPrompt] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('fantasy');
+  const [story, setStory] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [metrics, setMetrics] = useState<StoryMetrics>({ words: 0, chapters: 0, characters: 0, readTime: '0 min' });
 
-  // Calculate story metrics in real-time
-  const storyMetrics = useMemo(() => {
-    const words = story.split(/\s+/).filter(w => w.length > 0).length
-    
-    // Estimate chapters: roughly 1 chapter per 500 words, minimum 0
-    const chapters = Math.max(0, Math.floor(words / 500) + (words > 100 ? 1 : 0))
-    
-    // Count unique capitalized names (potential characters)
-    const namePattern = /\b[A-Z][a-z]{2,}\b/g
-    const potentialNames = story.match(namePattern) || []
-    // Filter out common words that start with capital (beginning of sentences)
-    const commonWords = ['The', 'This', 'That', 'There', 'They', 'Then', 'When', 'What', 'Where', 'Which', 'While', 'After', 'Before', 'Maybe', 'Perhaps', 'Something', 'Someone', 'Suddenly', 'Finally', 'However']
-    const characters = new Set(potentialNames.filter(name => !commonWords.includes(name))).size
-    
-    // Calculate read time: average 200 words per minute
-    const readTimeMinutes = Math.max(0, Math.ceil(words / 200))
-    const readTime = readTimeMinutes < 1 ? '<1m' : `${readTimeMinutes}m`
-    
-    return { words, chapters, characters, readTime }
-  }, [story])
+  const genres: StoryGenre[] = [
+    { id: 'fantasy', name: 'Fantasy', icon: '🐉', color: 'from-purple-500 to-violet-500' },
+    { id: 'scifi', name: 'Sci-Fi', icon: '🚀', color: 'from-cyan-500 to-blue-500' },
+    { id: 'romance', name: 'Romance', icon: '💕', color: 'from-pink-500 to-rose-500' },
+    { id: 'mystery', name: 'Mystery', icon: '🔍', color: 'from-amber-500 to-orange-500' },
+    { id: 'horror', name: 'Horror', icon: '👻', color: 'from-red-500 to-rose-500' },
+    { id: 'adventure', name: 'Adventure', icon: '⚔️', color: 'from-emerald-500 to-teal-500' },
+  ];
 
-  // Fetch real-time stats
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch('/api/lab/story-generation?stats=true')
-        if (response.ok) {
-          const data = await response.json()
-          setStats({
-            activeUsers: data.activeUsers || 0,
-            totalCreated: data.totalCreated || 0
-          })
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats:', error)
-      }
-    }
+  const calculateMetrics = useCallback((text: string): StoryMetrics => {
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+    const chapters = (text.match(/chapter/gi) || []).length || 1;
+    const characters = text.length;
+    const readTime = Math.max(1, Math.ceil(words / 200));
+    return { words, chapters, characters, readTime: `${readTime} min` };
+  }, []);
 
-    fetchStats()
-    const interval = setInterval(fetchStats, 30000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const genres = [
-    { id: 'fantasy', name: 'Fantasy', icon: '🧙‍♂️' },
-    { id: 'sci-fi', name: 'Sci-Fi', icon: '🚀' },
-    { id: 'mystery', name: 'Mystery', icon: '🔍' },
-    { id: 'romance', name: 'Romance', icon: '💕' },
-    { id: 'horror', name: 'Horror', icon: '👻' },
-    { id: 'adventure', name: 'Adventure', icon: '⚔️' }
-  ]
-
-  const prompts = [
-    'A mysterious stranger arrives in town',
-    'You discover a hidden door in your house',
-    'The last human on Earth receives a phone call',
-    'A detective finds an impossible clue',
-    'Two enemies must work together to survive',
-    'Someone wakes up with a superpower'
-  ]
-
-  const handleContinue = async () => {
-    if (!story.trim()) {
-      alert('Please write something to continue')
-      return
-    }
-    
-    setIsGenerating(true)
-    
+  const handleGenerate = async () => {
+    if (!storyPrompt.trim()) return;
+    setIsGenerating(true);
     try {
       const response = await fetch('/api/lab/story-generation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          story,
-          genre,
-          action: 'continue'
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Story generation failed')
+        body: JSON.stringify({ prompt: storyPrompt, genre: selectedGenre })
+      });
+      const data = await response.json();
+      if (data.success && data.story) {
+        setStory(data.story);
+        setMetrics(calculateMetrics(data.story));
       }
-
-      const data = await response.json()
-      setStory(story + '\n\n' + data.generated)
-    } catch (error) {
-      console.error('Story generation error:', error)
-      alert('Story generation failed. Please try again.')
+    } catch (err) {
+      console.error('Story generation error:', err);
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
+  };
 
-  // Save/Download story as text file
-  const handleSave = () => {
-    if (!story.trim()) {
-      alert('Please write something to save')
-      return
-    }
-    
-    setSaveStatus('saving')
-    
+  const handleContinue = async () => {
+    if (!story.trim()) return;
+    setIsGenerating(true);
     try {
-      const blob = new Blob([story], { type: 'text/plain' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `story-${genre}-${new Date().toISOString().split('T')[0]}.txt`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      
-      setSaveStatus('saved')
-      setTimeout(() => setSaveStatus('idle'), 2000)
-    } catch (error) {
-      console.error('Save error:', error)
-      alert('Failed to save story')
-      setSaveStatus('idle')
+      const response = await fetch('/api/lab/story-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: storyPrompt, genre: selectedGenre, continuation: story })
+      });
+      const data = await response.json();
+      if (data.success && data.story) {
+        setStory(prev => prev + '\n\n' + data.story);
+        setMetrics(calculateMetrics(story + '\n\n' + data.story));
+      }
+    } catch (err) {
+      console.error('Story continuation error:', err);
+    } finally {
+      setIsGenerating(false);
     }
-  }
+  };
 
-  // Share story - copy to clipboard
-  const handleShare = async () => {
-    if (!story.trim()) {
-      alert('Please write something to share')
-      return
-    }
-    
-    try {
-      // Try native share API first (mobile)
-      if (navigator.share) {
-        await navigator.share({
-          title: `My ${genre.charAt(0).toUpperCase() + genre.slice(1)} Story`,
-          text: story.slice(0, 200) + (story.length > 200 ? '...' : ''),
-          url: window.location.href
-        })
-      } else {
-        // Fallback: copy to clipboard
-        await navigator.clipboard.writeText(story)
-        setShareStatus('copied')
-        setTimeout(() => setShareStatus('idle'), 2000)
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      gsap.set(heroTitle.chars, { y: 70, opacity: 0, rotateX: -50 });
+      gsap.set('.hero-badge', { scale: 0.5, opacity: 0 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, duration: 0.55, stagger: 0.02 }, '-=0.3');
+
+      // 2. ScrambleText on metrics
+      gsap.utils.toArray<HTMLElement>('.metric-value').forEach((el, i) => {
+        const originalText = el.textContent || '';
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 95%',
+          onEnter: () => {
+            gsap.to(el, { duration: 0.7, scrambleText: { text: originalText, chars: '0123456789', speed: 0.5 }, delay: i * 0.08 });
+          }
+        });
+      });
+
+      // 3. ScrollTrigger for genre buttons
+      gsap.set('.genre-btn', { y: 25, opacity: 0, scale: 0.9 });
+      ScrollTrigger.batch('.genre-btn', {
+        start: 'top 95%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'back.out(1.4)' })
+      });
+
+      // 4. Flip for story panel
+      gsap.set('.story-panel', { opacity: 0, y: 30 });
+
+      // 5. Observer parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.15, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.1, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting quill
+      gsap.to('.orbit-quill', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 55, y: -30 }, { x: 110, y: 0 }, { x: 55, y: 30 }, { x: 0, y: 0 }],
+          curviness: 1.6,
+        },
+        rotation: 30,
+        duration: 14,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on generate button
+      gsap.utils.toArray<HTMLElement>('.generate-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { scale: 1.05, duration: 0.5, ease: 'storyWiggle' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { scale: 1, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for book decoration
+      gsap.set('.book-line', { drawSVG: '0%' });
+      gsap.to('.book-line', { drawSVG: '100%', duration: 1.2, delay: 0.5, ease: 'power2.inOut' });
+
+      // 9. Draggable prompt panel
+      if (window.innerWidth > 768) {
+        Draggable.create('.draggable-prompt', {
+          type: 'x,y',
+          bounds: containerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
       }
-    } catch (error) {
-      // If share was cancelled or failed, try clipboard
-      try {
-        await navigator.clipboard.writeText(story)
-        setShareStatus('copied')
-        setTimeout(() => setShareStatus('idle'), 2000)
-      } catch (clipError) {
-        console.error('Share/Copy error:', clipError)
-        alert('Failed to share story')
-      }
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.story-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-50, 50)`,
+          y: `random(-45, 45)`,
+          duration: `random(6, 10)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.12
+        });
+      });
+
+      // 11. Genre icon animations
+      gsap.utils.toArray<HTMLElement>('.genre-icon').forEach((icon, i) => {
+        gsap.to(icon, {
+          scale: 1.25,
+          rotation: 10,
+          duration: 0.8,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power1.inOut',
+          delay: i * 0.1
+        });
+      });
+
+      // 12. Typing cursor blink
+      gsap.to('.typing-cursor', {
+        opacity: 0,
+        duration: 0.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power2.inOut'
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (story) {
+      gsap.to('.story-panel', { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.2)' });
     }
-  }
+  }, [story]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-brand-600 to-accent-600 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
-        </div>
-        <div className="container mx-auto px-4 py-16 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
-              <span>←</span> Back to AI Lab
-            </Link>
-            
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg shadow-green-500/25">
-                <BookOpen className="w-12 h-12 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold text-white">
-                  AI Story Weaver
-                </h1>
-                <p className="text-xl text-blue-100 mt-2">
-                  Collaborate with AI to write compelling stories
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6 mt-6">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-blue-100">{stats.activeUsers.toLocaleString()} users active</span>
-              </div>
-              <div className="text-sm text-blue-200">•</div>
-              <div className="text-sm text-blue-100">{stats.totalCreated.toLocaleString()} stories created</div>
-            </div>
-          </motion.div>
-        </div>
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/5 w-[520px] h-[520px] bg-emerald-500/15 rounded-full blur-[140px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[460px] h-[460px] bg-teal-500/12 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 opacity-8" style={{ backgroundImage: 'linear-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.08) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="story-particle absolute w-2 h-2 bg-emerald-400/25 rounded-full" style={{ left: `${8 + i * 9}%`, top: `${12 + (i % 5) * 16}%` }} />
+        ))}
+        <div className="orbit-quill absolute top-32 right-1/4 w-3 h-3 bg-teal-400/50 rounded-full" />
+        <svg className="absolute top-24 left-1/4 w-32 h-40 opacity-20">
+          <path className="book-line" d="M10,10 L10,120 M10,10 C40,15 60,15 90,10 M10,120 C40,125 60,125 90,120" fill="none" stroke="url(#storyGrad)" strokeWidth="2" />
+          <defs>
+            <linearGradient id="storyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#10b981" />
+              <stop offset="50%" stopColor="#14b8a6" />
+              <stop offset="100%" stopColor="#0d9488" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="lg:col-span-1 space-y-6"
-          >
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">Genre</h3>
-              <div className="space-y-2">
-                {genres.map((g) => (
-                  <button
-                    key={g.id}
-                    onClick={() => setGenre(g.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                      genre === g.id
-                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 border border-green-500 text-white'
-                        : 'bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700'
-                    }`}
-                  >
-                    <span className="text-2xl">{g.icon}</span>
-                    <span>{g.name}</span>
-                  </button>
-                ))}
+      {/* Hero */}
+      <section className="relative z-10 pt-24 pb-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <Link href="/lab" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+            ← Back to AI Lab
+          </Link>
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 backdrop-blur-sm rounded-full border border-emerald-500/30 mb-4">
+            <span className="text-xl">📖</span>
+            <span className="font-medium text-emerald-300">AI Story Generation</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            <span className="hero-title bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">Story Weaver</span>
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Create interactive stories with AI as your co-author
+          </p>
+        </div>
+      </section>
+
+      {/* Genre Selection */}
+      <section className="relative z-10 py-6 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h3 className="text-sm font-semibold text-gray-400 mb-4 text-center">Choose a Genre</h3>
+          <div className="flex flex-wrap justify-center gap-2">
+            {genres.map((genre) => (
+              <button
+                key={genre.id}
+                onClick={() => setSelectedGenre(genre.id)}
+                className={`genre-btn px-5 py-2 rounded-xl flex items-center gap-2 transition-all ${selectedGenre === genre.id ? `bg-gradient-to-r ${genre.color} text-white` : 'bg-gray-800/50 border border-gray-700/50 text-gray-400 hover:bg-gray-700/50'}`}
+              >
+                <span className="genre-icon">{genre.icon}</span>
+                <span className="font-medium">{genre.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Prompt Input */}
+      <section className="relative z-10 py-6 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="draggable-prompt p-8 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-emerald-500/30 backdrop-blur-sm">
+            <label className="text-lg font-semibold mb-4 block">Start your story</label>
+            <textarea
+              value={storyPrompt}
+              onChange={(e) => setStoryPrompt(e.target.value)}
+              placeholder="In a world where magic flows through ancient rivers, a young apprentice discovers..."
+              className="w-full h-28 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 transition-colors resize-none mb-4"
+            />
+            <button
+              onClick={handleGenerate}
+              disabled={!storyPrompt.trim() || isGenerating}
+              className="generate-btn w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-emerald-500/25 transition-all"
+            >
+              {isGenerating ? '✍️ Writing...' : '✨ Generate Story'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Story Output */}
+      {story && (
+        <section className="relative z-10 py-8 px-4">
+          <div className="max-w-4xl mx-auto">
+            {/* Metrics */}
+            <div className="grid grid-cols-4 gap-3 mb-6">
+              <div className="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 text-center">
+                <span className="metric-value text-xl font-bold text-emerald-400">{metrics.words}</span>
+                <p className="text-xs text-gray-400">Words</p>
+              </div>
+              <div className="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 text-center">
+                <span className="metric-value text-xl font-bold text-teal-400">{metrics.chapters}</span>
+                <p className="text-xs text-gray-400">Chapters</p>
+              </div>
+              <div className="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 text-center">
+                <span className="metric-value text-xl font-bold text-cyan-400">{metrics.characters}</span>
+                <p className="text-xs text-gray-400">Characters</p>
+              </div>
+              <div className="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 text-center">
+                <span className="metric-value text-xl font-bold text-sky-400">{metrics.readTime}</span>
+                <p className="text-xs text-gray-400">Read Time</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">Story Starters</h3>
-              <div className="space-y-2">
-                {prompts.map((prompt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setStory(prompt + '...\n\n')}
-                    className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-emerald-300 transition-all text-sm text-gray-700"
-                  >
-                    {prompt}
-                  </button>
-                ))}
+            {/* Story Panel */}
+            <div className="story-panel p-8 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-emerald-500/30 backdrop-blur-sm">
+              <div className="prose prose-invert max-w-none">
+                <div className="whitespace-pre-wrap text-gray-300 leading-relaxed">{story}<span className="typing-cursor text-emerald-400">|</span></div>
               </div>
-            </div>
-          </motion.div>
-
-          {/* Editor */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="lg:col-span-3 space-y-6"
-          >
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <label className="text-2xl font-bold flex items-center gap-2 text-gray-900">
-                  <Pen className="w-6 h-6 text-emerald-500" />
-                  Your Story
-                </label>
-                <div className="text-sm text-gray-500">
-                  {story.split(' ').filter(w => w).length} words
-                </div>
-              </div>
-
-              <textarea
-                value={story}
-                onChange={(e) => setStory(e.target.value)}
-                placeholder="Start typing your story or choose a story starter... The AI will help you continue!"
-                className="w-full h-96 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-emerald-500 transition-colors resize-none font-serif text-lg leading-relaxed"
-              />
-
-              <div className="flex gap-4 mt-6">
+              <div className="mt-6 flex gap-3">
                 <button
                   onClick={handleContinue}
-                  disabled={!story.trim() || isGenerating}
-                  className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-green-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                  disabled={isGenerating}
+                  className="flex-1 py-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-emerald-400 font-medium hover:bg-emerald-500/30 transition-all disabled:opacity-50"
                 >
-                  {isGenerating ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 animate-spin" />
-                      AI Writing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      Continue Story with AI
-                    </>
-                  )}
+                  ➡️ Continue Story
                 </button>
-
-                <button 
-                  onClick={handleSave}
-                  disabled={!story.trim() || saveStatus === 'saving'}
-                  className="px-6 py-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
+                <button
+                  onClick={() => { setStory(''); setMetrics({ words: 0, chapters: 0, characters: 0, readTime: '0 min' }); }}
+                  className="px-6 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-gray-400 font-medium hover:bg-gray-700/50 transition-all"
                 >
-                  {saveStatus === 'saved' ? (
-                    <>
-                      <Check className="w-5 h-5 text-green-500" />
-                      <span className="text-green-600">Saved!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-5 h-5" />
-                      Save
-                    </>
-                  )}
-                </button>
-
-                <button 
-                  onClick={handleShare}
-                  disabled={!story.trim()}
-                  className="px-6 py-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
-                >
-                  {shareStatus === 'copied' ? (
-                    <>
-                      <Check className="w-5 h-5 text-green-500" />
-                      <span className="text-green-600">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="w-5 h-5" />
-                      Share
-                    </>
-                  )}
+                  🗑️ Clear
                 </button>
               </div>
             </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg text-center">
-                <div className="text-2xl font-bold text-emerald-500">{storyMetrics.chapters}</div>
-                <div className="text-sm text-gray-500">Chapters</div>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg text-center">
-                <div className="text-2xl font-bold text-cyan-500">{storyMetrics.characters}</div>
-                <div className="text-sm text-gray-500">Characters</div>
-              </div>
-              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg text-center">
-                <div className="text-2xl font-bold text-purple-500">{storyMetrics.readTime}</div>
-                <div className="text-sm text-gray-500">Read Time</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-      </div>
+          </div>
+        </section>
+      )}
     </div>
-  )
+  );
 }

@@ -1,114 +1,333 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
+import Link from 'next/link';
+import { useEffect, useRef } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
+
 
 export default function RoadmapPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+
   const roadmap = [
     {
-      quarter: "Q4 2025",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700 border-green-200",
-      icon: "✓",
+      quarter: 'Q4 2025',
+      status: 'Completed',
+      statusColor: 'green',
+      icon: '✓',
       features: [
-        { name: "Voice integration for all agents", description: "Natural voice conversations with every AI agent", completed: true },
-        { name: "Advanced analytics dashboard", description: "Deep insights into usage patterns and performance", completed: true },
-        { name: "Custom agent creation", description: "Build and train your own specialized AI agents", completed: true }
+        { name: 'Voice integration for all agents', description: 'Natural voice conversations with every AI agent', completed: true },
+        { name: 'Advanced analytics dashboard', description: 'Deep insights into usage patterns and performance', completed: true },
+        { name: 'Custom agent creation', description: 'Build and train your own specialized AI agents', completed: true }
       ]
     },
     {
-      quarter: "Q1 2026",
-      status: "In Progress",
-      statusColor: "bg-amber-100 text-amber-700 border-amber-200",
-      icon: "🔄",
+      quarter: 'Q1 2026',
+      status: 'In Progress',
+      statusColor: 'amber',
+      icon: '🔄',
       features: [
-        { name: "Mobile app launch", description: "Native iOS and Android apps for on-the-go access", completed: false },
-        { name: "Slack integration", description: "Use agents directly in your Slack workspace", completed: true },
-        { name: "Team collaboration features", description: "Share agents and conversations with your team", completed: false },
-        { name: "Canvas code generation", description: "AI-powered code and content generation workspace", completed: true }
+        { name: 'Mobile app launch', description: 'Native iOS and Android apps for on-the-go access', completed: false },
+        { name: 'Slack integration', description: 'Use agents directly in your Slack workspace', completed: true },
+        { name: 'Team collaboration features', description: 'Share agents and conversations with your team', completed: false },
+        { name: 'Canvas code generation', description: 'AI-powered code and content generation workspace', completed: true }
       ]
     },
     {
-      quarter: "Q2 2026",
-      status: "Planned",
-      statusColor: "bg-blue-100 text-blue-700 border-blue-200",
-      icon: "📋",
+      quarter: 'Q2 2026',
+      status: 'Planned',
+      statusColor: 'blue',
+      icon: '📋',
       features: [
-        { name: "Enterprise SSO", description: "SAML and OAuth integration for enterprise security", completed: false },
-        { name: "Advanced security features", description: "SOC 2 compliance and advanced encryption", completed: false },
-        { name: "API marketplace", description: "Discover and integrate third-party AI tools", completed: false }
+        { name: 'Enterprise SSO', description: 'SAML and OAuth integration for enterprise security', completed: false },
+        { name: 'Advanced security features', description: 'SOC 2 compliance and advanced encryption', completed: false },
+        { name: 'API marketplace', description: 'Discover and integrate third-party AI tools', completed: false }
       ]
     },
     {
-      quarter: "Q3 2026",
-      status: "Planned",
-      statusColor: "bg-purple-100 text-purple-700 border-purple-200",
-      icon: "🚀",
+      quarter: 'Q3 2026',
+      status: 'Planned',
+      statusColor: 'purple',
+      icon: '🚀',
       features: [
-        { name: "Multi-modal agents", description: "Agents that understand images, audio, and documents", completed: false },
-        { name: "Workflow automation", description: "Chain agents together for complex tasks", completed: false },
-        { name: "White-label solutions", description: "Deploy branded AI agents for your customers", completed: false }
+        { name: 'Multi-modal agents', description: 'Agents that understand images, audio, and documents', completed: false },
+        { name: 'Workflow automation', description: 'Chain agents together for complex tasks', completed: false },
+        { name: 'White-label solutions', description: 'Deploy branded AI agents for your customers', completed: false }
       ]
     }
-  ]
+  ];
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero Animation
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSub = new SplitText('.hero-subtitle', { type: 'words' });
+      gsap.set(heroTitle.chars, { y: 100, opacity: 0, rotateX: -90, scale: 0.9 });
+      gsap.set(heroSub.words, { y: 40, opacity: 0 });
+      gsap.set('.hero-badge', { y: 30, opacity: 0, scale: 0.8 });
+      gsap.set('.hero-icon', { scale: 0, rotation: -360 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' })
+        .to('.hero-icon', { scale: 1, rotation: 0, duration: 1.2, ease: 'elastic.out(1, 0.5)' }, '-=0.3')
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, scale: 1, duration: 0.7, stagger: 0.015 }, '-=0.8')
+        .to(heroSub.words, { y: 0, opacity: 1, duration: 0.5, stagger: 0.02 }, '-=0.4');
+
+      // 2. ScrambleText on progress percentage
+      gsap.utils.toArray<HTMLElement>('.progress-percent').forEach((el) => {
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 85%',
+          onEnter: () => {
+            gsap.to(el, {
+              duration: 1.8,
+              scrambleText: { text: el.dataset.value || el.innerText, chars: '0123456789%', speed: 0.5 },
+            });
+          },
+          once: true
+        });
+      });
+
+      // 3. ScrollTrigger for roadmap phases with 3D reveal
+      gsap.set('.phase-card', { y: 80, opacity: 0, rotateX: -15, scale: 0.95 });
+      ScrollTrigger.batch('.phase-card', {
+        start: 'top 85%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, rotateX: 0, scale: 1, duration: 0.7, stagger: 0.15, ease: 'back.out(1.4)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 80, opacity: 0, rotateX: -15, scale: 0.95, duration: 0.3 })
+      });
+
+      // 4. Flip for feature items
+      gsap.set('.feature-item', { opacity: 0, x: -30 });
+      ScrollTrigger.batch('.feature-item', {
+        start: 'top 85%',
+        onEnter: (batch) => {
+          batch.forEach((el, i) => {
+            const state = Flip.getState(el);
+            gsap.set(el, { opacity: 1, x: 0 });
+            Flip.from(state, { duration: 0.4, delay: i * 0.05, ease: 'power2.out' });
+          });
+        }
+      });
+
+      // 5. Observer for parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.2, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.15, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-3', { y: scrollY * 0.1, x: scrollY * -0.03, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting element
+      gsap.to('.orbit-dot', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 40, y: -20 }, { x: 80, y: 0 }, { x: 40, y: 20 }, { x: 0, y: 0 }],
+          curviness: 2,
+        },
+        duration: 8,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on phase icons
+      gsap.utils.toArray<HTMLElement>('.phase-icon').forEach((icon) => {
+        icon.addEventListener('mouseenter', () => {
+          gsap.to(icon, { rotation: 15, scale: 1.15, duration: 0.5, ease: 'roadmapWiggle' });
+        });
+        icon.addEventListener('mouseleave', () => {
+          gsap.to(icon, { rotation: 0, scale: 1, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for timeline connector
+      gsap.set('.timeline-path', { drawSVG: '0%' });
+      ScrollTrigger.create({
+        trigger: '.timeline-section',
+        start: 'top 70%',
+        onEnter: () => gsap.to('.timeline-path', { drawSVG: '100%', duration: 2, ease: 'power2.inOut' })
+      });
+
+      // 9. Progress bar animation
+      gsap.utils.toArray<HTMLElement>('.progress-fill').forEach((bar) => {
+        gsap.set(bar, { scaleX: 0, transformOrigin: 'left center' });
+        ScrollTrigger.create({
+          trigger: bar,
+          start: 'top 85%',
+          onEnter: () => gsap.to(bar, { scaleX: 1, duration: 1.2, ease: 'power2.out' }),
+          once: true
+        });
+      });
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.float-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-70, 70)`,
+          y: `random(-50, 50)`,
+          rotation: `random(-90, 90)`,
+          duration: `random(5, 9)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.25
+        });
+      });
+
+      // 11. Draggable phase cards
+      if (timelineRef.current) {
+        Draggable.create('.draggable-phase', {
+          type: 'x,y',
+          bounds: timelineRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.6)' });
+          }
+        });
+      }
+
+      // 12. CTA section reveal
+      gsap.set('.cta-section', { y: 60, opacity: 0 });
+      ScrollTrigger.create({
+        trigger: '.cta-section',
+        start: 'top 85%',
+        onEnter: () => gsap.to('.cta-section', { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' })
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const getStatusColor = (color: string) => {
+    const colors: Record<string, string> = {
+      green: 'from-green-500 to-emerald-500',
+      amber: 'from-amber-500 to-orange-500',
+      blue: 'from-blue-500 to-cyan-500',
+      purple: 'from-purple-500 to-pink-500'
+    };
+    return colors[color] || colors.blue;
+  };
+
+  const getStatusBorder = (color: string) => {
+    const borders: Record<string, string> = {
+      green: 'border-green-500/30',
+      amber: 'border-amber-500/30',
+      blue: 'border-blue-500/30',
+      purple: 'border-purple-500/30'
+    };
+    return borders[color] || borders.blue;
+  };
+
+  const completedCount = roadmap.reduce((acc, phase) => acc + phase.features.filter(f => f.completed).length, 0);
+  const totalCount = roadmap.reduce((acc, phase) => acc + phase.features.length, 0);
+  const progressPercent = Math.round((completedCount / totalCount) * 100);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-500/15 rounded-full blur-[150px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-purple-500/15 rounded-full blur-[120px]" />
+        <div className="parallax-orb-3 absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-amber-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)',
+          backgroundSize: '80px 80px'
+        }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="float-particle absolute w-1.5 h-1.5 bg-blue-400/30 rounded-full" style={{ left: `${10 + i * 8}%`, top: `${15 + (i % 4) * 18}%` }} />
+        ))}
+        <div className="orbit-dot absolute top-40 right-1/4 w-2 h-2 bg-purple-400/60 rounded-full" />
+      </div>
+
       {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-r from-brand-600 to-accent-600 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6bTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6bTIwIDBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+      <section className="relative z-10 pt-24 pb-16 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-full border border-blue-500/30 mb-8">
             <span className="text-xl">🗺️</span>
-            Building the Future
+            <span className="font-medium">Building the Future</span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Product Roadmap</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">See what we&apos;re building next and help shape the future of One Last AI</p>
+          <div className="hero-icon inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-2xl border border-blue-500/30 mb-6">
+            <span className="text-4xl phase-icon">🚀</span>
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <span className="hero-title bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">Product Roadmap</span>
+          </h1>
+          <p className="hero-subtitle text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
+            See what we're building next and help shape the future of Maula AI
+          </p>
         </div>
       </section>
 
-      {/* Roadmap Timeline */}
-      <section className="py-16 md:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Timeline Section */}
+      <section ref={timelineRef} className="timeline-section relative z-10 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* SVG Timeline Path */}
+          <svg className="absolute left-1/2 top-0 h-full w-1 opacity-40 hidden md:block" style={{ transform: 'translateX(-50%)' }}>
+            <line className="timeline-path" x1="0" y1="0" x2="0" y2="100%" stroke="url(#roadmapGrad)" strokeWidth="3" strokeLinecap="round" />
+            <defs>
+              <linearGradient id="roadmapGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#22c55e" />
+                <stop offset="33%" stopColor="#f59e0b" />
+                <stop offset="66%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#a855f7" />
+              </linearGradient>
+            </defs>
+          </svg>
+
           <div className="space-y-8">
             {roadmap.map((phase, idx) => (
-              <div key={idx} className="bg-white rounded-2xl border border-neural-200 shadow-lg overflow-hidden">
+              <div key={idx} className="phase-card draggable-phase relative rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden cursor-grab">
                 {/* Phase Header */}
-                <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b border-neural-100">
+                <div className={`p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50`}>
                   <div className="flex flex-wrap items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg">
+                    <div className={`phase-icon w-14 h-14 bg-gradient-to-br ${getStatusColor(phase.statusColor)} rounded-xl flex items-center justify-center text-white text-2xl shadow-lg`}>
                       {phase.icon}
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-neural-900">{phase.quarter}</h2>
+                      <h2 className="text-2xl font-bold text-white">{phase.quarter}</h2>
                     </div>
-                    <span className={`px-4 py-1.5 rounded-full text-sm font-semibold border ${phase.statusColor}`}>
+                    <span className={`px-4 py-1.5 rounded-full text-sm font-semibold bg-gradient-to-r ${getStatusColor(phase.statusColor)} text-white`}>
                       {phase.status}
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Features List */}
                 <div className="p-6">
                   <div className="space-y-4">
                     {phase.features.map((feature, fIdx) => (
-                      <div key={fIdx} className={`flex items-start gap-4 p-4 rounded-xl transition ${feature.completed ? 'bg-green-50 border border-green-100' : 'bg-neural-50 border border-neural-100'}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${feature.completed ? 'bg-green-500 text-white' : 'bg-neural-200 text-neural-500'}`}>
-                          {feature.completed ? (
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          ) : (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          )}
+                      <div
+                        key={fIdx}
+                        className={`feature-item flex items-start gap-4 p-4 rounded-xl transition-all ${
+                          feature.completed
+                            ? 'bg-green-500/10 border border-green-500/30'
+                            : 'bg-gray-800/30 border border-gray-700/30'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          feature.completed
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-700 text-gray-400'
+                        }`}>
+                          {feature.completed ? '✓' : '○'}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className={`font-semibold ${feature.completed ? 'text-green-800' : 'text-neural-900'}`}>{feature.name}</h3>
-                          <p className={`text-sm mt-0.5 ${feature.completed ? 'text-green-600' : 'text-neural-500'}`}>{feature.description}</p>
+                        <div className="flex-1">
+                          <h3 className={`font-semibold ${feature.completed ? 'text-green-300' : 'text-white'}`}>
+                            {feature.name}
+                          </h3>
+                          <p className={`text-sm mt-1 ${feature.completed ? 'text-green-400/70' : 'text-gray-400'}`}>
+                            {feature.description}
+                          </p>
                         </div>
                         {feature.completed && (
-                          <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">Done</span>
+                          <span className="text-xs font-medium text-green-400 bg-green-500/20 px-2 py-1 rounded-full">
+                            Done
+                          </span>
                         )}
                       </div>
                     ))}
@@ -119,26 +338,32 @@ export default function RoadmapPage() {
           </div>
 
           {/* Progress Summary */}
-          <div className="mt-12 bg-white rounded-2xl border border-neural-200 shadow-lg p-6">
-            <h3 className="text-lg font-bold text-neural-900 mb-4">Overall Progress</h3>
+          <div className="mt-12 relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm">
+            <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-blue-500/30 rounded-tr-lg" />
+            <h3 className="text-lg font-bold text-white mb-4">Overall Progress</h3>
             <div className="flex items-center gap-4">
-              <div className="flex-1 bg-neural-100 rounded-full h-4 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style={{ width: '45%' }}></div>
+              <div className="flex-1 bg-gray-800/50 rounded-full h-4 overflow-hidden">
+                <div
+                  className="progress-fill h-full bg-gradient-to-r from-green-500 to-cyan-500 rounded-full"
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
-              <span className="text-sm font-semibold text-neural-700">45% Complete</span>
+              <span className="progress-percent text-sm font-semibold text-cyan-400" data-value={`${progressPercent}%`}>
+                {progressPercent}%
+              </span>
             </div>
-            <div className="flex flex-wrap gap-4 mt-4 text-sm">
+            <div className="flex flex-wrap gap-6 mt-4 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="text-neural-600">Completed: 6 features</span>
+                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="text-gray-400">Completed: {completedCount} features</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                <span className="text-neural-600">In Progress: 2 features</span>
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
+                <span className="text-gray-400">In Progress: {roadmap[1].features.filter(f => !f.completed).length} features</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-neural-200"></div>
-                <span className="text-neural-600">Planned: 6 features</span>
+                <div className="w-3 h-3 rounded-full bg-gray-600" />
+                <span className="text-gray-400">Planned: {totalCount - completedCount - roadmap[1].features.filter(f => !f.completed).length} features</span>
               </div>
             </div>
           </div>
@@ -146,35 +371,32 @@ export default function RoadmapPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-white border-t border-neural-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-12 border border-blue-100">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-neural-900 mb-4">Have an Idea?</h2>
-            <p className="text-lg text-neural-600 mb-8 max-w-xl mx-auto">
-              We love hearing from our community. Share your feature requests and help shape the future of One Last AI.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/community/suggestions" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-500/25">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Submit Your Idea
-              </Link>
-              <Link href="/community" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-neural-100 hover:bg-gray-200 text-neural-700 rounded-xl font-semibold transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Join Community
-              </Link>
+      <section className="cta-section relative z-10 py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative p-12 rounded-3xl bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-blue-500/30 backdrop-blur-sm overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
+            <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-blue-500/40 rounded-tr-lg" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-purple-500/40 rounded-bl-lg" />
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <span className="text-4xl">💡</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Have an Idea?</h2>
+              <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
+                We love hearing from our community. Share your feature requests and help shape the future of Maula AI.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/community/suggestions" className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-all transform hover:scale-105">
+                  ➕ Submit Your Idea
+                </Link>
+                <Link href="/community" className="px-8 py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl font-semibold hover:bg-gray-700/50 transition-all">
+                  👥 Join Community
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

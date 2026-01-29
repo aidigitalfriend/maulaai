@@ -1,562 +1,413 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import CodeBlock from '@/components/ui/CodeBlock'
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
 
-export default function DocsSDKs() {
+
+export default function DocsSDKsPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState('javascript');
+
   const sdks = [
-    {
-      name: "JavaScript/TypeScript",
-      description: "Modern SDK for Node.js and browser environments",
-      icon: "📘",
-      version: "2.0.0",
-      href: "#javascript",
-      readTime: "10 min"
-    },
-    {
-      name: "Python",
-      description: "Complete Python SDK with async support",
-      icon: "🐍",
-      version: "1.8.0",
-      href: "#python",
-      readTime: "10 min"
-    },
-    {
-      name: "Go",
-      description: "High-performance Go SDK for enterprise applications",
-      icon: "🐹",
-      version: "1.5.0",
-      href: "#go",
-      readTime: "9 min"
-    },
-    {
-      name: "PHP",
-      description: "Full-featured PHP SDK for web applications",
-      icon: "🚀",
-      version: "2.1.0",
-      href: "#php",
-      readTime: "8 min"
-    },
-    {
-      name: "Ruby",
-      description: "Ruby gem for seamless integration",
-      icon: "💎",
-      version: "1.3.0",
-      href: "#ruby",
-      readTime: "8 min"
-    },
-    {
-      name: "Java",
-      description: "Enterprise-grade Java SDK",
-      icon: "☕",
-      version: "2.2.0",
-      href: "#java",
-      readTime: "11 min"
-    }
-  ]
+    { id: 'javascript', name: 'JavaScript', icon: '🟨', version: '2.5.0', installs: '45K+', color: 'yellow' },
+    { id: 'python', name: 'Python', icon: '🐍', version: '3.1.2', installs: '38K+', color: 'blue' },
+    { id: 'go', name: 'Go', icon: '🔵', version: '1.4.0', installs: '12K+', color: 'cyan' },
+    { id: 'php', name: 'PHP', icon: '🟣', version: '2.0.1', installs: '8K+', color: 'purple' },
+    { id: 'ruby', name: 'Ruby', icon: '💎', version: '1.2.3', installs: '5K+', color: 'red' },
+    { id: 'java', name: 'Java', icon: '☕', version: '1.8.0', installs: '15K+', color: 'orange' }
+  ];
 
-  const featureComparison = [
-    { feature: "RESTful API Support", js: true, py: true, go: true, php: true },
-    { feature: "Real-time Streaming", js: true, py: true, go: true, php: false },
-    { feature: "File Upload", js: true, py: true, go: true, php: true },
-    { feature: "Error Handling", js: true, py: true, go: true, php: true },
-    { feature: "Type Safety", js: true, py: false, go: true, php: false },
-    { feature: "Async/Await", js: true, py: true, go: true, php: false },
-    { feature: "WebSocket Support", js: true, py: true, go: true, php: false },
-    { feature: "Rate Limiting", js: true, py: true, go: true, php: true }
-  ]
+  const codeExamples: Record<string, { install: string; code: string }> = {
+    javascript: {
+      install: 'npm install @maula/sdk',
+      code: `import { MaulaClient } from '@maula/sdk';
 
-  // Code snippets
-  const jsInstallNpm = `npm install @onelastai/sdk`
-  const jsInstallYarn = `yarn add @onelastai/sdk`
-  
-  const jsBasicUsage = `import { OnelastAI } from '@onelastai/sdk';
-
-const client = new OnelastAI({
-  apiKey: process.env.ONELASTAI_API_KEY
+const client = new MaulaClient({
+  apiKey: process.env.MAULA_API_KEY
 });
 
-// Get all agents
-const agents = await client.agents.list();
-
-// Send a message to an agent
-const response = await client.conversations.send({
-  agentId: 'agent_123',
-  message: 'Hello, how are you?'
+const response = await client.agents.chat({
+  agentId: 'your-agent-id',
+  message: 'Hello, can you help me?'
 });
 
-console.log(response.reply);`
+console.log(response.message);`
+    },
+    python: {
+      install: 'pip install maula-sdk',
+      code: `from maula import MaulaClient
 
-  const jsCreateAgent = `const newAgent = await client.agents.create({
-  name: 'My Bot',
-  personality: 'helpful',
-  model: 'gpt-4',
-  systemPrompt: 'You are a helpful assistant'
-});
-
-console.log(newAgent.id);`
-
-  const pyInstall = `pip install onelastai-sdk`
-  
-  const pyBasicUsage = `from onelastai import OnelastAI
-
-client = OnelastAI(api_key='YOUR_API_KEY')
-
-# Get all agents
-agents = client.agents.list()
-
-# Send a message
-response = client.conversations.send(
-  agent_id='agent_123',
-  message='Hello, how are you?'
+client = MaulaClient(
+    api_key=os.environ.get("MAULA_API_KEY")
 )
 
-print(response['reply'])`
+response = client.agents.chat(
+    agent_id="your-agent-id",
+    message="Hello, can you help me?"
+)
 
-  const pyAsyncUsage = `import asyncio
-from onelastai import AsyncOnelastAI
-
-async def main():
-  client = AsyncOnelastAI(api_key='YOUR_API_KEY')
-  
-  response = await client.conversations.send(
-    agent_id='agent_123',
-    message='Hello!'
-  )
-  
-  print(response['reply'])
-
-asyncio.run(main())`
-
-  const goInstall = `go get github.com/onelastai/sdk-go`
-  
-  const goBasicUsage = `package main
+print(response.message)`
+    },
+    go: {
+      install: 'go get github.com/maula-ai/go-sdk',
+      code: `package main
 
 import (
-  "fmt"
-  "github.com/onelastai/sdk-go"
+    "fmt"
+    maula "github.com/maula-ai/go-sdk"
 )
 
 func main() {
-  client := onelastai.NewClient("YOUR_API_KEY")
-  
-  // List agents
-  agents, err := client.Agents.List()
-  if err != nil {
-    panic(err)
-  }
-  
-  // Send message
-  response, err := client.Conversations.Send(&onelastai.Message{
-    AgentID: "agent_123",
-    Text:    "Hello!",
-  })
-  
-  fmt.Println(response.Reply)
+    client := maula.NewClient(os.Getenv("MAULA_API_KEY"))
+    
+    response, _ := client.Agents.Chat(
+        "your-agent-id",
+        "Hello, can you help me?",
+    )
+    
+    fmt.Println(response.Message)
 }`
-
-  const phpInstall = `composer require onelastai/sdk-php`
-  
-  const phpBasicUsage = `<?php
-require 'vendor/autoload.php';
-
-use OnelastAI\\Client;
+    },
+    php: {
+      install: 'composer require maula/sdk',
+      code: `<?php
+use Maula\\Client;
 
 $client = new Client([
-  'api_key' => 'YOUR_API_KEY'
+    'api_key' => getenv('MAULA_API_KEY')
 ]);
 
-// List agents
-$agents = $client->agents->list();
-
-// Send message
-$response = $client->conversations->send([
-  'agent_id' => 'agent_123',
-  'message' => 'Hello!'
+$response = $client->agents->chat([
+    'agent_id' => 'your-agent-id',
+    'message' => 'Hello, can you help me?'
 ]);
 
-echo $response['reply'];
-?>`
+echo $response->message;`
+    },
+    ruby: {
+      install: 'gem install maula-sdk',
+      code: `require 'maula'
 
-  const rubyInstall = `gem install onelastai-sdk`
-  
-  const rubyBasicUsage = `require 'onelastai'
-
-client = OnelastAI::Client.new(api_key: ENV['ONELASTAI_API_KEY'])
-
-# List agents
-agents = client.agents.list
-
-# Send message
-response = client.conversations.send(
-  agent_id: 'agent_123',
-  message: 'Hello!'
+client = Maula::Client.new(
+  api_key: ENV['MAULA_API_KEY']
 )
 
-puts response['reply']`
+response = client.agents.chat(
+  agent_id: 'your-agent-id',
+  message: 'Hello, can you help me?'
+)
 
-  const javaInstall = `<dependency>
-  <groupId>com.onelastai</groupId>
-  <artifactId>sdk-java</artifactId>
-  <version>2.2.0</version>
-</dependency>`
-  
-  const javaBasicUsage = `import com.onelastai.sdk.OnelastAI;
-import com.onelastai.sdk.models.Agent;
+puts response.message`
+    },
+    java: {
+      install: 'implementation "ai.maula:sdk:1.8.0"',
+      code: `import ai.maula.MaulaClient;
+import ai.maula.models.ChatResponse;
 
-public class Main {
-  public static void main(String[] args) {
-    OnelastAI client = new OnelastAI("YOUR_API_KEY");
-    
-    // List agents
-    List<Agent> agents = client.agents().list();
-    
-    // Send message
-    String response = client.conversations()
-      .send("agent_123", "Hello!");
-    
-    System.out.println(response);
-  }
+public class Example {
+    public static void main(String[] args) {
+        MaulaClient client = new MaulaClient(
+            System.getenv("MAULA_API_KEY")
+        );
+        
+        ChatResponse response = client.agents().chat(
+            "your-agent-id",
+            "Hello, can you help me?"
+        );
+        
+        System.out.println(response.getMessage());
+    }
 }`
+    }
+  };
 
-  const errorHandling = `try {
-  const response = await client
-    .conversations.send({...});
-} catch (error) {
-  if (error.code === 'RATE_LIMITED') {
-    // Handle rate limit
-  } else if (error.code === 'AUTH_ERROR') {
-    // Handle auth error
-  } else {
-    // Handle other errors
-  }
-}`
+  const features = [
+    { icon: '🔒', title: 'Type Safe', desc: 'Full TypeScript support with comprehensive type definitions' },
+    { icon: '⚡', title: 'Async/Await', desc: 'Modern async patterns for non-blocking operations' },
+    { icon: '🔄', title: 'Auto Retry', desc: 'Built-in retry logic with exponential backoff' },
+    { icon: '📊', title: 'Streaming', desc: 'Stream responses for real-time message display' }
+  ];
 
-  const retryLogic = `const maxRetries = 3;
-let attempt = 0;
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-while (attempt < maxRetries) {
-  try {
-    return await client.agents.list();
-  } catch (error) {
-    attempt++;
-    await sleep(Math.pow(2, attempt) * 1000);
-  }
-}`
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero Animation
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSub = new SplitText('.hero-subtitle', { type: 'words' });
+      gsap.set(heroTitle.chars, { y: 100, opacity: 0, rotateX: -90 });
+      gsap.set(heroSub.words, { y: 40, opacity: 0 });
+      gsap.set('.hero-badge', { y: 30, opacity: 0, scale: 0.8 });
 
-  const pagination = `const agents = [];
-let page = 1;
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, duration: 0.7, stagger: 0.02 }, '-=0.3')
+        .to(heroSub.words, { y: 0, opacity: 1, duration: 0.5, stagger: 0.02 }, '-=0.3');
 
-while (true) {
-  const result = await client
-    .agents.list({
-      page: page,
-      limit: 50
-    });
-  
-  agents.push(...result.data);
-  
-  if (!result.hasMore) break;
-  page++;
-}`
+      // 2. ScrambleText on SDK names
+      gsap.utils.toArray<HTMLElement>('.sdk-name').forEach((el, i) => {
+        const originalText = el.textContent || '';
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 90%',
+          onEnter: () => {
+            gsap.to(el, { duration: 0.8, scrambleText: { text: originalText, chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', speed: 0.5 }, delay: i * 0.05 });
+          }
+        });
+      });
 
-  const streaming = `const stream = await client
-  .conversations.stream({
-    agentId: 'agent_123',
-    message: 'Write a poem'
-  });
+      // 3. ScrollTrigger for SDK cards
+      gsap.set('.sdk-card', { y: 50, opacity: 0, scale: 0.95 });
+      ScrollTrigger.batch('.sdk-card', {
+        start: 'top 88%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.08, ease: 'back.out(1.4)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 50, opacity: 0, scale: 0.95, duration: 0.3 })
+      });
 
-for await (const chunk of stream) {
-  process.stdout.write(chunk.data);
-}`
+      // 4. Flip for feature cards
+      gsap.set('.feature-card', { opacity: 0, y: 30 });
+      ScrollTrigger.create({
+        trigger: '.features-grid',
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.utils.toArray<HTMLElement>('.feature-card').forEach((el, i) => {
+            const state = Flip.getState(el);
+            gsap.set(el, { opacity: 1, y: 0 });
+            Flip.from(state, { duration: 0.5, delay: i * 0.1, ease: 'power2.out' });
+          });
+        }
+      });
+
+      // 5. Observer for parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.15, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.1, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-3', { y: scrollY * 0.08, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting element
+      gsap.to('.orbit-element', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 60, y: -30 }, { x: 120, y: 0 }, { x: 60, y: 30 }, { x: 0, y: 0 }],
+          curviness: 2,
+        },
+        duration: 14,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on action buttons
+      gsap.utils.toArray<HTMLElement>('.action-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { scale: 1.05, duration: 0.4, ease: 'sdksWiggle' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { scale: 1, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for decorative lines
+      gsap.set('.draw-line', { drawSVG: '0%' });
+      ScrollTrigger.create({
+        trigger: '.sdks-section',
+        start: 'top 80%',
+        onEnter: () => gsap.to('.draw-line', { drawSVG: '100%', duration: 1.2, ease: 'power2.inOut' })
+      });
+
+      // 9. Draggable cards
+      if (window.innerWidth > 768) {
+        Draggable.create('.draggable-card', {
+          type: 'x,y',
+          bounds: containerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
+      }
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.float-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-50, 50)`,
+          y: `random(-40, 40)`,
+          rotation: `random(-90, 90)`,
+          duration: `random(5, 8)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.15
+        });
+      });
+
+      // 11. Code block animation
+      gsap.set('.code-block', { y: 30, opacity: 0 });
+      ScrollTrigger.create({
+        trigger: '.code-section',
+        start: 'top 85%',
+        onEnter: () => gsap.to('.code-block', { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' })
+      });
+
+      // 12. SDK icon hover animation
+      gsap.utils.toArray<HTMLElement>('.sdk-icon').forEach((icon) => {
+        icon.addEventListener('mouseenter', () => {
+          gsap.to(icon, { scale: 1.3, rotation: 15, duration: 0.3, ease: 'back.out(2)' });
+        });
+        icon.addEventListener('mouseleave', () => {
+          gsap.to(icon, { scale: 1, rotation: 0, duration: 0.3 });
+        });
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const currentExample = codeExamples[activeTab];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-cyan-500/15 rounded-full blur-[150px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-teal-500/15 rounded-full blur-[120px]" />
+        <div className="parallax-orb-3 absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="float-particle absolute w-1.5 h-1.5 bg-cyan-400/30 rounded-full" style={{ left: `${10 + i * 8}%`, top: `${15 + (i % 4) * 18}%` }} />
+        ))}
+        <div className="orbit-element absolute top-32 left-1/3 w-2 h-2 bg-teal-400/60 rounded-full" />
+      </div>
+
       {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">SDKs & Libraries</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto mb-6">
-            Official SDKs for popular programming languages. Simplify your integration with our well-documented, production-ready libraries.
+      <section className="relative z-10 pt-20 pb-12 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 backdrop-blur-sm rounded-full border border-cyan-500/30 mb-6">
+            <span className="text-xl">📦</span>
+            <span className="font-medium">Official SDKs</span>
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <span className="hero-title bg-gradient-to-r from-cyan-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">SDKs & Libraries</span>
+          </h1>
+          <p className="hero-subtitle text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-8">
+            Official client libraries for your favorite programming language
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#quickstart" className="bg-white text-brand-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-colors">
-              Quick Start
+            <a href="#sdks" className="action-btn px-8 py-4 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all">
+              Browse SDKs
             </a>
-            <a href="#available" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
-              View All SDKs
+            <a href="#quickstart" className="action-btn px-8 py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl font-semibold hover:bg-gray-700/50 transition-all">
+              Quick Start
             </a>
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <div className="container-custom section-padding">
-        
-        {/* SDK Overview */}
-        <div className="mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-4xl mb-4">⚙️</div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Easy to Use</h3>
-              <p className="text-neural-600 text-sm">
-                Simple APIs that make it easy to integrate One Last AI into your apps
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-4xl mb-4">📦</div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Well-Maintained</h3>
-              <p className="text-neural-600 text-sm">
-                Regularly updated with bug fixes and new features
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-4xl mb-4">📚</div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Fully Documented</h3>
-              <p className="text-neural-600 text-sm">
-                Comprehensive documentation with examples for every feature
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Available SDKs */}
-        <div id="available" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Available SDKs</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sdks.map((sdk, index) => (
-              <a key={index} href={sdk.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-200 hover:shadow-md hover:border-brand-300 transition-all duration-300 cursor-pointer">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="text-3xl">{sdk.icon}</div>
-                  <span className="text-xs font-bold text-brand-600 bg-brand-100 px-2 py-1 rounded">
-                    v{sdk.version}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-brand-600 transition-colors">
-                  {sdk.name}
-                </h3>
-                <p className="text-neural-600 text-sm mb-4 flex-grow">
-                  {sdk.description}
-                </p>
-                <span className="text-brand-600 hover:text-brand-700 text-sm font-medium transition-colors">
-                  Learn more →
-                </span>
-              </a>
+      {/* SDK Cards */}
+      <section id="sdks" className="sdks-section relative z-10 py-12 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* SVG Decorative Line */}
+          <svg className="absolute left-1/2 -translate-x-1/2 -top-4 h-1 w-1/3 opacity-30" preserveAspectRatio="none">
+            <line className="draw-line" x1="0" y1="0" x2="100%" y2="0" stroke="url(#sdksGrad)" strokeWidth="2" />
+            <defs>
+              <linearGradient id="sdksGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#06b6d4" />
+                <stop offset="100%" stopColor="#14b8a6" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <h2 className="text-3xl font-bold text-center mb-8">Available SDKs</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {sdks.map((sdk) => (
+              <button key={sdk.id} onClick={() => setActiveTab(sdk.id)} className={`sdk-card draggable-card group relative p-4 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border backdrop-blur-sm transition-all text-center ${activeTab === sdk.id ? 'border-cyan-500/70 shadow-lg shadow-cyan-500/20' : 'border-gray-700/50 hover:border-cyan-500/50'}`}>
+                <div className="sdk-icon text-4xl mb-3">{sdk.icon}</div>
+                <h3 className="sdk-name text-sm font-bold text-white mb-1">{sdk.name}</h3>
+                <p className="text-xs text-gray-400">v{sdk.version}</p>
+                <p className="text-xs text-cyan-400 mt-1">{sdk.installs}</p>
+              </button>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Installation Guide */}
-        <div id="quickstart" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Installation Guide</h2>
-
-          {/* JavaScript */}
-          <div id="javascript" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="text-3xl">📘</div>
-              <h3 className="text-2xl font-bold text-neural-900">JavaScript/TypeScript</h3>
-            </div>
-
+      {/* Code Example Section */}
+      <section id="quickstart" className="code-section relative z-10 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">Quick Start</h2>
+          <div className="code-block relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+            <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+            
+            {/* Install Command */}
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
-              <CodeBlock code={jsInstallNpm} language="bash" title="npm" />
-              <p className="text-neural-600 text-sm my-3">or with yarn:</p>
-              <CodeBlock code={jsInstallYarn} language="bash" title="yarn" />
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-gray-400 text-sm">Install the SDK:</p>
+                <button onClick={() => handleCopy(currentExample.install)} className="action-btn text-xs px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-colors">
+                  Copy
+                </button>
+              </div>
+              <div className="bg-gray-900 p-3 rounded-lg">
+                <code className="text-cyan-400 font-mono text-sm">{currentExample.install}</code>
+              </div>
             </div>
 
-            <div className="mb-6">
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
-              <CodeBlock code={jsBasicUsage} language="javascript" showLineNumbers />
-            </div>
-
+            {/* Code Example */}
             <div>
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Creating an Agent</h4>
-              <CodeBlock code={jsCreateAgent} language="javascript" showLineNumbers />
-            </div>
-          </div>
-
-          {/* Python */}
-          <div id="python" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="text-3xl">🐍</div>
-              <h3 className="text-2xl font-bold text-neural-900">Python</h3>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
-              <CodeBlock code={pyInstall} language="bash" title="pip" />
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
-              <CodeBlock code={pyBasicUsage} language="python" showLineNumbers />
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Async Support</h4>
-              <CodeBlock code={pyAsyncUsage} language="python" showLineNumbers />
-            </div>
-          </div>
-
-          {/* Go */}
-          <div id="go" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="text-3xl">🐹</div>
-              <h3 className="text-2xl font-bold text-neural-900">Go</h3>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
-              <CodeBlock code={goInstall} language="bash" title="go get" />
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
-              <CodeBlock code={goBasicUsage} language="go" showLineNumbers />
-            </div>
-          </div>
-
-          {/* PHP */}
-          <div id="php" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="text-3xl">🚀</div>
-              <h3 className="text-2xl font-bold text-neural-900">PHP</h3>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
-              <CodeBlock code={phpInstall} language="bash" title="composer" />
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
-              <CodeBlock code={phpBasicUsage} language="php" showLineNumbers />
-            </div>
-          </div>
-
-          {/* Ruby */}
-          <div id="ruby" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="text-3xl">💎</div>
-              <h3 className="text-2xl font-bold text-neural-900">Ruby</h3>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
-              <CodeBlock code={rubyInstall} language="bash" title="gem" />
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
-              <CodeBlock code={rubyBasicUsage} language="ruby" showLineNumbers />
-            </div>
-          </div>
-
-          {/* Java */}
-          <div id="java" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="text-3xl">☕</div>
-              <h3 className="text-2xl font-bold text-neural-900">Java</h3>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
-              <p className="text-neural-600 mb-3">Add to your pom.xml:</p>
-              <CodeBlock code={javaInstall} language="xml" title="pom.xml" />
-            </div>
-
-            <div>
-              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
-              <CodeBlock code={javaBasicUsage} language="java" showLineNumbers />
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-gray-400 text-sm">Example usage:</p>
+                <button onClick={() => handleCopy(currentExample.code)} className="action-btn text-xs px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-colors">
+                  Copy
+                </button>
+              </div>
+              <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
+                <code className="text-gray-300 font-mono text-sm whitespace-pre">{currentExample.code}</code>
+              </pre>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Feature Comparison */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">SDK Feature Comparison</h2>
-          <div className="bg-white rounded-2xl shadow-sm border border-neural-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-neural-200 bg-gray-50">
-                    <th className="text-left py-4 px-4 font-bold text-neural-900">Feature</th>
-                    <th className="text-center py-4 px-4 font-bold text-neural-900">JavaScript</th>
-                    <th className="text-center py-4 px-4 font-bold text-neural-900">Python</th>
-                    <th className="text-center py-4 px-4 font-bold text-neural-900">Go</th>
-                    <th className="text-center py-4 px-4 font-bold text-neural-900">PHP</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {featureComparison.map((row, index) => (
-                    <tr key={index} className="border-b border-neural-100 hover:bg-gray-50">
-                      <td className="py-4 px-4 text-neural-700">{row.feature}</td>
-                      <td className="text-center py-4 px-4">
-                        {row.js ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
-                      </td>
-                      <td className="text-center py-4 px-4">
-                        {row.py ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
-                      </td>
-                      <td className="text-center py-4 px-4">
-                        {row.go ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
-                      </td>
-                      <td className="text-center py-4 px-4">
-                        {row.php ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Features */}
+      <section className="relative z-10 py-12 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">SDK Features</h2>
+          <div className="features-grid grid grid-cols-2 md:grid-cols-4 gap-4">
+            {features.map((feature, idx) => (
+              <div key={idx} className="feature-card relative p-5 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center">
+                <div className="text-3xl mb-3">{feature.icon}</div>
+                <h3 className="text-sm font-bold text-white mb-1">{feature.title}</h3>
+                <p className="text-gray-400 text-xs">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="relative z-10 py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative p-10 rounded-3xl bg-gradient-to-br from-cyan-900/30 to-teal-900/30 border border-cyan-500/20 backdrop-blur-sm overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-teal-500/5" />
+            <div className="relative z-10">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">Need Help Getting Started?</h2>
+              <p className="text-gray-400 mb-6">Check out our tutorials for step-by-step guides on using our SDKs.</p>
+              <Link href="/docs/tutorials" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all">
+                📚 View Tutorials
+              </Link>
             </div>
           </div>
         </div>
-
-        {/* Common Patterns */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Common Patterns</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-4">Error Handling</h3>
-              <CodeBlock code={errorHandling} language="javascript" />
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-4">Retry Logic</h3>
-              <CodeBlock code={retryLogic} language="javascript" />
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-4">Pagination</h3>
-              <CodeBlock code={pagination} language="javascript" />
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-4">Streaming Responses</h3>
-              <CodeBlock code={streaming} language="javascript" />
-            </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-brand-600 via-brand-700 to-indigo-800 rounded-2xl p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Start Coding?</h2>
-          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-            Choose your SDK, follow the installation guide, and start building powerful AI agent applications today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/docs/tutorials" className="bg-white text-brand-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-              View Tutorials
-            </Link>
-            <Link href="/docs/api" className="border-2 border-white/30 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
-              API Reference
-            </Link>
-            <Link href="/support/contact-us" className="border-2 border-white/30 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
-              Get Help
-            </Link>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
-  )
+  );
 }

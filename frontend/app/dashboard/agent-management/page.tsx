@@ -20,6 +20,9 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { useSubscribeRedirect } from '@/hooks/useSubscribeRedirect';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 
 interface AgentCardState {
   agentId: string;
@@ -243,9 +246,9 @@ export default function AgentManagementPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
         {/* Hero Section */}
-        <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+        <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
           {/* Decorative Pattern */}
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -258,22 +261,22 @@ export default function AgentManagementPage() {
             </svg>
           </div>
           <div className="container-custom text-center relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
               <ShieldCheck className="w-10 h-10" />
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Agent Management</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-4">
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-4">
               Purchase access to specialized agents on a per-agent basis
             </p>
             <div className="flex items-center justify-center gap-4 mb-8">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-6 py-3">
                 <p className="text-sm text-white/80">Active Agents</p>
                 <p className="text-3xl font-bold">{activeAgentCount}</p>
               </div>
               <button
                 onClick={handleRefreshSubscriptions}
                 disabled={isLoading}
-                className="p-3 rounded-xl bg-white/20 backdrop-blur-sm hover:bg-white/30 disabled:opacity-50 transition-colors"
+                className="p-3 rounded-xl bg-white/10 backdrop-blur-sm hover:bg-white/30 disabled:opacity-50 transition-colors"
                 title="Refresh subscription status"
               >
                 <RefreshCw className={`w-6 h-6 ${isLoading ? 'animate-spin' : ''}`} />
@@ -281,7 +284,7 @@ export default function AgentManagementPage() {
             </div>
             <Link
               href="/dashboard"
-              className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+              className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
             >
               Back to Dashboard
             </Link>
@@ -289,17 +292,17 @@ export default function AgentManagementPage() {
         </section>
 
         {/* Agent Cards Section */}
-        <section className="py-16 px-4 bg-gray-50">
+        <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
           <div className="container-custom space-y-10">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+              <div className="bg-red-900/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl">
                 {error}
               </div>
             )}
 
           {isLoading && (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 text-brand-600 animate-spin" />
+              <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
             </div>
           )}
 
@@ -315,17 +318,17 @@ export default function AgentManagementPage() {
                     key={agent.agentId}
                     className={`relative rounded-2xl border p-6 shadow-sm transition-all duration-300 group ${
                       agent.isUnlocked
-                        ? 'bg-white border-green-200 hover:border-green-300'
-                        : 'bg-white/80 border-neural-100 hover:border-brand-200'
+                        ? 'bg-white/5 border-green-500/30 hover:border-green-300'
+                        : 'bg-white/5 border-white/10 hover:border-purple-200'
                     }`}
                   >
                     {!agent.isUnlocked && (
                       <div className="absolute inset-0 rounded-2xl bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
-                        <Lock className="w-10 h-10 text-brand-500 mb-3" />
-                        <p className="font-semibold text-neural-800 mb-2">
+                        <Lock className="w-10 h-10 text-purple-400 mb-3" />
+                        <p className="font-semibold text-white mb-2">
                           Purchase Access to {agent.agentName}
                         </p>
-                        <p className="text-sm text-neural-600 mb-4">
+                        <p className="text-sm text-gray-400 mb-4">
                           Get instant access by choosing a plan.
                         </p>
                         <button
@@ -342,10 +345,10 @@ export default function AgentManagementPage() {
 
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <p className="text-sm uppercase tracking-wide text-neural-500">
+                        <p className="text-sm uppercase tracking-wide text-gray-500">
                           Agent
                         </p>
-                        <h3 className="text-2xl font-bold text-neural-900">
+                        <h3 className="text-2xl font-bold text-white">
                           {agent.agentName}
                         </h3>
                       </div>
@@ -354,13 +357,13 @@ export default function AgentManagementPage() {
                           <Unlock className="w-4 h-4" /> Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-neural-500">
+                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-500">
                           <Lock className="w-4 h-4" /> Locked
                         </span>
                       )}
                     </div>
 
-                    <p className="text-sm text-neural-600 mb-5">
+                    <p className="text-sm text-gray-400 mb-5">
                       {agent.isUnlocked
                         ? `Currently on ${
                             PLAN_LABELS[subscriptionPlan ?? 'daily']
@@ -373,7 +376,7 @@ export default function AgentManagementPage() {
                         <>
                           <button
                             onClick={() => handleChatWithAgent(agent.agentId)}
-                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-brand-200 text-brand-700 hover:bg-brand-50"
+                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-purple-200 text-purple-400 hover:bg-purple-900/20"
                           >
                             Chat with Agent
                             <MessageSquare className="w-4 h-4" />
@@ -386,7 +389,7 @@ export default function AgentManagementPage() {
                               )
                             }
                             disabled={cancellingAgentId === agent.agentId}
-                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-500/30 text-red-600 hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {cancellingAgentId === agent.agentId ? (
                               <>
@@ -411,7 +414,7 @@ export default function AgentManagementPage() {
                         onClick={() =>
                           handleCardClick(agent.agentId, agent.agentName)
                         }
-                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-200 text-brand-700 bg-brand-50 hover:bg-brand-100"
+                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-purple-200 text-purple-400 bg-purple-900/20 hover:bg-purple-900/30"
                       >
                         Purchase Access
                         <ArrowRight className="w-4 h-4" />
@@ -423,23 +426,23 @@ export default function AgentManagementPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-neural-100 p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-neural-900 mb-4">
+          <div className="bg-white/5 rounded-2xl border border-white/10 p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-white mb-4">
               How Agent Management Works
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {['Choose', 'Access', 'Renew'].map((step, index) => (
                 <div
                   key={step}
-                  className="p-5 rounded-xl border border-neural-100"
+                  className="p-5 rounded-xl border border-white/10"
                 >
-                  <p className="text-sm font-semibold text-brand-500 mb-2">
+                  <p className="text-sm font-semibold text-purple-400 mb-2">
                     Step {index + 1}
                   </p>
-                  <h3 className="text-xl font-semibold text-neural-900 mb-2">
+                  <h3 className="text-xl font-semibold text-white mb-2">
                     {step}
                   </h3>
-                  <p className="text-neural-600 text-sm">
+                  <p className="text-gray-400 text-sm">
                     {index === 0 &&
                       'Select any locked agent to see plan options and purchase access.'}
                     {index === 1 &&

@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node server-simple.js",
-    "dev:watch": "nodemon --ext js --watch . server-simple.js",
+    "dev": "node -r dotenv/config server-simple.js",
+    "dev:watch": "nodemon --ext js --watch . -- -r dotenv/config server-simple.js",
     "build": "npx prisma generate",
-    "start": "node server-simple.js",
+    "start": "node -r dotenv/config server-simple.js",
     "lint": "eslint . --ext .js --fix",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",

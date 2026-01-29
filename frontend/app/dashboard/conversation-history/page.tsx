@@ -13,6 +13,9 @@ import {
   DocumentTextIcon,
   TableCellsIcon,
 } from '@heroicons/react/24/outline';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 
 export const dynamic = 'force-dynamic';
 
@@ -190,9 +193,9 @@ export default function ConversationHistoryPage() {
 
   if (!state.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-neural-900 mb-4">
+          <h1 className="text-2xl font-bold text-white mb-4">
             Please log in to view conversations
           </h1>
           <Link href="/auth/login" className="btn-primary inline-block">
@@ -219,9 +222,9 @@ export default function ConversationHistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
         {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -234,11 +237,11 @@ export default function ConversationHistoryPage() {
           </svg>
         </div>
         <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
             <ChatBubbleLeftRightIcon className="w-10 h-10" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Conversation History</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-4">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-4">
             Review and manage your past interactions
             {pagination.total > 0 && (
               <span className="block mt-2 text-white/80">
@@ -252,7 +255,7 @@ export default function ConversationHistoryPage() {
                 <button
                   onClick={() => handleExport('json')}
                   disabled={exporting}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
                   title="Export as JSON"
                 >
                   <DocumentTextIcon className="w-4 h-4" />
@@ -261,7 +264,7 @@ export default function ConversationHistoryPage() {
                 <button
                   onClick={() => handleExport('csv')}
                   disabled={exporting}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
                   title="Export as CSV"
                 >
                   <TableCellsIcon className="w-4 h-4" />
@@ -271,7 +274,7 @@ export default function ConversationHistoryPage() {
             )}
             <Link
               href="/dashboard"
-              className="inline-flex items-center bg-white text-brand-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition-all shadow-lg"
+              className="inline-flex items-center bg-white/5 text-purple-500 px-6 py-2 rounded-lg font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
             >
               Back to Dashboard
             </Link>
@@ -280,7 +283,7 @@ export default function ConversationHistoryPage() {
       </section>
 
       {/* Search Section */}
-      <section className="py-8 px-4 bg-white border-b border-gray-200">
+      <section className="py-8 px-4 bg-white/5 border-b border-white/10">
         <div className="container-custom">
           <form onSubmit={handleSearch} className="max-w-md mx-auto">
             <div className="relative">
@@ -290,12 +293,12 @@ export default function ConversationHistoryPage() {
                 placeholder="Search conversations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full pl-10 pr-4 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <button
                 type="submit"
                 disabled={searching}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-brand-500 text-white text-sm rounded hover:bg-brand-600 disabled:opacity-50"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-purple-900/200 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50"
               >
                 {searching ? '...' : 'Search'}
               </button>
@@ -305,12 +308,12 @@ export default function ConversationHistoryPage() {
       </section>
 
       {/* Conversations List */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
         <div className="container-custom max-w-4xl">
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-4"></div>
-              <p className="text-neural-600">Loading your conversations...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading your conversations...</p>
             </div>
           ) : conversations.length > 0 ? (
             <>
@@ -321,29 +324,29 @@ export default function ConversationHistoryPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="p-6 bg-white rounded-lg border border-neural-200 hover:border-brand-500 hover:shadow-md transition-all cursor-pointer"
+                    className="p-6 bg-white/5 rounded-lg border border-white/10 hover:border-purple-500 hover:shadow-xl shadow-purple-500/5 transition-all cursor-pointer"
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <div className="flex items-center mb-2">
-                          <ChatBubbleLeftRightIcon className="w-5 h-5 text-brand-500 mr-2" />
-                          <h3 className="font-semibold text-neural-900">
+                          <ChatBubbleLeftRightIcon className="w-5 h-5 text-purple-400 mr-2" />
+                          <h3 className="font-semibold text-white">
                             {conv.agent || 'Assistant'}
                           </h3>
                         </div>
-                        <p className="text-neural-700 mb-2">{conv.topic}</p>
+                        <p className="text-gray-300 mb-2">{conv.topic}</p>
                         {conv.lastMessage && (
-                          <p className="text-sm text-neural-500">
+                          <p className="text-sm text-gray-500">
                             "{conv.lastMessage.content}"
                           </p>
                         )}
                       </div>
                       <div className="text-right ml-4">
-                        <p className="text-sm text-neural-600">{conv.date}</p>
-                        <p className="text-xs text-neural-500">
+                        <p className="text-sm text-gray-400">{conv.date}</p>
+                        <p className="text-xs text-gray-500">
                           {conv.duration}
                         </p>
-                        <p className="text-xs text-neural-500">
+                        <p className="text-xs text-gray-500">
                           {conv.messageCount} messages
                         </p>
                       </div>
@@ -358,20 +361,20 @@ export default function ConversationHistoryPage() {
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={!pagination.hasPrev}
-                    className="flex items-center px-4 py-2 border border-neural-200 rounded-lg hover:bg-neural-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center px-4 py-2 border border-white/10 rounded-lg hover:bg-[#0a0a0f] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeftIcon className="w-4 h-4 mr-1" />
                     Previous
                   </button>
 
-                  <span className="text-neural-600">
+                  <span className="text-gray-400">
                     Page {pagination.page} of {pagination.totalPages}
                   </span>
 
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={!pagination.hasNext}
-                    className="flex items-center px-4 py-2 border border-neural-200 rounded-lg hover:bg-neural-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center px-4 py-2 border border-white/10 rounded-lg hover:bg-[#0a0a0f] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                     <ChevronRightIcon className="w-4 h-4 ml-1" />
@@ -382,11 +385,11 @@ export default function ConversationHistoryPage() {
           ) : (
             /* Empty state */
             <div className="text-center py-16">
-              <ChatBubbleLeftRightIcon className="w-16 h-16 text-neural-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-neural-900 mb-2">
+              <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">
                 No conversations found
               </h3>
-              <p className="text-neural-600 mb-6">{emptyStateCopy}</p>
+              <p className="text-gray-400 mb-6">{emptyStateCopy}</p>
               <Link
                 href="/dashboard/overview"
                 className="btn-primary inline-block"

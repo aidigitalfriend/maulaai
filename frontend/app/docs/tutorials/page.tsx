@@ -1,678 +1,299 @@
-import Link from 'next/link'
-import { headers as nextHeaders } from 'next/headers'
+'use client';
 
-// Avoid serving stale HTML that references old chunk hashes after deploys
-// Force this page to be dynamic so caches revalidate on each request
-export const revalidate = 0
-export const dynamic = 'force-dynamic'
+import Link from 'next/link';
+import { useEffect, useRef } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
 
-export default function DocsTutorials() {
-  // Force dynamic rendering by reading request headers
-  // (Some platforms may ignore revalidate flag for static content otherwise)
-  void nextHeaders()
+
+export default function DocsTutorialsPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const tutorials = [
-    {
-      title: "Getting Started",
-      description: "Learn the basics and create your first AI agent in minutes",
-      category: "Beginner",
-      readTime: "5 min",
-      href: "#getting-started",
-      icon: "🚀"
-    },
-    {
-      title: "Creating Your First Bot",
-      description: "Step-by-step guide to build a functional bot",
-      category: "Beginner",
-      readTime: "15 min",
-      href: "#first-bot",
-      icon: "🤖"
-    },
-    {
-      title: "Advanced Features",
-      description: "Explore advanced configuration and customization",
-      category: "Advanced",
-      readTime: "20 min",
-      href: "#advanced",
-      icon: "⚡"
-    },
-    {
-      title: "Building Workflows",
-      description: "Create complex multi-step conversations and workflows",
-      category: "Advanced",
-      readTime: "25 min",
-      href: "#workflows",
-      icon: "🔄"
-    },
-    {
-      title: "Real-World Use Cases",
-      description: "Learn from real-world examples and best practices",
-      category: "Examples",
-      readTime: "30 min",
-      href: "#usecases",
-      icon: "💡"
-    },
-    {
-      title: "Deployment Guide",
-      description: "Deploy your agents to production",
-      category: "Production",
-      readTime: "15 min",
-      href: "#deployment",
-      icon: "🚢"
-    }
-  ]
+    { title: 'Getting Started with Maula', description: 'Learn the basics and create your first AI agent in under 10 minutes', difficulty: 'Beginner', duration: '10 min', href: '/docs/agents/getting-started', icon: '🚀' },
+    { title: 'Building Your First Chatbot', description: 'Create a conversational AI chatbot with personality and memory', difficulty: 'Beginner', duration: '20 min', href: '#', icon: '🤖' },
+    { title: 'Advanced Agent Configuration', description: 'Fine-tune your agents with custom prompts and behaviors', difficulty: 'Intermediate', duration: '30 min', href: '/docs/agents/configuration', icon: '⚙️' },
+    { title: 'Multi-Agent Workflows', description: 'Orchestrate multiple agents to work together on complex tasks', difficulty: 'Advanced', duration: '45 min', href: '#', icon: '🔗' },
+    { title: 'Real-World Use Cases', description: 'Explore practical examples for customer support, content creation, and more', difficulty: 'Intermediate', duration: '25 min', href: '#', icon: '💼' },
+    { title: 'Production Deployment', description: 'Deploy your agents to production with best practices and monitoring', difficulty: 'Advanced', duration: '40 min', href: '#', icon: '🌐' }
+  ];
+
+  const stats = [
+    { value: '50+', label: 'Tutorials' },
+    { value: '100+', label: 'Code Examples' },
+    { value: '10+ hrs', label: 'Video Content' },
+    { value: '5K+', label: 'Students' }
+  ];
+
+  const categories = [
+    { name: 'Getting Started', count: 8, color: 'green' },
+    { name: 'Agent Development', count: 12, color: 'blue' },
+    { name: 'Integrations', count: 10, color: 'purple' },
+    { name: 'Advanced Topics', count: 15, color: 'orange' },
+    { name: 'Best Practices', count: 7, color: 'pink' }
+  ];
+
+  const difficultyColors: Record<string, string> = {
+    Beginner: 'bg-green-500/20 text-green-400 border-green-500/30',
+    Intermediate: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+    Advanced: 'bg-red-500/20 text-red-400 border-red-500/30'
+  };
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero Animation
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSub = new SplitText('.hero-subtitle', { type: 'words' });
+      gsap.set(heroTitle.chars, { y: 100, opacity: 0, rotateX: -90 });
+      gsap.set(heroSub.words, { y: 40, opacity: 0 });
+      gsap.set('.hero-badge', { y: 30, opacity: 0, scale: 0.8 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, duration: 0.7, stagger: 0.02 }, '-=0.3')
+        .to(heroSub.words, { y: 0, opacity: 1, duration: 0.5, stagger: 0.02 }, '-=0.3');
+
+      // 2. ScrambleText on stat values
+      gsap.utils.toArray<HTMLElement>('.stat-value').forEach((el, i) => {
+        const originalText = el.textContent || '';
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 90%',
+          onEnter: () => {
+            gsap.to(el, { duration: 1, scrambleText: { text: originalText, chars: '0123456789+', speed: 0.3 }, delay: i * 0.1 });
+          }
+        });
+      });
+
+      // 3. ScrollTrigger for tutorial cards
+      gsap.set('.tutorial-card', { y: 50, opacity: 0, scale: 0.95 });
+      ScrollTrigger.batch('.tutorial-card', {
+        start: 'top 88%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.08, ease: 'back.out(1.4)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 50, opacity: 0, scale: 0.95, duration: 0.3 })
+      });
+
+      // 4. Flip for category tags
+      gsap.set('.category-tag', { opacity: 0, y: 20 });
+      ScrollTrigger.create({
+        trigger: '.categories-grid',
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.utils.toArray<HTMLElement>('.category-tag').forEach((el, i) => {
+            const state = Flip.getState(el);
+            gsap.set(el, { opacity: 1, y: 0 });
+            Flip.from(state, { duration: 0.4, delay: i * 0.08, ease: 'power2.out' });
+          });
+        }
+      });
+
+      // 5. Observer for parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.15, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.1, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-3', { y: scrollY * 0.08, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting element
+      gsap.to('.orbit-element', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 45, y: -20 }, { x: 90, y: 0 }, { x: 45, y: 20 }, { x: 0, y: 0 }],
+          curviness: 2,
+        },
+        duration: 11,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on action buttons
+      gsap.utils.toArray<HTMLElement>('.action-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { scale: 1.05, duration: 0.4, ease: 'tutorialsWiggle' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { scale: 1, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for decorative lines
+      gsap.set('.draw-line', { drawSVG: '0%' });
+      ScrollTrigger.create({
+        trigger: '.tutorials-section',
+        start: 'top 80%',
+        onEnter: () => gsap.to('.draw-line', { drawSVG: '100%', duration: 1.2, ease: 'power2.inOut' })
+      });
+
+      // 9. Draggable cards
+      if (window.innerWidth > 768) {
+        Draggable.create('.draggable-card', {
+          type: 'x,y',
+          bounds: containerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
+      }
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.float-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-50, 50)`,
+          y: `random(-40, 40)`,
+          rotation: `random(-90, 90)`,
+          duration: `random(5, 8)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.15
+        });
+      });
+
+      // 11. Stats reveal animation
+      gsap.set('.stat-card', { y: 30, opacity: 0 });
+      ScrollTrigger.batch('.stat-card', {
+        start: 'top 90%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power2.out' })
+      });
+
+      // 12. Tutorial icon hover animation
+      gsap.utils.toArray<HTMLElement>('.tutorial-icon').forEach((icon) => {
+        icon.addEventListener('mouseenter', () => {
+          gsap.to(icon, { scale: 1.3, rotation: 10, duration: 0.3, ease: 'back.out(2)' });
+        });
+        icon.addEventListener('mouseleave', () => {
+          gsap.to(icon, { scale: 1, rotation: 0, duration: 0.3 });
+        });
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-violet-500/15 rounded-full blur-[150px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-purple-500/15 rounded-full blur-[120px]" />
+        <div className="parallax-orb-3 absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-fuchsia-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="float-particle absolute w-1.5 h-1.5 bg-violet-400/30 rounded-full" style={{ left: `${10 + i * 8}%`, top: `${15 + (i % 4) * 18}%` }} />
+        ))}
+        <div className="orbit-element absolute top-32 left-1/3 w-2 h-2 bg-purple-400/60 rounded-full" />
+      </div>
+
       {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Tutorials & Guides</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto mb-6">
-            Learn how to build, configure, and deploy AI agents. From beginner guides to advanced techniques, find the knowledge you need.
+      <section className="relative z-10 pt-20 pb-12 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-violet-500/20 to-purple-500/20 backdrop-blur-sm rounded-full border border-violet-500/30 mb-6">
+            <span className="text-xl">📖</span>
+            <span className="font-medium">Step-by-Step Guides</span>
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <span className="hero-title bg-gradient-to-r from-violet-400 via-purple-400 to-violet-400 bg-clip-text text-transparent">Tutorials</span>
+          </h1>
+          <p className="hero-subtitle text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-8">
+            Learn how to build amazing AI experiences with our comprehensive guides
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#getting-started" className="bg-white text-brand-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-colors">
+            <a href="#tutorials" className="action-btn px-8 py-4 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-violet-500/25 transition-all">
               Start Learning
             </a>
-            <a href="#browse" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
-              Browse All Tutorials
+            <a href="#categories" className="action-btn px-8 py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl font-semibold hover:bg-gray-700/50 transition-all">
+              Browse Categories
             </a>
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <div className="container-custom section-padding-lg">
-        
-        {/* Quick Stats */}
-        <div className="mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">50+</div>
-              <p className="text-neural-700">Tutorials & Guides</p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">100+</div>
-              <p className="text-neural-700">Code Examples</p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">10+ hrs</div>
-              <p className="text-neural-700">Learning Content</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Browse Tutorials */}
-        <div id="browse" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Browse Tutorials</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tutorials.map((tutorial, index) => (
-              <a key={index} href={tutorial.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-200 hover:shadow-md hover:border-blue-200 transition-all duration-300 cursor-pointer">
-                <div className="text-3xl mb-4">{tutorial.icon}</div>
-                <div className="mb-4">
-                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                    {tutorial.category}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-neural-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  {tutorial.title}
-                </h3>
-                <p className="text-neural-600 text-sm mb-4 flex-grow">
-                  {tutorial.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neural-500">⏱️ {tutorial.readTime}</span>
-                  <span className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors">
-                    →
-                  </span>
-                </div>
-              </a>
+      {/* Stats Section */}
+      <section className="relative z-10 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.map((stat, idx) => (
+              <div key={idx} className="stat-card relative p-5 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center">
+                <p className="stat-value text-2xl md:text-3xl font-bold text-violet-400 mb-1">{stat.value}</p>
+                <p className="text-gray-400 text-sm">{stat.label}</p>
+              </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Getting Started */}
-        <div id="getting-started" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Getting Started</h2>
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-            <p className="text-neural-700 mb-6 text-lg">
-              Welcome to One Last AI! This guide will help you create your first AI agent in just a few minutes.
-            </p>
+      {/* Categories */}
+      <section id="categories" className="relative z-10 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-center mb-6">Browse by Category</h2>
+          <div className="categories-grid flex flex-wrap justify-center gap-3">
+            {categories.map((cat, idx) => (
+              <button key={idx} className="category-tag px-5 py-2 rounded-full bg-gradient-to-r from-gray-800/80 to-gray-700/50 border border-gray-600/50 text-white hover:border-violet-500/50 transition-all flex items-center gap-2">
+                <span>{cat.name}</span>
+                <span className="text-xs text-gray-400 bg-gray-900/50 px-2 py-0.5 rounded-full">{cat.count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Step 1: Sign Up & Get API Key</h3>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
-                  <div>
-                    <p className="font-semibold text-neural-900">Create an account on One Last AI</p>
-                    <p className="text-neural-600 text-sm">Visit the dashboard and sign up with your email</p>
-                  </div>
+      {/* Tutorials Grid */}
+      <section id="tutorials" className="tutorials-section relative z-10 py-12 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* SVG Decorative Line */}
+          <svg className="absolute left-1/2 -translate-x-1/2 -top-4 h-1 w-1/3 opacity-30" preserveAspectRatio="none">
+            <line className="draw-line" x1="0" y1="0" x2="100%" y2="0" stroke="url(#tutorialsGrad)" strokeWidth="2" />
+            <defs>
+              <linearGradient id="tutorialsGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#8b5cf6" />
+                <stop offset="100%" stopColor="#a855f7" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <h2 className="text-3xl font-bold text-center mb-8">Popular Tutorials</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tutorials.map((tutorial, idx) => (
+              <Link key={idx} href={tutorial.href} className="tutorial-card draggable-card group relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm hover:border-violet-500/50 transition-colors block">
+                <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-violet-500/30 rounded-tr-lg" />
+                <div className="tutorial-icon text-4xl mb-4">{tutorial.icon}</div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full border ${difficultyColors[tutorial.difficulty]}`}>
+                    {tutorial.difficulty}
+                  </span>
+                  <span className="text-xs text-gray-400">⏱️ {tutorial.duration}</span>
                 </div>
-                <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
-                  <div>
-                    <p className="font-semibold text-neural-900">Navigate to API Settings</p>
-                    <p className="text-neural-600 text-sm">Go to Settings → Developer → API Keys</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</span>
-                  <div>
-                    <p className="font-semibold text-neural-900">Generate your API key</p>
-                    <p className="text-neural-600 text-sm">Click "Create New Key" and keep it secure</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-violet-400 transition-colors">{tutorial.title}</h3>
+                <p className="text-gray-400 text-sm mb-4">{tutorial.description}</p>
+                <span className="text-violet-400 text-sm font-medium">Start Tutorial →</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Step 2: Choose Your SDK</h3>
-              <p className="text-neural-700 mb-4">Install the SDK for your programming language:</p>
-              <div className="bg-gray-900 p-4 rounded-lg space-y-3">
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">JavaScript:</p>
-                  <code className="text-gray-200">npm install @One Last AI/sdk</code>
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Python:</p>
-                  <code className="text-gray-200">pip install One Last AI-sdk</code>
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Go:</p>
-                  <code className="text-gray-200">go get github.com/One Last AI/sdk-go</code>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Step 3: Create Your First Agent</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`import { One Last AI } from '@One Last AI/sdk';
-
-// Initialize client
-const client = new One Last AI({
-  apiKey: process.env.One Last AI_API_KEY
-});
-
-// Create an agent
-const agent = await client.agents.create({
-  name: 'My First Bot',
-  personality: 'friendly',
-  model: 'gpt-4',
-  systemPrompt: 'You are a helpful AI assistant'
-});
-
-console.log('Agent created:', agent.id);`}
-                </code>
-              </div>
+      {/* Bottom CTA */}
+      <section className="relative z-10 py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative p-10 rounded-3xl bg-gradient-to-br from-violet-900/30 to-purple-900/30 border border-violet-500/20 backdrop-blur-sm overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-purple-500/5" />
+            <div className="relative z-10">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Build Your First Agent?</h2>
+              <p className="text-gray-400 mb-6">Start with our getting started guide and have your first AI agent running in minutes.</p>
+              <Link href="/docs/agents/getting-started" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-violet-500/25 transition-all">
+                🚀 Get Started Now
+              </Link>
             </div>
           </div>
         </div>
-
-        {/* Creating Your First Bot */}
-        <div id="first-bot" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Creating Your First Bot</h2>
-          <div className="space-y-8">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Overview</h3>
-              <p className="text-neural-700 mb-6">
-                In this tutorial, we'll create a helpful customer support bot that can:
-              </p>
-              <ul className="space-y-3 text-neural-700">
-                <li className="flex gap-3">
-                  <span className="text-blue-600">✓</span>
-                  <span>Answer frequently asked questions</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-blue-600">✓</span>
-                  <span>Collect customer information</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-blue-600">✓</span>
-                  <span>Escalate complex issues to humans</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-blue-600">✓</span>
-                  <span>Maintain conversation context</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Complete Example</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`import { One Last AI } from '@One Last AI/sdk';
-
-const client = new One Last AI({
-  apiKey: process.env.One Last AI_API_KEY
-});
-
-// Create the support bot
-const bot = await client.agents.create({
-  name: 'Support Bot',
-  personality: 'professional and helpful',
-  model: 'gpt-4',
-  systemPrompt: \`You are a customer support agent.
-Your role is to:
-1. Answer customer questions helpfully
-2. Collect information needed for support tickets
-3. Provide order and account information
-4. Escalate complex issues to human agents
-
-Be polite, professional, and efficient.\`,
-  knowledge_base: {
-    faqs: [
-      {
-        question: 'How do I reset my password?',
-        answer: 'Go to login, click "Forgot Password", and follow the steps'
-      },
-      {
-        question: 'What are your business hours?',
-        answer: 'We\\'re available 24/7 for support'
-      }
-    ]
-  }
-});
-
-// Test the bot
-const conversation = await client.conversations.send({
-  agent_id: bot.id,
-  message: 'I forgot my password, how do I reset it?'
-});
-
-console.log('Bot response:', conversation.reply);`}
-                </code>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Key Configuration Options</h3>
-              <div className="space-y-4">
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-bold text-neural-900 mb-2">name</h4>
-                  <p className="text-neural-600">A unique name for your agent</p>
-                </div>
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-bold text-neural-900 mb-2">personality</h4>
-                  <p className="text-neural-600">The persona of your agent (e.g., "professional", "friendly", "expert")</p>
-                </div>
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-bold text-neural-900 mb-2">model</h4>
-                  <p className="text-neural-600">AI model to use (gpt-4, gpt-3.5-turbo, etc.)</p>
-                </div>
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-bold text-neural-900 mb-2">systemPrompt</h4>
-                  <p className="text-neural-600">Instructions that define the agent's behavior</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Advanced Features */}
-        <div id="advanced" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Advanced Features</h2>
-          
-          <div className="space-y-8">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Context & Memory</h3>
-              <p className="text-neural-700 mb-4">
-                Keep track of conversation context across multiple messages:
-              </p>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`// Start a conversation with context
-const conversation = await client.conversations.create({
-  agent_id: bot.id,
-  context: {
-    user_id: 'user_123',
-    customer_name: 'John Doe',
-    account_type: 'premium',
-    previous_issues: ['billing', 'login']
-  }
-});
-
-// Send messages (context is maintained)
-const response1 = await client.conversations.send({
-  conversation_id: conversation.id,
-  message: 'I have a billing issue'
-});
-
-// Agent remembers previous issues
-const response2 = await client.conversations.send({
-  conversation_id: conversation.id,
-  message: 'Can you help me with this?'
-});`}
-                </code>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Custom Actions</h3>
-              <p className="text-neural-700 mb-4">
-                Let your agent take actions like creating tickets or updating data:
-              </p>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`// Define custom actions
-const bot = await client.agents.create({
-  name: 'Advanced Bot',
-  actions: [
-    {
-      name: 'create_ticket',
-      description: 'Create a support ticket',
-      parameters: {
-        title: 'string',
-        description: 'string',
-        priority: 'low|medium|high'
-      }
-    },
-    {
-      name: 'get_order_info',
-      description: 'Retrieve order information',
-      parameters: {
-        order_id: 'string'
-      }
-    }
-  ]
-});
-
-// Agent can now use these actions
-const response = await client.conversations.send({
-  agent_id: bot.id,
-  message: 'I need to create a support ticket'
-});
-
-// Check if action was triggered
-if (response.actions.length > 0) {
-  const action = response.actions[0];
-  console.log('Action:', action.name);
-  console.log('Parameters:', action.parameters);
-}`}
-                </code>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Streaming Responses</h3>
-              <p className="text-neural-700 mb-4">
-                Get real-time streaming for long responses:
-              </p>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`// Stream response in real-time
-const stream = await client.conversations.stream({
-  agent_id: bot.id,
-  message: 'Tell me about your services',
-  stream: true
-});
-
-// Process chunks as they arrive
-for await (const chunk of stream) {
-  process.stdout.write(chunk.data);
-}
-
-console.log('\\n✓ Complete');`}
-                </code>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Workflows */}
-        <div id="workflows" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Building Workflows</h2>
-          
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-            <h3 className="text-2xl font-bold text-neural-900 mb-6">Multi-Step Workflows</h3>
-            <p className="text-neural-700 mb-6">
-              Create complex conversations with multiple steps and conditions:
-            </p>
-
-            <div className="bg-gray-900 p-4 rounded-lg mb-6">
-              <code className="text-gray-200 text-sm">
-                {`// Define a workflow
-const workflow = {
-  name: 'Support Workflow',
-  steps: [
-    {
-      id: 'greeting',
-      prompt: 'Greet the user and ask what they need help with',
-      next: 'analyze'
-    },
-    {
-      id: 'analyze',
-      prompt: 'Analyze the issue and determine if it requires escalation',
-      next_if: {
-        'requires_escalation': 'escalate',
-        'default': 'solve'
-      }
-    },
-    {
-      id: 'solve',
-      prompt: 'Provide a solution to the issue',
-      next: 'satisfaction'
-    },
-    {
-      id: 'escalate',
-      prompt: 'Explain that this needs human review and collect info',
-      next: 'satisfaction'
-    },
-    {
-      id: 'satisfaction',
-      prompt: 'Ask if the user is satisfied with the resolution',
-      next: 'end'
-    }
-  ]
-};
-
-// Execute workflow
-const bot = await client.agents.create({
-  name: 'Workflow Bot',
-  workflow: workflow
-});`}
-              </code>
-            </div>
-
-            <p className="text-neural-700">
-              This creates a natural, multi-step conversation flow that guides both the agent and user through a complete support interaction.
-            </p>
-          </div>
-        </div>
-
-        {/* Real-World Use Cases */}
-        <div id="usecases" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Real-World Use Cases</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-3">E-Commerce</h3>
-              <ul className="space-y-2 text-neural-700 text-sm">
-                <li>✓ Product recommendations</li>
-                <li>✓ Order tracking</li>
-                <li>✓ Return processing</li>
-                <li>✓ Customer support</li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-3">Healthcare</h3>
-              <ul className="space-y-2 text-neural-700 text-sm">
-                <li>✓ Appointment scheduling</li>
-                <li>✓ Symptom checking</li>
-                <li>✓ Medication reminders</li>
-                <li>✓ Patient triage</li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-3">Banking</h3>
-              <ul className="space-y-2 text-neural-700 text-sm">
-                <li>✓ Account inquiries</li>
-                <li>✓ Fraud detection</li>
-                <li>✓ Loan applications</li>
-                <li>✓ Customer onboarding</li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-3">Education</h3>
-              <ul className="space-y-2 text-neural-700 text-sm">
-                <li>✓ Tutoring & mentoring</li>
-                <li>✓ Course information</li>
-                <li>✓ Student support</li>
-                <li>✓ Assignment help</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Deployment */}
-        <div id="deployment" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Deployment Guide</h2>
-          
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Pre-Deployment Checklist</h3>
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">All agent configurations are finalized</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">Thoroughly tested all conversation flows</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">API keys are secure and not hardcoded</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">Error handling is implemented</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">Monitoring and logging are in place</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">Rate limits are understood</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Environment Setup</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`# .env.production
-One Last AI_API_KEY=your-production-key
-One Last AI_ENV=production
-NODE_ENV=production
-LOG_LEVEL=info
-
-# Optional: Enable monitoring
-SENTRY_DSN=your-sentry-dsn
-DATADOG_API_KEY=your-datadog-key`}
-                </code>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Monitoring & Logging</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`// Set up logging
-const client = new One Last AI({
-  apiKey: process.env.One Last AI_API_KEY,
-  logLevel: 'info',
-  onError: (error) => {
-    console.error('Agent Error:', error);
-    // Send to monitoring service
-    captureException(error);
-  },
-  onEvent: (event) => {
-    console.log('Event:', event.type);
-    // Track metrics
-    trackMetric(event.type);
-  }
-});`}
-                </code>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Learning Path */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Recommended Learning Path</h2>
-          
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                <div className="flex-grow">
-                  <h4 className="font-bold text-neural-900 mb-2">Beginner (Week 1-2)</h4>
-                  <p className="text-neural-600 text-sm">Start with Getting Started guide, create first bot, explore basic features</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
-                <div className="flex-grow">
-                  <h4 className="font-bold text-neural-900 mb-2">Intermediate (Week 3-4)</h4>
-                  <p className="text-neural-600 text-sm">Learn integrations, SDKs, and build your first real application</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
-                <div className="flex-grow">
-                  <h4 className="font-bold text-neural-900 mb-2">Advanced (Week 5-6)</h4>
-                  <p className="text-neural-600 text-sm">Master workflows, custom actions, and deployment strategies</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
-                <div className="flex-grow">
-                  <h4 className="font-bold text-neural-900 mb-2">Production (Week 7+)</h4>
-                  <p className="text-neural-600 text-sm">Deploy to production, monitor performance, and optimize</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Build?</h2>
-          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-            Start with the Getting Started guide and create your first AI agent today. Our team is here to help every step of the way.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/docs/sdks" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-colors">
-              Choose Your SDK
-            </Link>
-            <Link href="/docs/api" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
-              API Reference
-            </Link>
-            <Link href="/support/contact-us" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
-              Get Support
-            </Link>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
-  )
+  );
 }

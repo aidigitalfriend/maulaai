@@ -2,16 +2,9 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import {
-  Send,
-  Heart,
-  MessageCircle,
-  Users,
-  TrendingUp,
-  Search,
-  Filter,
-  ChevronDown,
-} from 'lucide-react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Draggable, Observer, CustomWiggle, MotionPathPlugin, InertiaPlugin } from '@/lib/gsap';
+
+// Register plugins
 
 interface CommunityMessage {
   id: string;
@@ -35,29 +28,36 @@ interface CommunityUser {
 }
 
 export default function CommunityPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [topMembers, setTopMembers] = useState<CommunityUser[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [postCategory, setPostCategory] = useState<
-    'general' | 'agents' | 'ideas' | 'help'
-  >('general');
-  const [selectedCategory, setSelectedCategory] = useState<
-    'all' | 'general' | 'agents' | 'ideas' | 'help'
-  >('all');
+  const [postCategory, setPostCategory] = useState<'general' | 'agents' | 'ideas' | 'help'>('general');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'general' | 'agents' | 'ideas' | 'help'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set());
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [metrics, setMetrics] = useState<{
-    totalMembers: number;
-    onlineNow: number;
-    totalPosts: number;
-    postsThisWeek: number;
-    activeReplies: number;
-    newMembersWeek: number;
-  } | null>(null);
+  const [metrics, setMetrics] = useState<{ totalMembers: number; onlineNow: number; totalPosts: number; postsThisWeek: number; activeReplies: number; newMembersWeek: number; } | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const communityLinks = [
+    { icon: '💬', title: 'Discord Community', desc: 'Join 10K+ members', href: '/community/discord', color: 'from-indigo-500 to-purple-600' },
+    { icon: '🔧', title: 'Contributing', desc: 'Help improve Maula AI', href: '/community/contributing', color: 'from-green-500 to-emerald-600' },
+    { icon: '🗺️', title: 'Open Roadmap', desc: 'See what\'s coming', href: '/community/roadmap', color: 'from-amber-500 to-orange-600' },
+    { icon: '💡', title: 'Suggestions', desc: 'Share your ideas', href: '/community/suggestions', color: 'from-pink-500 to-rose-600' },
+  ];
+
+  const stats = [
+    { value: '10K+', label: 'Active Members', icon: '👥' },
+    { value: '5K+', label: 'GitHub Stars', icon: '⭐' },
+    { value: '500+', label: 'Contributions', icon: '🔧' },
+    { value: '18', label: 'AI Agents', icon: '🤖' },
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,623 +67,413 @@ export default function CommunityPage() {
     scrollToBottom();
   }, [messages]);
 
-  // Presence ping with JWT authentication (20s)
+  // Data fetching effects (preserved from original)
   useEffect(() => {
     const ping = async () => {
       try {
-        if (!userProfile?.token) return; // Only ping if authenticated
-
-        await fetch('/api/community/presence/ping', {
-          method: 'POST',
-          credentials: 'include', // Use HttpOnly cookies
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      } catch (error) {
-        console.error('Presence ping failed:', error);
-      }
+        if (!userProfile?.token) return;
+        await fetch('/api/community/presence/ping', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } });
+      } catch (error) { console.error('Presence ping failed:', error); }
     };
     ping();
     const interval = setInterval(ping, 20000);
     return () => clearInterval(interval);
   }, [userProfile?.token]);
 
-  // Fetch initial posts and top members
   useEffect(() => {
     const load = async () => {
       try {
         setLoadingPosts(true);
         const params = new URLSearchParams();
-        if (selectedCategory !== 'all')
-          params.set('category', selectedCategory);
+        if (selectedCategory !== 'all') params.set('category', selectedCategory);
         if (searchQuery) params.set('search', searchQuery);
 
-        // Fetch posts
         const res = await fetch(`/api/community/posts?${params.toString()}`);
         const json = await res.json();
         if (json.success) {
           const list: CommunityMessage[] = (json.data || []).map((p: any) => ({
-            id: p._id,
-            author: p.authorName,
-            avatar: p.authorAvatar || '👤',
-            content: p.content,
-            timestamp: new Date(p.createdAt),
-            likes: p.likesCount || 0,
-            replies: p.repliesCount || 0,
-            category: p.category,
-            isPinned: !!p.isPinned,
+            id: p._id, author: p.authorName, avatar: p.authorAvatar || '👤', content: p.content,
+            timestamp: new Date(p.createdAt), likes: p.likesCount || 0, replies: p.repliesCount || 0,
+            category: p.category, isPinned: !!p.isPinned,
           }));
           setMessages(list);
-        } else {
-          setError(json.error || 'Failed to load posts');
-        }
+        } else { setError(json.error || 'Failed to load posts'); }
 
-        // Fetch top members
         const membersRes = await fetch('/api/community/top-members');
         const membersJson = await membersRes.json();
         if (membersJson.success && membersJson.data) {
-          const membersList: CommunityUser[] = membersJson.data.map(
-            (m: any) => ({
-              id: m._id,
-              name: m.name || m.email || 'Member',
-              avatar: m.avatar || '👤',
-              title: m.title || `${m.postsCount || 0} posts`,
-              joinedDate: new Date(m.createdAt),
-              postsCount: m.postsCount || 0,
-            })
-          );
+          const membersList: CommunityUser[] = membersJson.data.map((m: any) => ({
+            id: m._id, name: m.name || m.email || 'Member', avatar: m.avatar || '👤',
+            title: m.title || `${m.postsCount || 0} posts`, joinedDate: new Date(m.createdAt), postsCount: m.postsCount || 0,
+          }));
           setTopMembers(membersList);
         }
-      } catch (e: any) {
-        setError('Failed to load posts');
-      } finally {
-        setLoadingPosts(false);
-      }
+      } catch (e: any) { setError('Failed to load posts'); } finally { setLoadingPosts(false); }
     };
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load user profile from API instead of localStorage
   useEffect(() => {
     const loadUserProfile = async () => {
-      const token =
-        // HttpOnly cookies handle authentication automatically
-        document.cookie.match(/token=([^;]+)/)?.[1];
+      const token = document.cookie.match(/token=([^;]+)/)?.[1];
       if (!token) return;
-
       try {
-        const res = await fetch('/api/user/profile', {
-          credentials: 'include', // Use HttpOnly cookies
-        });
-        if (res.ok) {
-          const profile = await res.json();
-          // Include token with user profile for API calls
-          setUserProfile({
-            ...profile.data,
-            token,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to load user profile:', error);
-      }
+        const res = await fetch('/api/user/profile', { credentials: 'include' });
+        if (res.ok) { const profile = await res.json(); setUserProfile({ ...profile.data, token }); }
+      } catch (error) { console.error('Failed to load user profile:', error); }
     };
     loadUserProfile();
   }, []);
 
-  // SSE for metrics
   useEffect(() => {
     const es = new EventSource('/api/community/stream');
-    es.onmessage = (ev) => {
-      try {
-        const msg = JSON.parse(ev.data);
-        if (msg?.type === 'metrics') {
-          setMetrics(msg.data);
-        }
-      } catch (_) {}
-    };
-    es.onerror = () => {
-      es.close();
-    };
+    es.onmessage = (ev) => { try { const msg = JSON.parse(ev.data); if (msg?.type === 'metrics') { setMetrics(msg.data); } } catch (_) {} };
+    es.onerror = () => { es.close(); };
     return () => es.close();
   }, []);
+
+  // ===== GSAP ANIMATIONS =====
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero Animation
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSub = new SplitText('.hero-subtitle', { type: 'words' });
+      gsap.set(heroTitle.chars, { y: 100, opacity: 0, rotateX: -90 });
+      gsap.set(heroSub.words, { y: 40, opacity: 0 });
+      gsap.set('.hero-icon', { scale: 0, rotation: -360 });
+      gsap.set('.stat-card', { y: 80, opacity: 0, scale: 0.8 });
+      gsap.set('.link-card', { y: 60, opacity: 0, rotateY: -15 });
+      gsap.set('.activity-section', { y: 60, opacity: 0 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-icon', { scale: 1, rotation: 0, duration: 1.2, ease: 'elastic.out(1, 0.5)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, duration: 0.8, stagger: 0.02 }, '-=0.8')
+        .to(heroSub.words, { y: 0, opacity: 1, duration: 0.5, stagger: 0.03 }, '-=0.5');
+
+      // 2. ScrambleText on stats
+      gsap.utils.toArray<HTMLElement>('.stat-value').forEach((el, i) => {
+        gsap.to(el, {
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' },
+          duration: 1.5,
+          scrambleText: { text: el.dataset.value || el.innerText, chars: '0123456789+K', speed: 0.6 },
+          delay: i * 0.1
+        });
+      });
+
+      // 3. ScrollTrigger for stat cards
+      ScrollTrigger.batch('.stat-card', {
+        start: 'top 85%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(1.7)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 80, opacity: 0, scale: 0.8, duration: 0.3 })
+      });
+
+      // 4. ScrollTrigger for link cards with 3D reveal
+      ScrollTrigger.batch('.link-card', {
+        start: 'top 80%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, rotateY: 0, duration: 0.7, stagger: 0.12, ease: 'power3.out' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 60, opacity: 0, rotateY: -15, duration: 0.3 })
+      });
+
+      // 5. Observer for parallax scrolling effects
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.3, duration: 0.5, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.2, duration: 0.5, ease: 'none' });
+          gsap.to('.grid-pattern', { y: scrollY * 0.1, duration: 0.5, ease: 'none' });
+        }
+      });
+
+      // 6. Physics2D-like floating particles
+      gsap.utils.toArray<HTMLElement>('.floating-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-100, 100)`,
+          y: `random(-80, 80)`,
+          rotation: `random(-180, 180)`,
+          duration: `random(6, 12)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.3
+        });
+      });
+
+      // 7. MotionPath for orbiting elements
+      gsap.to('.orbit-element', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 50, y: -30 }, { x: 100, y: 0 }, { x: 50, y: 30 }, { x: 0, y: 0 }],
+          curviness: 1.5,
+        },
+        duration: 8,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 8. CustomWiggle on hover icons
+      gsap.utils.toArray<HTMLElement>('.wiggle-icon').forEach((icon) => {
+        icon.addEventListener('mouseenter', () => {
+          gsap.to(icon, { rotation: 20, duration: 0.8, ease: 'wiggle' });
+        });
+        icon.addEventListener('mouseleave', () => {
+          gsap.to(icon, { rotation: 0, duration: 0.4 });
+        });
+      });
+
+      // 9. Activity section reveal
+      gsap.to('.activity-section', {
+        scrollTrigger: { trigger: '.activity-section', start: 'top 80%' },
+        y: 0, opacity: 1, duration: 0.8, ease: 'power3.out'
+      });
+
+      // 10. Inertia-enabled draggable message cards (read-only visual)
+      if (typeof window !== 'undefined' && cardsRef.current) {
+        Draggable.create('.draggable-card', {
+          type: 'x,y',
+          bounds: cardsRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
+      }
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const handleLikeMessage = (id: string) => {
+    const newLiked = new Set(likedMessages);
+    if (newLiked.has(id)) { newLiked.delete(id); } else { newLiked.add(id); }
+    setLikedMessages(newLiked);
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-
-    if (!userProfile?.token) {
-      setError('Please log in to post messages');
-      return;
-    }
+    if (!userProfile?.token) { setError('Please log in to post messages'); return; }
     try {
       const res = await fetch('/api/community/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${userProfile.token}`,
-        },
-        body: JSON.stringify({
-          content: newMessage.trim(),
-          category: postCategory,
-        }),
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newMessage, category: postCategory }),
       });
       const json = await res.json();
-      if (json.success) {
-        const p = json.data;
-        const newMsg: CommunityMessage = {
-          id: p._id,
-          author: p.authorName,
-          avatar: p.authorAvatar || '👤',
-          content: p.content,
-          timestamp: new Date(p.createdAt),
-          likes: p.likesCount || 0,
-          replies: p.repliesCount || 0,
-          category: p.category,
-          isPinned: !!p.isPinned,
+      if (json.success && json.data) {
+        const newPost: CommunityMessage = {
+          id: json.data._id, author: userProfile.name || userProfile.email, avatar: userProfile.avatar || '👤',
+          content: newMessage, timestamp: new Date(), likes: 0, replies: 0, category: postCategory,
         };
-        setMessages((prev) => [newMsg, ...prev]);
+        setMessages((prev) => [newPost, ...prev]);
         setNewMessage('');
-      }
-    } catch (_) {}
+      } else { setError(json.error || 'Failed to post message'); }
+    } catch (err) { setError('Failed to post message'); }
   };
 
-  const handleLike = async (messageId: string) => {
-    if (!userProfile?.token) {
-      setError('Please log in to like posts');
-      return;
-    }
-    const isLiked = likedMessages.has(messageId);
-    try {
-      const endpoint = isLiked ? 'unlike' : 'like';
-      const res = await fetch(`/api/community/posts/${messageId}/${endpoint}`, {
-        method: 'POST',
-        credentials: 'include', // Use HttpOnly cookies
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!res.ok) {
-        throw new Error('Failed to update like');
-      }
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === messageId
-            ? { ...m, likes: Math.max(0, m.likes + (isLiked ? -1 : 1)) }
-            : m
-        )
-      );
-      const next = new Set(likedMessages);
-      if (isLiked) next.delete(messageId);
-      else next.add(messageId);
-      setLikedMessages(next);
-    } catch (_) {}
+  const getCategoryColor = (cat: string) => {
+    const colors: Record<string, string> = {
+      general: 'from-blue-500 to-cyan-500', agents: 'from-purple-500 to-pink-500',
+      ideas: 'from-amber-500 to-orange-500', help: 'from-green-500 to-emerald-500',
+    };
+    return colors[cat] || colors.general;
   };
-
-  const filteredMessages = messages
-    .filter(
-      (msg) => selectedCategory === 'all' || msg.category === selectedCategory
-    )
-    .filter(
-      (msg) =>
-        msg.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        msg.author.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort(
-      (a, b) =>
-        (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) ||
-        b.timestamp.getTime() - a.timestamp.getTime()
-    );
-
-  const stats = [
-    {
-      number: metrics?.totalMembers ?? '—',
-      label: 'Community Members',
-      icon: '👥',
-    },
-    {
-      number: metrics?.totalPosts ?? '—',
-      label: 'Total Discussions',
-      icon: '💬',
-    },
-    { number: metrics?.onlineNow ?? '—', label: 'Online Now', icon: '🟢' },
-    {
-      number: metrics?.postsThisWeek ?? '—',
-      label: 'Posts This Week',
-      icon: '📝',
-    },
-  ];
-
-  const categories = [
-    {
-      id: 'all',
-      label: 'All Discussions',
-      icon: '💭',
-      color: 'from-blue-500 to-cyan-500',
-    },
-    {
-      id: 'general',
-      label: 'General',
-      icon: '🌍',
-      color: 'from-purple-500 to-pink-500',
-    },
-    {
-      id: 'agents',
-      label: 'Agents & Features',
-      icon: '🤖',
-      color: 'from-green-500 to-emerald-500',
-    },
-    {
-      id: 'ideas',
-      label: 'Ideas & Suggestions',
-      icon: '💡',
-      color: 'from-yellow-500 to-orange-500',
-    },
-    {
-      id: 'help',
-      label: 'Help & Support',
-      icon: '❓',
-      color: 'from-red-500 to-pink-500',
-    },
-  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <section className="py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="community-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#community-pattern)" />
-          </svg>
-        </div>
-        <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-            <Users className="w-8 h-8" />
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[180px]" />
+        <div className="parallax-orb-2 absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-pink-500/10 rounded-full blur-[120px]" />
+        <div className="grid-pattern absolute inset-0 opacity-10" style={{
+          backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)',
+          backgroundSize: '80px 80px'
+        }} />
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="floating-particle absolute w-2 h-2 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+        ))}
+        <div className="orbit-element absolute top-20 right-40 w-3 h-3 bg-purple-400/60 rounded-full" />
+      </div>
+
+      {/* Hero Section */}
+      <section ref={heroRef} className="relative z-10 pt-20 pb-16 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="hero-icon inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-sm rounded-3xl border border-cyan-500/30 mb-8">
+            <span className="text-5xl wiggle-icon">👥</span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-            One Last AI Community
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <span className="hero-title bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">Our Community</span>
           </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Join real-time discussions with thousands of developers, AI
-            enthusiasts, and innovators
+          <p className="hero-subtitle text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto">
+            Join thousands of AI enthusiasts, developers, and innovators building the future together.
           </p>
         </div>
       </section>
 
-      {/* Community Stats */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      {/* Stats Section */}
+      <section className="relative z-10 py-12 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {stats.map((stat, idx) => (
-              <div
-                key={idx}
-                className="text-center p-6 bg-white rounded-2xl shadow-lg border border-neural-200 hover:border-blue-300 hover:shadow-xl transition-all"
-              >
-                <div className="text-4xl mb-3">{stat.icon}</div>
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1">
-                  {stat.number}
-                </div>
-                <div className="text-neural-600 text-sm">{stat.label}</div>
+              <div key={idx} className="stat-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                <span className="text-3xl mb-3 block wiggle-icon">{stat.icon}</span>
+                <div className="stat-value text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent" data-value={stat.value}>{stat.value}</div>
+                <p className="text-gray-400 text-sm mt-2">{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Main Community Section */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-4 gap-8">
-            {/* Sidebar - Categories & Top Members */}
-            <div className="lg:col-span-1 space-y-8">
-              {/* Category Navigation */}
-              <div className="bg-white rounded-2xl shadow-lg border border-neural-200 p-6">
-                <h3 className="text-lg font-bold text-neural-900 mb-4 flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                    <Filter size={16} className="text-white" />
-                  </div>
-                  Categories
-                </h3>
-                <div className="space-y-3">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setSelectedCategory(cat.id as any)}
-                      className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
-                        selectedCategory === cat.id
-                          ? `bg-gradient-to-r ${cat.color} text-white shadow-lg`
-                          : 'bg-neural-50 text-neural-700 hover:bg-gray-100 border border-neural-200'
-                      }`}
-                    >
-                      <span className="text-lg mr-2">{cat.icon}</span>
-                      <span className="text-sm font-medium">{cat.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Top Members */}
-              <div className="bg-white rounded-2xl shadow-lg border border-neural-200 p-6">
-                <h3 className="text-lg font-bold text-neural-900 mb-4 flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                    <Users size={16} className="text-white" />
-                  </div>
-                  Top Members
-                </h3>
-                <div className="space-y-4">
-                  {topMembers.length === 0 ? (
-                    <div className="text-center py-4 text-neural-500 text-sm">
-                      No members yet
+      {/* Community Links */}
+      <section className="relative z-10 py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Get Involved</h2>
+            <p className="text-gray-400 text-lg">Choose how you'd like to be part of our community</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {communityLinks.map((link, idx) => (
+              <Link key={idx} href={link.href} className="link-card group relative block">
+                <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden transition-all duration-300 group-hover:border-cyan-500/50">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${link.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+                  <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg group-hover:border-cyan-400/60 transition-colors" />
+                  <div className="flex items-start gap-5">
+                    <div className={`flex-shrink-0 w-16 h-16 bg-gradient-to-br ${link.color} rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      {link.icon}
                     </div>
-                  ) : (
-                    topMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className="flex items-center gap-3 p-3 bg-neural-50 rounded-xl hover:bg-gray-100 border border-neural-200 transition-colors cursor-pointer"
-                      >
-                        <div className="text-2xl">{member.avatar}</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-neural-900">
-                            {member.name}
-                          </div>
-                          <div className="text-xs text-neural-500">
-                            {member.title}
-                          </div>
-                          <div className="text-xs text-neural-400">
-                            Joined{' '}
-                            {new Date(member.joinedDate).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Main Chat Area */}
-            <div className="lg:col-span-3">
-              {/* Search Bar */}
-              <div className="mb-6">
-                <div className="relative">
-                  <Search
-                    className="absolute left-4 top-3 text-neural-400"
-                    size={20}
-                  />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search discussions..."
-                    className="w-full bg-white border border-neural-200 rounded-xl pl-12 pr-4 py-3 text-neural-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-lg"
-                  />
-                </div>
-              </div>
-
-              {/* Messages Feed */}
-              <div className="space-y-4 max-h-96 overflow-y-auto mb-8 pr-4 bg-white p-6 rounded-2xl border border-neural-200 shadow-lg">
-                {filteredMessages.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="text-4xl mb-4">💭</div>
-                    <p className="text-neural-500">
-                      {loadingPosts
-                        ? 'Loading discussions…'
-                        : 'No discussions found. Be the first to start one!'}
-                    </p>
-                  </div>
-                ) : (
-                  filteredMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`p-5 rounded-xl border transition-all ${
-                        message.isPinned
-                          ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200'
-                          : 'bg-neural-50 border-neural-200 hover:border-blue-300 hover:shadow-md'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="text-3xl">{message.avatar}</div>
-                          <div>
-                            <div className="font-bold text-neural-900 flex items-center gap-2">
-                              {message.author}
-                              {message.isPinned && (
-                                <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
-                                  📌 Pinned
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs text-neural-500">
-                              {Math.round(
-                                (Date.now() - message.timestamp.getTime()) /
-                                  60000
-                              )}{' '}
-                              mins ago
-                            </div>
-                          </div>
-                        </div>
-                        <div className="px-3 py-1 bg-neural-200 rounded-full text-xs font-medium text-neural-700">
-                          {
-                            categories.find((c) => c.id === message.category)
-                              ?.icon
-                          }{' '}
-                          {message.category}
-                        </div>
-                      </div>
-                      <p className="text-neural-700 mb-4 whitespace-pre-wrap">
-                        {message.content}
-                      </p>
-                      <div className="flex gap-6 text-sm text-neural-500">
-                        <button
-                          onClick={() => handleLike(message.id)}
-                          className={`flex items-center gap-2 transition-colors ${
-                            likedMessages.has(message.id)
-                              ? 'text-pink-500'
-                              : 'hover:text-pink-500'
-                          }`}
-                        >
-                          <Heart
-                            size={16}
-                            fill={
-                              likedMessages.has(message.id)
-                                ? 'currentColor'
-                                : 'none'
-                            }
-                          />{' '}
-                          {message.likes}
-                        </button>
-                        <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
-                          <MessageCircle size={16} /> {message.replies}
-                        </button>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">{link.title}</h3>
+                      <p className="text-gray-400">{link.desc}</p>
+                      <div className="mt-4 flex items-center gap-2 text-cyan-400 font-medium">
+                        <span>Explore</span>
+                        <span className="group-hover:translate-x-2 transition-transform">→</span>
                       </div>
                     </div>
-                  ))
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Message Input */}
-              <form
-                onSubmit={handleSendMessage}
-                className="bg-white p-6 rounded-2xl border border-neural-200 shadow-lg"
-              >
-                <div className="mb-4">
-                  <label className="text-sm text-neural-600 mb-2 block font-medium">
-                    Select Category
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={postCategory}
-                      onChange={(e) =>
-                        setPostCategory(
-                          e.target.value as
-                            | 'general'
-                            | 'agents'
-                            | 'ideas'
-                            | 'help'
-                        )
-                      }
-                      className="w-full bg-neural-50 border border-neural-200 rounded-xl px-4 py-3 text-neural-900 appearance-none cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 pr-10"
-                    >
-                      <option value="general">🌍 General</option>
-                      <option value="agents">🤖 Agents & Features</option>
-                      <option value="ideas">💡 Ideas & Suggestions</option>
-                      <option value="help">❓ Help & Support</option>
-                    </select>
-                    <ChevronDown
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neural-400 pointer-events-none"
-                      size={20}
-                    />
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Share your thoughts, ask questions, or join the discussion..."
-                    className="flex-1 bg-neural-50 border border-neural-200 rounded-xl px-4 py-3 text-neural-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl font-medium transition-all flex items-center gap-2 whitespace-nowrap text-white shadow-lg shadow-blue-500/25"
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Activity Feed */}
+      <section ref={cardsRef} className="activity-section relative z-10 py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Community Activity</h2>
+            <p className="text-gray-400 text-lg">Latest discussions and updates</p>
+          </div>
+
+          {/* Post Form */}
+          {userProfile && (
+            <form onSubmit={handleSendMessage} className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm">
+              <div className="flex flex-col gap-4">
+                <textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Share something with the community..."
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 resize-none"
+                  rows={3}
+                />
+                <div className="flex items-center justify-between gap-4">
+                  <select
+                    value={postCategory}
+                    onChange={(e) => setPostCategory(e.target.value as any)}
+                    className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
                   >
-                    <Send size={18} /> Post
+                    <option value="general">💬 General</option>
+                    <option value="agents">🤖 Agents</option>
+                    <option value="ideas">💡 Ideas</option>
+                    <option value="help">❓ Help</option>
+                  </select>
+                  <button type="submit" className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all">
+                    Post →
                   </button>
                 </div>
-              </form>
+              </div>
+            </form>
+          )}
+
+          {/* Messages */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">{error}</div>
+          )}
+
+          {loadingPosts ? (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading posts...</p>
             </div>
-          </div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-400">No posts yet. Be the first to share!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.slice(0, 10).map((msg) => (
+                <div key={msg.id} className="draggable-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm transition-all hover:border-gray-600/50">
+                  <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-gray-600/30 rounded-tr-lg" />
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center text-2xl flex-shrink-0">
+                      {msg.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="font-semibold text-white">{msg.author}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r ${getCategoryColor(msg.category)} text-white`}>
+                          {msg.category}
+                        </span>
+                        <span className="text-gray-500 text-sm">{msg.timestamp.toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-gray-300 mb-3">{msg.content}</p>
+                      <div className="flex items-center gap-6 text-sm">
+                        <button onClick={() => handleLikeMessage(msg.id)} className={`flex items-center gap-2 transition-colors ${likedMessages.has(msg.id) ? 'text-pink-400' : 'text-gray-500 hover:text-pink-400'}`}>
+                          <span>{likedMessages.has(msg.id) ? '❤️' : '🤍'}</span>
+                          <span>{msg.likes + (likedMessages.has(msg.id) ? 1 : 0)}</span>
+                        </button>
+                        <span className="flex items-center gap-2 text-gray-500">
+                          <span>💬</span>
+                          <span>{msg.replies}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
       </section>
 
-      {/* Community Guidelines Section */}
-      <section className="py-16 md:py-20 bg-white/50">
-        <div className="container-custom">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">
-              Community Guidelines
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-neural-200 hover:shadow-xl hover:border-blue-300 transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4 text-2xl">🤝</div>
-              <h3 className="font-bold text-neural-900 mb-2">Be Respectful</h3>
-              <p className="text-neural-600 text-sm">
-                Harassment, hate speech, doxxing, and threats are strictly
-                prohibited. Disagreements are fine—keep them civil and on-topic.
+      {/* Bottom CTA */}
+      <section className="relative z-10 py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative p-12 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10" />
+            <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-purple-500/30 rounded-bl-lg" />
+            <div className="relative z-10">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Join?</h2>
+              <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
+                Connect with fellow innovators, share your ideas, and help shape the future of AI.
               </p>
-            </div>
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-neural-200 hover:shadow-xl hover:border-amber-300 transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 text-2xl">💡</div>
-              <h3 className="font-bold text-neural-900 mb-2">Share Knowledge</h3>
-              <p className="text-neural-600 text-sm">
-                Provide constructive, good-faith contributions. Don't post spam,
-                scams, or misleading content.
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-neural-200 hover:shadow-xl hover:border-green-300 transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4 text-2xl">🎯</div>
-              <h3 className="font-bold text-neural-900 mb-2">Stay On Topic</h3>
-              <p className="text-neural-600 text-sm">
-                Keep discussions relevant to One Last AI and applicable law.
-                Don't share illegal content or proprietary data without
-                permission.
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-neural-200 hover:shadow-xl hover:border-purple-300 transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 text-2xl">✨</div>
-              <h3 className="font-bold text-neural-900 mb-2">Be Authentic</h3>
-              <p className="text-neural-600 text-sm">
-                Protect your account. Don't impersonate others. By
-                participating, you agree to our Terms and applicable policies.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Activity Stats Section */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">
-              Community Activity
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-neural-200">
-              <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-                {metrics?.postsThisWeek ?? '—'}
-              </div>
-              <p className="text-neural-600">Posts This Week</p>
-              <div className="mt-4 h-2 bg-neural-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 w-3/4 rounded-full"></div>
-              </div>
-            </div>
-            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-neural-200">
-              <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                {metrics?.activeReplies ?? '—'}
-              </div>
-              <p className="text-neural-600">Active Replies</p>
-              <div className="mt-4 h-2 bg-neural-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-purple-600 to-pink-600 w-4/5 rounded-full"></div>
-              </div>
-            </div>
-            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-neural-200">
-              <div className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-                {metrics?.newMembersWeek ?? '—'}
-              </div>
-              <p className="text-neural-600">New Members</p>
-              <div className="mt-4 h-2 bg-neural-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-green-600 to-emerald-600 w-2/3 rounded-full"></div>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/community/discord" className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all">
+                  💬 Join Discord
+                </Link>
+                <Link href="/auth/signup" className="px-8 py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl font-semibold hover:bg-gray-700/50 transition-all">
+                  Create Account
+                </Link>
               </div>
             </div>
           </div>

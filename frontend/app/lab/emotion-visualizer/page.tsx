@@ -1,269 +1,324 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { Heart, Smile, Frown, Meh, AlertCircle, RefreshCw } from 'lucide-react'
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
+
+
+interface EmotionResult {
+  emotion: string;
+  score: number;
+  color: string;
+  icon: string;
+}
+
+interface AnalysisResult {
+  emotions: EmotionResult[];
+  dominant: string;
+  sentiment: 'positive' | 'negative' | 'neutral' | 'mixed';
+  summary: string;
+}
 
 export default function EmotionVisualizerPage() {
-  const [text, setText] = useState('')
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysis, setAnalysis] = useState<any>(null)
-  const [stats, setStats] = useState({ activeUsers: 0, totalAnalyzed: 0 })
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [inputText, setInputText] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
 
-  // Fetch real-time stats
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch('/api/lab/emotion-analysis?stats=true')
-        if (response.ok) {
-          const data = await response.json()
-          setStats({
-            activeUsers: data.activeUsers || 0,
-            totalAnalyzed: data.totalAnalyzed || 0
-          })
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats:', error)
-      }
-    }
-
-    fetchStats()
-    const interval = setInterval(fetchStats, 30000)
-    return () => clearInterval(interval)
-  }, [])
+  const emotions = [
+    { emotion: 'Joy', color: 'from-yellow-500 to-amber-500', icon: '😊' },
+    { emotion: 'Trust', color: 'from-green-500 to-emerald-500', icon: '🤝' },
+    { emotion: 'Anticipation', color: 'from-orange-500 to-amber-500', icon: '🔮' },
+    { emotion: 'Surprise', color: 'from-cyan-500 to-teal-500', icon: '😮' },
+    { emotion: 'Sadness', color: 'from-blue-500 to-indigo-500', icon: '😢' },
+    { emotion: 'Fear', color: 'from-purple-500 to-violet-500', icon: '😨' },
+    { emotion: 'Anger', color: 'from-red-500 to-rose-500', icon: '😠' },
+    { emotion: 'Disgust', color: 'from-lime-500 to-green-500', icon: '🤢' },
+  ];
 
   const handleAnalyze = async () => {
-    if (!text.trim()) {
-      alert('Please enter text to analyze')
-      return
-    }
-    
-    setIsAnalyzing(true)
-    
+    if (!inputText.trim()) return;
+    setIsAnalyzing(true);
+    setResult(null);
     try {
       const response = await fetch('/api/lab/emotion-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      })
-
-      if (!response.ok) {
-        throw new Error('Emotion analysis failed')
+        body: JSON.stringify({ text: inputText })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setResult(data.analysis);
       }
-
-      const data = await response.json()
-      
-      // Format the response to match our UI structure
-      const emotions = data.emotions || {}
-      
-      // Generate sentiment keywords based on detected emotions
-      const keywords: { word: string; color: string }[] = []
-      if ((emotions.joy || 0) > 50) keywords.push({ word: 'Happy', color: 'text-yellow-400' })
-      if ((emotions.trust || 0) > 50) keywords.push({ word: 'Trusting', color: 'text-green-400' })
-      if ((emotions.anticipation || 0) > 50) keywords.push({ word: 'Excited', color: 'text-blue-400' })
-      if ((emotions.surprise || 0) > 50) keywords.push({ word: 'Surprised', color: 'text-purple-400' })
-      if ((emotions.sadness || 0) > 50) keywords.push({ word: 'Sad', color: 'text-indigo-400' })
-      if ((emotions.fear || 0) > 50) keywords.push({ word: 'Worried', color: 'text-gray-400' })
-      if ((emotions.anger || 0) > 50) keywords.push({ word: 'Frustrated', color: 'text-red-400' })
-      if ((emotions.disgust || 0) > 50) keywords.push({ word: 'Disgusted', color: 'text-emerald-400' })
-      if (keywords.length === 0) keywords.push({ word: 'Neutral', color: 'text-gray-400' })
-      
-      const formattedAnalysis = {
-        overall: {
-          sentiment: (emotions.overall || 0) > 0 ? 'Positive' : (emotions.overall || 0) < 0 ? 'Negative' : 'Neutral',
-          score: (emotions.overall || 0) / 100,
-          emoji: (emotions.overall || 0) > 0 ? '😊' : (emotions.overall || 0) < 0 ? '😢' : '😐'
-        },
-        emotions: [
-          { name: 'Joy', intensity: emotions.joy || 0, color: 'from-yellow-500 to-orange-500', emoji: '😄' },
-          { name: 'Trust', intensity: emotions.trust || 0, color: 'from-green-500 to-emerald-500', emoji: '🤝' },
-          { name: 'Anticipation', intensity: emotions.anticipation || 0, color: 'from-blue-500 to-cyan-500', emoji: '🎯' },
-          { name: 'Surprise', intensity: emotions.surprise || 0, color: 'from-purple-500 to-pink-500', emoji: '😲' },
-          { name: 'Sadness', intensity: emotions.sadness || 0, color: 'from-blue-600 to-indigo-600', emoji: '😢' },
-          { name: 'Fear', intensity: emotions.fear || 0, color: 'from-gray-500 to-slate-600', emoji: '😨' },
-          { name: 'Anger', intensity: emotions.anger || 0, color: 'from-red-500 to-rose-500', emoji: '😠' },
-          { name: 'Disgust', intensity: emotions.disgust || 0, color: 'from-green-700 to-emerald-800', emoji: '🤢' }
-        ],
-        keywords
-      }
-      
-      setAnalysis(formattedAnalysis)
-    } catch (error) {
-      console.error('Emotion analysis error:', error)
-      alert('Emotion analysis failed. Please try again.')
+    } catch (err) {
+      console.error('Emotion analysis error:', err);
     } finally {
-      setIsAnalyzing(false)
+      setIsAnalyzing(false);
     }
-  }
+  };
 
-  const getSentimentIcon = () => {
-    if (!analysis) return <Meh className="w-12 h-12" />
-    if (analysis.overall.score > 0.5) return <Smile className="w-12 h-12 text-green-400" />
-    if (analysis.overall.score < -0.5) return <Frown className="w-12 h-12 text-red-400" />
-    return <Meh className="w-12 h-12 text-yellow-400" />
-  }
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      gsap.set(heroTitle.chars, { y: 60, opacity: 0, scale: 0.7 });
+      gsap.set('.hero-badge', { scale: 0.5, opacity: 0, rotation: -10 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { scale: 1, opacity: 1, rotation: 0, duration: 0.5, ease: 'back.out(1.6)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.02 }, '-=0.2');
+
+      // 2. ScrambleText on emotion labels
+      gsap.utils.toArray<HTMLElement>('.emotion-label').forEach((el, i) => {
+        const originalText = el.textContent || '';
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 95%',
+          onEnter: () => {
+            gsap.to(el, { duration: 0.7, scrambleText: { text: originalText, chars: 'EMOTION', speed: 0.4 }, delay: i * 0.05 });
+          }
+        });
+      });
+
+      // 3. ScrollTrigger for emotion tiles
+      gsap.set('.emotion-tile', { y: 30, opacity: 0, rotateY: -20 });
+      ScrollTrigger.batch('.emotion-tile', {
+        start: 'top 92%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, rotateY: 0, duration: 0.45, stagger: 0.05, ease: 'back.out(1.3)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 30, opacity: 0, duration: 0.3 })
+      });
+
+      // 4. Flip for result panel
+      gsap.set('.result-panel', { opacity: 0, scale: 0.9 });
+
+      // 5. Observer parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.12, x: scrollY * 0.02, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.1, x: scrollY * -0.015, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting heart
+      gsap.to('.orbit-heart', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 50, y: -30 }, { x: 100, y: 0 }, { x: 50, y: 30 }, { x: 0, y: 0 }],
+          curviness: 1.5,
+        },
+        duration: 10,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on analyze button
+      gsap.utils.toArray<HTMLElement>('.analyze-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { scale: 1.08, duration: 0.4, ease: 'emotionWiggle' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { scale: 1, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for emotional wave
+      gsap.set('.emotion-wave', { drawSVG: '0%' });
+      gsap.to('.emotion-wave', { drawSVG: '100%', duration: 1.5, delay: 0.5, ease: 'power2.inOut' });
+
+      // 9. Draggable input panel
+      if (window.innerWidth > 768) {
+        Draggable.create('.draggable-input', {
+          type: 'x,y',
+          bounds: containerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
+      }
+
+      // 10. Floating emotion particles
+      gsap.utils.toArray<HTMLElement>('.emotion-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-40, 40)`,
+          y: `random(-35, 35)`,
+          scale: `random(0.7, 1.4)`,
+          duration: `random(5, 9)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.15
+        });
+      });
+
+      // 11. Emotion icon bounce
+      gsap.utils.toArray<HTMLElement>('.emotion-icon').forEach((icon, i) => {
+        gsap.to(icon, {
+          y: -8,
+          duration: 0.6,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power1.inOut',
+          delay: i * 0.1
+        });
+      });
+
+      // 12. Sentiment indicator pulse
+      gsap.to('.sentiment-indicator', {
+        scale: 1.15,
+        opacity: 0.7,
+        duration: 0.8,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (result) {
+      gsap.to('.result-panel', { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.3)' });
+      // Animate emotion bars
+      result.emotions.forEach((em, i) => {
+        gsap.fromTo(`.bar-${i}`, { scaleX: 0 }, { scaleX: em.score / 100, duration: 0.8, delay: 0.2 + i * 0.08, ease: 'power2.out', transformOrigin: 'left center' });
+      });
+    }
+  }, [result]);
+
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive': return 'bg-green-500';
+      case 'negative': return 'bg-red-500';
+      case 'mixed': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-brand-600 to-accent-600 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
-        </div>
-        <div className="container mx-auto px-4 py-16 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
-              <span>←</span> Back to AI Lab
-            </Link>
-            
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-red-500 to-pink-500 shadow-lg shadow-red-500/25">
-                <Heart className="w-12 h-12 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold text-white">
-                  Emotion Visualizer
-                </h1>
-                <p className="text-xl text-blue-100 mt-2">
-                  Analyze emotions and visualize feelings in text
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6 mt-6">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-blue-100">{stats.activeUsers} users active</span>
-              </div>
-              <div className="text-sm text-blue-200">•</div>
-              <div className="text-sm text-blue-100">{stats.totalAnalyzed.toLocaleString()} texts analyzed</div>
-            </div>
-          </motion.div>
-        </div>
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/5 w-[500px] h-[500px] bg-rose-500/15 rounded-full blur-[140px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[450px] h-[450px] bg-pink-500/12 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 opacity-8" style={{ backgroundImage: 'linear-gradient(rgba(244, 63, 94, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(244, 63, 94, 0.08) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="emotion-particle absolute w-2 h-2 bg-rose-400/25 rounded-full" style={{ left: `${8 + i * 9}%`, top: `${12 + (i % 5) * 16}%` }} />
+        ))}
+        <div className="orbit-heart absolute top-32 right-1/3 w-3 h-3 bg-pink-400/60 rounded-full" />
+        <svg className="absolute top-24 left-1/3 w-60 h-20 opacity-30">
+          <path className="emotion-wave" d="M0,40 Q30,10 60,40 T120,40 T180,40 T240,40" fill="none" stroke="url(#emotionGrad)" strokeWidth="2" />
+          <defs>
+            <linearGradient id="emotionGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#f43f5e" />
+              <stop offset="50%" stopColor="#ec4899" />
+              <stop offset="100%" stopColor="#a855f7" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
-          >
-            <label className="text-2xl font-bold mb-6 block flex items-center gap-2 text-gray-900">
-              <Heart className="w-6 h-6 text-pink-500" />
-              Text to Analyze
-            </label>
+      {/* Hero */}
+      <section className="relative z-10 pt-24 pb-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <Link href="/lab" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+            ← Back to AI Lab
+          </Link>
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-rose-500/20 to-pink-500/20 backdrop-blur-sm rounded-full border border-rose-500/30 mb-4">
+            <span className="text-xl">💖</span>
+            <span className="font-medium text-rose-300">Sentiment Analysis</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            <span className="hero-title bg-gradient-to-r from-rose-400 via-pink-400 to-fuchsia-400 bg-clip-text text-transparent">Emotion Visualizer</span>
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Discover the emotional landscape hidden in your text
+          </p>
+        </div>
+      </section>
 
+      {/* Emotion Tiles Preview */}
+      <section className="relative z-10 py-6 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-wrap justify-center gap-3">
+            {emotions.map((em, idx) => (
+              <div key={idx} className="emotion-tile px-4 py-2 rounded-full bg-gradient-to-r from-gray-800/60 to-gray-700/40 border border-gray-600/30 flex items-center gap-2">
+                <span className="emotion-icon text-lg">{em.icon}</span>
+                <span className="emotion-label text-sm text-gray-300">{em.emotion}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Input Panel */}
+      <section className="relative z-10 py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="draggable-input p-8 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-rose-500/30 backdrop-blur-sm">
+            <label className="text-lg font-semibold mb-4 block">Enter Text to Analyze</label>
             <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Paste any text here... social media post, email, article, or just your thoughts. The AI will detect and visualize the emotions!"
-              className="w-full h-64 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 transition-colors resize-none mb-6"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Type or paste any text to analyze its emotional content..."
+              className="w-full h-32 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-rose-500/50 transition-colors resize-none mb-4"
             />
-
             <button
               onClick={handleAnalyze}
-              disabled={!text.trim() || isAnalyzing}
-              className="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-pink-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              disabled={!inputText.trim() || isAnalyzing}
+              className="analyze-btn w-full py-4 bg-gradient-to-r from-rose-500 to-pink-500 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-rose-500/25 transition-all"
             >
-              {isAnalyzing ? (
-                <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  Analyzing Emotions...
-                </>
-              ) : (
-                <>
-                  <Heart className="w-5 h-5" />
-                  Analyze Emotions
-                </>
-              )}
+              {isAnalyzing ? '💭 Analyzing...' : '🔍 Analyze Emotions'}
             </button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">Emotion Analysis</h2>
-
-            {isAnalyzing ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <RefreshCw className="w-16 h-16 text-pink-500 animate-spin mb-4" />
-                <p className="text-lg font-semibold text-gray-900">Detecting emotions...</p>
-                <p className="text-sm text-gray-500 mt-2">Processing sentiment patterns</p>
-              </div>
-            ) : analysis ? (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="p-6 bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-200 rounded-xl text-center">
-                  {getSentimentIcon()}
-                  <div className="text-2xl font-bold mt-3 text-gray-900">{analysis.overall.sentiment}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    Score: {(analysis.overall.score * 100).toFixed(0)}%
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-lg font-semibold mb-4 text-gray-900">Emotion Breakdown</div>
-                  <div className="space-y-3">
-                    {analysis.emotions.map((emotion: any, i: number) => (
-                      <div key={i}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl">{emotion.emoji}</span>
-                            <span className="text-sm font-medium text-gray-700">{emotion.name}</span>
-                          </div>
-                          <span className="text-sm text-gray-500">{emotion.intensity}%</span>
-                        </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${emotion.intensity}%` }}
-                            transition={{ duration: 1, delay: 0.6 + i * 0.1 }}
-                            className={`h-full bg-gradient-to-r ${emotion.color}`}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-lg font-semibold mb-3 text-gray-900">Key Sentiment Words</div>
-                  <div className="flex flex-wrap gap-2">
-                    {analysis.keywords.map((kw: any, i: number) => (
-                      <span
-                        key={i}
-                        className={`px-4 py-2 bg-gray-50 border rounded-full text-sm ${kw.color} border-gray-200`}
-                      >
-                        {kw.word}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                <Heart className="w-16 h-16 mb-4 opacity-50" />
-                <p className="text-center px-4">Emotion visualization will appear here</p>
-                <p className="text-sm mt-2">Enter text and click Analyze</p>
-              </div>
-            )}
-          </motion.div>
+          </div>
         </div>
+      </section>
 
-      </div>
+      {/* Results */}
+      {result && (
+        <section className="relative z-10 py-8 px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="result-panel p-8 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-pink-500/30 backdrop-blur-sm">
+              {/* Sentiment Summary */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-pink-400">Emotional Analysis</h3>
+                  <p className="text-gray-400 text-sm mt-1">Dominant: <span className="text-white font-semibold">{result.dominant}</span></p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`sentiment-indicator w-3 h-3 rounded-full ${getSentimentColor(result.sentiment)}`} />
+                  <span className="capitalize text-gray-300">{result.sentiment}</span>
+                </div>
+              </div>
+
+              {/* Emotion Bars */}
+              <div className="space-y-4 mb-6">
+                {result.emotions.map((em, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <span className="w-8 text-center text-xl">{em.icon}</span>
+                    <span className="w-24 text-sm text-gray-400">{em.emotion}</span>
+                    <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                      <div className={`bar-${idx} h-full bg-gradient-to-r ${em.color} rounded-full`} style={{ transform: 'scaleX(0)', transformOrigin: 'left center' }} />
+                    </div>
+                    <span className="w-12 text-right text-sm text-gray-400">{em.score}%</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Summary */}
+              <div className="p-4 rounded-xl bg-gray-800/50 border border-gray-700/50">
+                <p className="text-gray-300 leading-relaxed">{result.summary}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
-  )
+  );
 }

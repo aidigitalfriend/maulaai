@@ -1,109 +1,361 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Binary, Copy, Check, Upload, Download, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Binary, ArrowLeft, Copy, Check, ArrowRightLeft, Trash2, Sparkles, FileText, Code } from 'lucide-react';
+import { gsap, ScrollTrigger, SplitText, TextPlugin, Flip, CustomWiggle, CustomEase } from '@/lib/gsap';
 
-export default function Base64ToolPage(){
-  const [mode, setMode] = useState<'encode'|'decode'>('encode')
-  const [input, setInput] = useState('')
-  const [output, setOutput] = useState('')
-  const [copied, setCopied] = useState(false)
-  const [urlSafe, setUrlSafe] = useState(false)
-  const [noPadding, setNoPadding] = useState(false)
+gsap.registerPlugin(ScrollTrigger, SplitText, TextPlugin, Flip, CustomWiggle, CustomEase);
 
-  const process = (value: string) => {
-    try{
-      if(mode==='encode'){
-  let b64 = btoa(unescape(encodeURIComponent(value)))
-  if(urlSafe) b64 = b64.replace(/\+/g,'-').replace(/\//g,'_')
-        if(noPadding) b64 = b64.replace(/=+$/,'')
-        setOutput(b64)
-      }else{
-  let v = value
-  if(urlSafe) v = v.replace(/\-/g,'+').replace(/_/g,'/')
-        // pad if needed
-        if(!noPadding){
-          const pad = v.length % 4
-          if(pad) v = v + '='.repeat(4-pad)
-        }
-        const text = decodeURIComponent(escape(atob(v)))
-        setOutput(text)
+export default function Base64Page() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [mode, setMode] = useState<'encode' | 'decode'>('encode');
+  const [input, setInput] = useState('');
+  const [output, setOutput] = useState('');
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      CustomWiggle.create('base64Wiggle', { wiggles: 6, type: 'easeOut' });
+
+      // Background orbs
+      gsap.to('.base64-gradient-orb', {
+        x: 'random(-60, 60)',
+        y: 'random(-30, 30)',
+        scale: 'random(0.9, 1.1)',
+        duration: 5,
+        ease: 'sine.inOut',
+        stagger: { each: 0.8, repeat: -1, yoyo: true },
+      });
+
+      // Floating binary
+      const binaries = document.querySelectorAll('.floating-binary');
+      binaries.forEach((el, i) => {
+        gsap.to(el, {
+          y: -20 - i * 5,
+          opacity: 0.15,
+          duration: 3 + i * 0.3,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+        });
+      });
+
+      // Title animation
+      if (titleRef.current) {
+        const split = new SplitText(titleRef.current, { type: 'chars' });
+        gsap.from(split.chars, {
+          opacity: 0,
+          y: 50,
+          rotationX: -90,
+          stagger: 0.03,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          delay: 0.2,
+        });
       }
-    }catch(e:any){
-      setOutput(`Error: ${e.message}`)
-    }
-  }
 
-  const onFile = async (f: File) => {
-    const buf = await f.arrayBuffer()
-    if(mode==='encode'){
-      const bytes = new Uint8Array(buf)
-      let s = ''
-      bytes.forEach(b=> s += String.fromCharCode(b))
-      process(s)
-    }else{
-      // decode to blob and download
-      process(input)
-      const bstr = atob(output)
-      const bytes = new Uint8Array(bstr.length)
-      for(let i=0;i<bstr.length;i++) bytes[i] = bstr.charCodeAt(i)
-      const blob = new Blob([bytes])
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'decoded.bin'
-      a.click()
-      URL.revokeObjectURL(url)
-    }
-  }
+      // Hero icon
+      gsap.to('.hero-base64-icon', {
+        boxShadow: '0 0 50px rgba(168, 85, 247, 0.5)',
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
 
-  const copy = async () => { await navigator.clipboard.writeText(output); setCopied(true); setTimeout(()=>setCopied(false),1200) }
+      // Panels
+      gsap.from('.base64-panel', {
+        opacity: 0,
+        y: 40,
+        stagger: 0.15,
+        duration: 0.6,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  // Process on input change
+  useEffect(() => {
+    if (!input.trim()) {
+      setOutput('');
+      setError('');
+      return;
+    }
+
+    try {
+      if (mode === 'encode') {
+        setOutput(btoa(unescape(encodeURIComponent(input))));
+        setError('');
+      } else {
+        setOutput(decodeURIComponent(escape(atob(input))));
+        setError('');
+      }
+    } catch (e) {
+      setError(mode === 'decode' ? 'Invalid Base64 string' : 'Failed to encode');
+      setOutput('');
+    }
+  }, [input, mode]);
+
+  const handleModeSwitch = () => {
+    const state = Flip.getState('.mode-indicator');
+    const newMode = mode === 'encode' ? 'decode' : 'encode';
+    
+    // Switch animation
+    gsap.to('.switch-btn', {
+      rotation: 180,
+      duration: 0.4,
+      ease: 'back.out(1.7)',
+      onComplete: () => gsap.set('.switch-btn', { rotation: 0 }),
+    });
+
+    setMode(newMode);
+    setInput(output);
+    setOutput('');
+    setError('');
+
+    requestAnimationFrame(() => {
+      Flip.from(state, { duration: 0.3, ease: 'power2.out' });
+    });
+  };
+
+  const copyOutput = async () => {
+    if (!output) return;
+    await navigator.clipboard.writeText(output);
+    setCopied(true);
+
+    // Animation
+    const btn = document.querySelector('.copy-output-btn');
+    if (btn) {
+      gsap.to(btn, {
+        scale: 1.2,
+        duration: 0.2,
+        ease: 'back.out(1.7)',
+        onComplete: () => gsap.to(btn, { scale: 1, duration: 0.2 }),
+      });
+    }
+
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const clearAll = () => {
+    gsap.to('.input-area, .output-area', {
+      opacity: 0.5,
+      duration: 0.2,
+      onComplete: () => {
+        setInput('');
+        setOutput('');
+        setError('');
+        gsap.to('.input-area, .output-area', { opacity: 1, duration: 0.2 });
+      },
+    });
+  };
+
+  const loadExample = () => {
+    const example = mode === 'encode' 
+      ? 'Hello, World! This is a test message for Base64 encoding.'
+      : 'SGVsbG8sIFdvcmxkISBUaGlzIGlzIGEgdGVzdCBtZXNzYWdlIGZvciBCYXNlNjQgZW5jb2Rpbmcu';
+    
+    setInput('');
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < example.length) {
+        setInput(example.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 10);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-brand-600 to-accent-600">
-        <div className="container-custom py-6">
-          <Link href="/tools" className="text-blue-100 hover:text-white">← Back to Tools</Link>
-          <div className="mt-3 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"><Binary className="w-6 h-6 text-white"/></div>
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="base64-gradient-orb absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-purple-600/20 to-pink-600/20 blur-[100px]" />
+        <div className="base64-gradient-orb absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-violet-600/15 to-indigo-600/15 blur-[80px]" />
+      </div>
+
+      {/* Floating Binary */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {['01101', '10010', '11001', '00110', '10101', '01010'].map((bin, i) => (
+          <div
+            key={i}
+            className="floating-binary absolute text-lg font-mono text-white/10"
+            style={{ left: `${8 + i * 15}%`, top: `${15 + (i % 3) * 28}%` }}
+          >
+            {bin}
+          </div>
+        ))}
+      </div>
+
+      {/* Hero */}
+      <section className="relative py-12 border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <Link
+            href="/tools"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Tools
+          </Link>
+
+          <div className="flex items-center gap-6">
+            <div className="hero-base64-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30 flex items-center justify-center">
+              <Binary className="w-8 h-8 text-purple-400" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Base64 Encoder / Decoder</h1>
-              <p className="text-blue-100">Convert text and files to and from Base64 with URL-safe and padding options</p>
+              <h1 ref={titleRef} className="text-3xl md:text-4xl font-bold text-white mb-1">
+                Base64 Encoder/Decoder
+              </h1>
+              <p className="text-gray-400">
+                Encode text to Base64 or decode Base64 strings instantly
+              </p>
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      <main className="container-custom py-8">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 mb-4 flex items-center gap-3 flex-wrap">
-          <select className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={mode} onChange={(e)=>{setMode(e.target.value as any); setOutput('');}}>
-            <option value="encode">Encode</option>
-            <option value="decode">Decode</option>
-          </select>
-          <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={urlSafe} onChange={e=>{setUrlSafe(e.target.checked); process(input)}}/> URL Safe</label>
-          <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={noPadding} onChange={e=>{setNoPadding(e.target.checked); process(input)}}/> No padding</label>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center" onClick={()=>{setInput(''); setOutput('')}}><RefreshCw className="w-4 h-4 mr-1"/>Reset</button>
-          <label className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center cursor-pointer"><Upload className="w-4 h-4 mr-1"/> Choose File<input type="file" className="hidden" onChange={(e)=> e.target.files && onFile(e.target.files[0])}/></label>
+      <div className="container mx-auto px-4 py-8">
+        {/* Mode Toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex items-center gap-4 p-2 bg-white/5 border border-white/10 rounded-2xl">
+            <button
+              onClick={() => mode !== 'encode' && handleModeSwitch()}
+              className={`mode-indicator px-6 py-3 rounded-xl font-semibold transition-all ${
+                mode === 'encode'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <FileText className="w-4 h-4 inline mr-2" />
+              Encode
+            </button>
+            
+            <button
+              onClick={handleModeSwitch}
+              className="switch-btn p-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <ArrowRightLeft className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={() => mode !== 'decode' && handleModeSwitch()}
+              className={`mode-indicator px-6 py-3 rounded-xl font-semibold transition-all ${
+                mode === 'decode'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Code className="w-4 h-4 inline mr-2" />
+              Decode
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4">
-            <h2 className="font-semibold text-gray-900 mb-2">Input</h2>
-            <textarea className="w-full h-72 font-mono text-sm bg-white border border-gray-300 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={input} onChange={(e)=>{setInput(e.target.value); process(e.target.value)}} placeholder={mode==='encode' ? 'Type or paste text to encode' : 'Paste Base64 to decode'}/>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 lg:sticky lg:top-6 lg:h-fit">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-semibold text-gray-900">Output</h2>
-              <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center disabled:opacity-50" disabled={!output} onClick={copy}>{copied ? <Check className="w-4 h-4 mr-1"/> : <Copy className="w-4 h-4 mr-1"/>}Copy</button>
+          {/* Input Panel */}
+          <div className="base64-panel bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">
+                {mode === 'encode' ? 'Text Input' : 'Base64 Input'}
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={loadExample}
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white rounded-lg transition-all text-sm flex items-center gap-2"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Example
+                </button>
+                <button
+                  onClick={clearAll}
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white rounded-lg transition-all text-sm flex items-center gap-2"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Clear
+                </button>
+              </div>
             </div>
-            <textarea className="w-full h-72 font-mono text-sm bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-900" value={output} readOnly/>
-            {mode==='decode' && output && !output.startsWith('Error:') && (
-              <button className="mt-3 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-lg shadow-blue-500/25 transition-all flex items-center" onClick={()=>onFile(new File([], 'decoded.bin'))}><Download className="w-4 h-4 mr-1"/>Download decoded</button>
+
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={mode === 'encode' ? 'Enter text to encode...' : 'Enter Base64 string to decode...'}
+              className="input-area w-full h-[300px] bg-[#0d0d12] border border-white/10 rounded-xl p-4 text-gray-300 font-mono text-sm placeholder-gray-600 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 outline-none resize-none transition-all"
+            />
+
+            {error && (
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
+            {input && !error && (
+              <div className="mt-4 text-sm text-gray-400">
+                Input length: {input.length} characters
+              </div>
+            )}
+          </div>
+
+          {/* Output Panel */}
+          <div className="base64-panel bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">
+                {mode === 'encode' ? 'Base64 Output' : 'Decoded Text'}
+              </h2>
+              <button
+                onClick={copyOutput}
+                disabled={!output}
+                className="copy-output-btn px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg shadow-lg shadow-purple-500/25 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+
+            <div className="output-area w-full h-[300px] bg-[#0d0d12] border border-white/10 rounded-xl p-4 overflow-auto">
+              {output ? (
+                <code className="text-gray-300 font-mono text-sm break-all whitespace-pre-wrap">
+                  {output}
+                </code>
+              ) : (
+                <span className="text-gray-600 font-mono text-sm">
+                  {mode === 'encode' ? '/* Encoded Base64 will appear here */' : '/* Decoded text will appear here */'}
+                </span>
+              )}
+            </div>
+
+            {output && (
+              <div className="mt-4 text-sm text-gray-400">
+                Output length: {output.length} characters
+                {mode === 'encode' && input && (
+                  <span className="ml-4">
+                    Size increase: {((output.length / input.length - 1) * 100).toFixed(1)}%
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>
-      </main>
+
+        {/* Info Section */}
+        <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-2xl">
+          <h3 className="text-lg font-semibold text-white mb-3">About Base64</h3>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            Base64 is a binary-to-text encoding scheme that represents binary data in ASCII string format. 
+            It&apos;s commonly used for encoding data in URLs, email attachments, and embedding images in HTML/CSS. 
+            The encoded output is approximately 33% larger than the original data.
+          </p>
+        </div>
+      </div>
     </div>
-  )
+  );
 }

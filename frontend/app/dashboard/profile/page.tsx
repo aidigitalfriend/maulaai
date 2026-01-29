@@ -17,6 +17,9 @@ import {
   XMarkIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
 import { profileService, ProfileData } from '../../../services/profileService';
@@ -213,10 +216,10 @@ export default function UserProfilePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-          <p className="text-neural-600">Loading your profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading your profile...</p>
         </div>
       </div>
     );
@@ -224,10 +227,10 @@ export default function UserProfilePage() {
 
   if (!user || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
         <div className="text-center">
           <ExclamationTriangleIcon className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <p className="text-neural-600">Unable to load profile</p>
+          <p className="text-gray-400">Unable to load profile</p>
           <Link href="/dashboard/overview" className="btn-primary mt-4">
             Back to Dashboard
           </Link>
@@ -237,7 +240,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
       {/* Hidden file input for avatar upload */}
       <input
         type="file"
@@ -248,7 +251,7 @@ export default function UserProfilePage() {
       />
 
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
         {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -261,16 +264,16 @@ export default function UserProfilePage() {
           </svg>
         </div>
         <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
             <UserIcon className="w-10 h-10" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">User Profile</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
             Manage your personal information and preferences
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+            className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
           >
             Back to Dashboard
           </Link>
@@ -278,34 +281,34 @@ export default function UserProfilePage() {
       </section>
 
       {/* Status Messages Section */}
-      <section className="py-6 px-4 bg-white border-b border-gray-200">
+      <section className="py-6 px-4 bg-white/5 border-b border-white/10">
         <div className="container-custom">
 
           {/* Status Messages */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-6">
               <div className="flex">
                 <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
-                <p className="text-red-700">{error}</p>
+                <p className="text-red-400">{error}</p>
               </div>
             </div>
           )}
 
           {success && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4 mb-6">
               <div className="flex">
                 <CheckIcon className="h-5 w-5 text-green-400 mr-2" />
-                <p className="text-green-700">{success}</p>
+                <p className="text-green-400">{success}</p>
               </div>
             </div>
           )}
 
           {hasChanges && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="bg-yellow-900/20 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex">
                   <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 mr-2" />
-                  <p className="text-yellow-700">You have unsaved changes</p>
+                  <p className="text-yellow-400">You have unsaved changes</p>
                 </div>
                 <div className="flex space-x-2">
                   <button
@@ -330,12 +333,12 @@ export default function UserProfilePage() {
       </section>
 
       {/* Profile Content */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
         <div className="container-custom max-w-4xl">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Profile Card */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 text-center">
+              <div className="bg-white/5 rounded-2xl p-8 border border-white/10 text-center">
                 <div className="relative mb-6">
                   {profile.avatar ? (
                     <Image
@@ -346,39 +349,39 @@ export default function UserProfilePage() {
                       className="w-32 h-32 rounded-full mx-auto object-cover"
                     />
                   ) : (
-                    <div className="w-32 h-32 bg-brand-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto">
+                    <div className="w-32 h-32 bg-purple-900/200 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto">
                       {profile.name.charAt(0).toUpperCase()}
                     </div>
                   )}
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-2 right-1/2 transform translate-x-1/2 translate-y-1/2 bg-white rounded-full p-2 shadow-lg border border-neural-200 hover:bg-neural-50 transition-colors"
+                    className="absolute bottom-2 right-1/2 transform translate-x-1/2 translate-y-1/2 bg-white/5 rounded-full p-2 shadow-2xl shadow-purple-500/10 border border-white/10 hover:bg-[#0a0a0f] transition-colors"
                     disabled={saving}
                     title="Upload new avatar"
                   >
-                    <CameraIcon className="w-4 h-4 text-neural-600" />
+                    <CameraIcon className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>
 
-                <h2 className="text-2xl font-bold text-neural-900 mb-2">
+                <h2 className="text-2xl font-bold text-white mb-2">
                   {profile.name}
                 </h2>
-                <p className="text-neural-600 mb-4">{profile.profession}</p>
-                <p className="text-sm text-neural-500 mb-6">
+                <p className="text-gray-400 mb-4">{profile.profession}</p>
+                <p className="text-sm text-gray-500 mb-6">
                   {profile.company}
                 </p>
 
                 <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-center text-neural-600">
+                  <div className="flex items-center justify-center text-gray-400">
                     <MapPinIcon className="w-4 h-4 mr-2" />
                     {profile.location}
                   </div>
-                  <div className="flex items-center justify-center text-neural-600">
+                  <div className="flex items-center justify-center text-gray-400">
                     <CalendarIcon className="w-4 h-4 mr-2" />
                     Joined {formatDate(user.createdAt)}
                   </div>
-                  <div className="flex items-center justify-center text-neural-600">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  <div className="flex items-center justify-center text-gray-400">
+                    <div className="w-2 h-2 bg-green-900/200 rounded-full mr-2"></div>
                     Last active{' '}
                     {user.lastLoginAt
                       ? formatDateTime(user.lastLoginAt)
@@ -386,8 +389,8 @@ export default function UserProfilePage() {
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-neural-100">
-                  <h3 className="font-semibold text-neural-900 mb-3">
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  <h3 className="font-semibold text-white mb-3">
                     Connect
                   </h3>
                   <div className="flex justify-center space-x-3">
@@ -396,7 +399,7 @@ export default function UserProfilePage() {
                         href={profile.socialLinks.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                        className="p-2 bg-blue-900/30 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
                         title="LinkedIn Profile"
                       >
                         <span className="text-sm font-medium">in</span>
@@ -418,7 +421,7 @@ export default function UserProfilePage() {
                         href={profile.socialLinks.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                        className="p-2 bg-white/5 text-gray-400 rounded-lg hover:bg-white/200 transition-colors"
                         title="GitHub Profile"
                       >
                         <span className="text-sm font-medium">gh</span>
@@ -433,9 +436,9 @@ export default function UserProfilePage() {
             <div className="lg:col-span-2">
               <div className="space-y-6">
                 {/* Personal Information */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-neural-900">
+                    <h3 className="text-xl font-semibold text-white">
                       Personal Information
                     </h3>
                     {editingSection === 'personal' ? (
@@ -461,7 +464,7 @@ export default function UserProfilePage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-neural-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Full Name
                       </label>
                       <input
@@ -470,17 +473,17 @@ export default function UserProfilePage() {
                         onChange={(e) =>
                           handleInputChange('name', e.target.value)
                         }
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                           editingSection === 'personal'
-                            ? 'border-neural-200 bg-white'
-                            : 'border-neural-100 bg-neural-50'
+                            ? 'border-white/10 bg-white'
+                            : 'border-white/10 bg-[#0a0a0f]'
                         }`}
                         readOnly={editingSection !== 'personal'}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neural-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Email Address
                       </label>
                       <input
@@ -489,17 +492,17 @@ export default function UserProfilePage() {
                         onChange={(e) =>
                           handleInputChange('email', e.target.value)
                         }
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                           editingSection === 'personal'
-                            ? 'border-neural-200 bg-white'
-                            : 'border-neural-100 bg-neural-50'
+                            ? 'border-white/10 bg-white'
+                            : 'border-white/10 bg-[#0a0a0f]'
                         }`}
                         readOnly={editingSection !== 'personal'}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neural-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Phone Number
                       </label>
                       <input
@@ -508,17 +511,17 @@ export default function UserProfilePage() {
                         onChange={(e) =>
                           handleInputChange('phoneNumber', e.target.value)
                         }
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                           editingSection === 'personal'
-                            ? 'border-neural-200 bg-white'
-                            : 'border-neural-100 bg-neural-50'
+                            ? 'border-white/10 bg-white'
+                            : 'border-white/10 bg-[#0a0a0f]'
                         }`}
                         readOnly={editingSection !== 'personal'}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neural-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Location
                       </label>
                       <input
@@ -527,17 +530,17 @@ export default function UserProfilePage() {
                         onChange={(e) =>
                           handleInputChange('location', e.target.value)
                         }
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                           editingSection === 'personal'
-                            ? 'border-neural-200 bg-white'
-                            : 'border-neural-100 bg-neural-50'
+                            ? 'border-white/10 bg-white'
+                            : 'border-white/10 bg-[#0a0a0f]'
                         }`}
                         readOnly={editingSection !== 'personal'}
                       />
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-neural-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Bio
                       </label>
                       <textarea
@@ -546,10 +549,10 @@ export default function UserProfilePage() {
                           handleInputChange('bio', e.target.value)
                         }
                         rows={4}
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none ${
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${
                           editingSection === 'personal'
-                            ? 'border-neural-200 bg-white'
-                            : 'border-neural-100 bg-neural-50'
+                            ? 'border-white/10 bg-white'
+                            : 'border-white/10 bg-[#0a0a0f]'
                         }`}
                         readOnly={editingSection !== 'personal'}
                       />
@@ -558,9 +561,9 @@ export default function UserProfilePage() {
                 </div>
 
                 {/* Professional Information */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-neural-900">
+                    <h3 className="text-xl font-semibold text-white">
                       Professional Information
                     </h3>
                     {editingSection === 'professional' ? (
@@ -586,7 +589,7 @@ export default function UserProfilePage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-neural-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Profession
                       </label>
                       <input
@@ -595,17 +598,17 @@ export default function UserProfilePage() {
                         onChange={(e) =>
                           handleInputChange('profession', e.target.value)
                         }
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                           editingSection === 'professional'
-                            ? 'border-neural-200 bg-white'
-                            : 'border-neural-100 bg-neural-50'
+                            ? 'border-white/10 bg-white'
+                            : 'border-white/10 bg-[#0a0a0f]'
                         }`}
                         readOnly={editingSection !== 'professional'}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neural-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Company
                       </label>
                       <input
@@ -614,17 +617,17 @@ export default function UserProfilePage() {
                         onChange={(e) =>
                           handleInputChange('company', e.target.value)
                         }
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                           editingSection === 'professional'
-                            ? 'border-neural-200 bg-white'
-                            : 'border-neural-100 bg-neural-50'
+                            ? 'border-white/10 bg-white'
+                            : 'border-white/10 bg-[#0a0a0f]'
                         }`}
                         readOnly={editingSection !== 'professional'}
                       />
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-neural-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Website
                       </label>
                       <input
@@ -633,10 +636,10 @@ export default function UserProfilePage() {
                         onChange={(e) =>
                           handleInputChange('website', e.target.value)
                         }
-                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                        className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                           editingSection === 'professional'
-                            ? 'border-neural-200 bg-white'
-                            : 'border-neural-100 bg-neural-50'
+                            ? 'border-white/10 bg-white'
+                            : 'border-white/10 bg-[#0a0a0f]'
                         }`}
                         readOnly={editingSection !== 'professional'}
                       />
@@ -644,12 +647,12 @@ export default function UserProfilePage() {
 
                     {/* Social Links */}
                     <div className="md:col-span-2 mt-4">
-                      <h4 className="text-lg font-medium text-neural-900 mb-4">
+                      <h4 className="text-lg font-medium text-white mb-4">
                         Social Links
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             LinkedIn URL
                           </label>
                           <input
@@ -661,10 +664,10 @@ export default function UserProfilePage() {
                                 e.target.value
                               )
                             }
-                            className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                            className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                               editingSection === 'professional'
-                                ? 'border-neural-200 bg-white'
-                                : 'border-neural-100 bg-neural-50'
+                                ? 'border-white/10 bg-white'
+                                : 'border-white/10 bg-[#0a0a0f]'
                             }`}
                             readOnly={editingSection !== 'professional'}
                             placeholder="https://linkedin.com/in/username"
@@ -672,7 +675,7 @@ export default function UserProfilePage() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             Twitter URL
                           </label>
                           <input
@@ -684,10 +687,10 @@ export default function UserProfilePage() {
                                 e.target.value
                               )
                             }
-                            className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                            className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                               editingSection === 'professional'
-                                ? 'border-neural-200 bg-white'
-                                : 'border-neural-100 bg-neural-50'
+                                ? 'border-white/10 bg-white'
+                                : 'border-white/10 bg-[#0a0a0f]'
                             }`}
                             readOnly={editingSection !== 'professional'}
                             placeholder="https://twitter.com/username"
@@ -695,7 +698,7 @@ export default function UserProfilePage() {
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             GitHub URL
                           </label>
                           <input
@@ -707,10 +710,10 @@ export default function UserProfilePage() {
                                 e.target.value
                               )
                             }
-                            className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
+                            className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                               editingSection === 'professional'
-                                ? 'border-neural-200 bg-white'
-                                : 'border-neural-100 bg-neural-50'
+                                ? 'border-white/10 bg-white'
+                                : 'border-white/10 bg-[#0a0a0f]'
                             }`}
                             readOnly={editingSection !== 'professional'}
                             placeholder="https://github.com/username"
@@ -722,21 +725,21 @@ export default function UserProfilePage() {
                 </div>
 
                 {/* Notification Preferences */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-                  <h3 className="text-xl font-semibold text-neural-900 mb-6">
+                <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+                  <h3 className="text-xl font-semibold text-white mb-6">
                     Notification Preferences
                   </h3>
-                  <p className="text-sm text-neural-600 mb-6">
+                  <p className="text-sm text-gray-400 mb-6">
                     Changes are saved automatically
                   </p>
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-neural-900">
+                        <h4 className="font-medium text-white">
                           Email Notifications
                         </h4>
-                        <p className="text-sm text-neural-600">
+                        <p className="text-sm text-gray-400">
                           Receive important updates via email
                         </p>
                       </div>
@@ -752,16 +755,16 @@ export default function UserProfilePage() {
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                        <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                       </label>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-neural-900">
+                        <h4 className="font-medium text-white">
                           SMS Notifications
                         </h4>
-                        <p className="text-sm text-neural-600">
+                        <p className="text-sm text-gray-400">
                           Receive alerts via text message
                         </p>
                       </div>
@@ -777,16 +780,16 @@ export default function UserProfilePage() {
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                        <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                       </label>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-neural-900">
+                        <h4 className="font-medium text-white">
                           Marketing Emails
                         </h4>
-                        <p className="text-sm text-neural-600">
+                        <p className="text-sm text-gray-400">
                           Receive promotional content and news
                         </p>
                       </div>
@@ -802,16 +805,16 @@ export default function UserProfilePage() {
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                        <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                       </label>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-neural-900">
+                        <h4 className="font-medium text-white">
                           Product Updates
                         </h4>
-                        <p className="text-sm text-neural-600">
+                        <p className="text-sm text-gray-400">
                           Get notified about new features and updates
                         </p>
                       </div>
@@ -827,7 +830,7 @@ export default function UserProfilePage() {
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                        <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                       </label>
                     </div>
                   </div>

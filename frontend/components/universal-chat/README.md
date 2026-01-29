@@ -1,105 +1,20 @@
-# Universal Chat Component
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-A complete, professional chat interface with real AI integration, session management, and canvas mode for code editing.
+# Run and deploy your AI Studio app
 
-## 📁 Files Overview
+This contains everything you need to run your app locally.
 
-| File                                     | Description                                                           |
-| ---------------------------------------- | --------------------------------------------------------------------- |
-| `UniversalAgentChat.tsx`                 | Main chat component - the primary export                              |
-| `EnhancedChatLayout.tsx`                 | Layout wrapper with sidebars and theme support                        |
-| `ChatSessionSidebar.tsx`                 | Left sidebar for session management                                   |
-| `ChatSettingsPanel.tsx`                  | Settings panel with AI presets                                        |
-| `ChatRightPanel.tsx`                     | Right panel with Canvas button                                        |
-| `QuickActionsPanel.tsx`                  | Quick action buttons for common tasks                                 |
-| `canvas-build/CanvasMode.tsx`            | Canvas shim export (imports `canvas-build/components/CanvasPage.tsx`) |
-| `canvas-build/components/CanvasPage.tsx` | Full-screen code editor with preview (Canvas overlay)                 |
-| `realtimeChatService.ts`                 | API service for AI chat                                               |
-| `types.ts`                               | TypeScript type definitions                                           |
-| `aiProviders.ts`                         | AI provider configurations                                            |
-| `index.ts`                               | Clean exports                                                         |
+View your app in AI Studio: https://ai.studio/apps/drive/1G1Jn7R6plQXMOU0x35X0VlCQOGPbj6qs
 
-## 🚀 Usage
+## Run Locally
 
-```tsx
-import {
-  UniversalAgentChat,
-  AgentChatConfig,
-} from '@/components/universal-chat';
+**Prerequisites:**  Node.js
 
-const agentConfig: AgentChatConfig = {
-  id: 'my-agent',
-  name: 'My Agent',
-  icon: '🤖',
-  description: 'A helpful AI assistant',
-  systemPrompt: 'You are a helpful AI assistant.',
-  welcomeMessage: 'Hello! How can I help you today?',
-  specialties: ['General Knowledge', 'Coding', 'Writing'],
-};
 
-export default function MyAgentPage() {
-  return <UniversalAgentChat agent={agentConfig} />;
-}
-```
-
-> Canvas docs now live alongside the component in `canvas-build/README.md`.
-
-## ✨ Features
-
-- **Real AI Integration** - Connects to Mistral API via `/api/studio/chat`
-- **Session Management** - Create, rename, delete, export chat sessions
-- **Theme Support** - Light (default) and Neural (dark cyber) themes
-- **Quick Actions** - Pre-built prompts for common tasks
-- **Canvas Mode** - Full-screen code editor with live preview
-- **Streaming Responses** - Simulated streaming for better UX
-- **Message Actions** - Copy, share, listen (text-to-speech), feedback
-- **Settings Panel** - Temperature, max tokens, model selection
-- **AI Presets** - Educational, Professional, Creative, Coding modes
-
-## 🎨 Themes
-
-### Default Theme
-
-Clean, light design with indigo/purple gradients.
-
-### Neural Theme
-
-Dark cyber theme with cyan/purple accents and grid background.
-
-Toggle via the sparkles/sun icon in the header.
-
-## 📦 Dependencies
-
-- `@heroicons/react` - Icons
-- React 18+
-- Next.js 14+
-- Tailwind CSS
-
-## 🔧 API Endpoint
-
-The chat service expects an endpoint at:
-
-- Production: `https://onelastai.co/api/studio/chat`
-- Development: `http://localhost:3000/api/studio/chat`
-
-Expected request body:
-
-```json
-{
-  "message": "User message",
-  "conversationHistory": [
-    { "role": "user", "content": "..." },
-    { "role": "assistant", "content": "..." }
-  ],
-  "agentConfig": {
-    "systemPrompt": "...",
-    "model": "mistral-large-latest",
-    "temperature": 0.7,
-    "maxTokens": 2000
-  }
-}
-```
-
-## 📄 License
-
-Part of the OneLastAI platform.
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

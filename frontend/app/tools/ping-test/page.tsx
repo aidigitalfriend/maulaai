@@ -1,271 +1,357 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Activity, Search, Loader2, XCircle, ArrowLeft, CheckCircle, Clock } from 'lucide-react'
-import Link from 'next/link'
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Radio, ArrowLeft, Play, Loader2, Copy, Check, Globe, Zap, Clock, BarChart3 } from 'lucide-react';
+import { gsap, ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase);
 
 interface PingResult {
-  host: string
-  alive: boolean
-  time?: number
-  min?: number
-  max?: number
-  avg?: number
-  packetLoss?: number
-  packets?: number
+  success: boolean;
+  host: string;
+  ip: string;
+  results: {
+    seq: number;
+    time: number;
+    ttl: number;
+    status: 'success' | 'timeout' | 'error';
+  }[];
+  stats: {
+    transmitted: number;
+    received: number;
+    lost: number;
+    lossPercent: number;
+    min: number;
+    max: number;
+    avg: number;
+  };
 }
 
 export default function PingTestPage() {
-  const [host, setHost] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<PingResult | null>(null)
-  const [error, setError] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [host, setHost] = useState('');
+  const [count, setCount] = useState(5);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<PingResult | null>(null);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      CustomWiggle.create('pingWiggle', { wiggles: 8, type: 'easeOut' });
+
+      gsap.to('.ping-gradient-orb', {
+        x: 'random(-50, 50)',
+        y: 'random(-25, 25)',
+        scale: 'random(0.9, 1.1)',
+        duration: 5,
+        ease: 'sine.inOut',
+        stagger: { each: 0.6, repeat: -1, yoyo: true },
+      });
+
+      if (titleRef.current) {
+        const split = new SplitText(titleRef.current, { type: 'chars' });
+        gsap.from(split.chars, {
+          opacity: 0,
+          y: 50,
+          rotationX: -90,
+          stagger: 0.03,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          delay: 0.2,
+        });
+      }
+
+      gsap.to('.hero-ping-icon', {
+        boxShadow: '0 0 50px rgba(34, 197, 94, 0.5)',
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+
+      gsap.from('.test-form', {
+        opacity: 0,
+        y: 30,
+        duration: 0.6,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
+
+      gsap.to('.pulse-ring', {
+        scale: 2,
+        opacity: 0,
+        duration: 1.5,
+        repeat: -1,
+        ease: 'power2.out',
+        stagger: 0.5,
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const handlePing = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!host.trim()) return
+    e.preventDefault();
+    if (!host.trim()) return;
 
-    setLoading(true)
-    setError('')
-    setResult(null)
+    const btn = document.querySelector('.ping-btn');
+    if (btn) {
+      gsap.to(btn, {
+        scale: 0.95,
+        duration: 0.1,
+        onComplete: () => gsap.to(btn, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.3)' }),
+      });
+    }
+
+    setLoading(true);
+    setError('');
+    setData(null);
 
     try {
-      const response = await fetch('/api/tools/ping-test', {
+      const response = await fetch('/api/tools/ping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ host: host.trim() })
-      })
+        body: JSON.stringify({ host: host.trim(), count }),
+      });
 
-      const data = await response.json()
+      const result = await response.json();
 
-      if (data.success) {
-        setResult(data.data)
+      if (result.success) {
+        setData(result.data);
+        setTimeout(() => {
+          gsap.from('.ping-result-row', {
+            opacity: 0,
+            x: -20,
+            stagger: 0.08,
+            duration: 0.4,
+            ease: 'power2.out',
+          });
+          gsap.from('.stats-card', {
+            opacity: 0,
+            y: 20,
+            stagger: 0.1,
+            duration: 0.5,
+            ease: 'power2.out',
+          });
+        }, 50);
       } else {
-        setError(data.error || 'Failed to ping host')
+        setError(result.error || 'Ping test failed');
       }
     } catch (err) {
-      setError('Failed to connect to the server')
+      setError('Failed to connect to the server');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const getLatencyColor = (latency?: number) => {
-    if (!latency) return 'neural'
-    if (latency < 50) return 'green'
-    if (latency < 100) return 'yellow'
-    if (latency < 200) return 'orange'
-    return 'red'
-  }
+  const getLatencyColor = (time: number) => {
+    if (time < 50) return 'text-green-400';
+    if (time < 100) return 'text-yellow-400';
+    if (time < 200) return 'text-orange-400';
+    return 'text-red-400';
+  };
 
-  const latencyColor = getLatencyColor(result?.avg)
+  const getLatencyBg = (time: number) => {
+    if (time < 50) return 'bg-green-500';
+    if (time < 100) return 'bg-yellow-500';
+    if (time < 200) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+
+  const copyResults = async () => {
+    if (!data) return;
+    const text = data.results.map(r => `seq=${r.seq} time=${r.time}ms ttl=${r.ttl}`).join('\n');
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-brand-600 to-accent-600">
-        <div className="container-custom py-8">
-          <Link 
-            href="/tools"
-            className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Network Tools
-          </Link>
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="ping-gradient-orb absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-green-600/20 to-emerald-600/20 blur-[100px]" />
+        <div className="ping-gradient-orb absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-teal-600/15 to-cyan-600/15 blur-[80px]" />
+      </div>
 
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                <Activity className="w-10 h-10 text-white" />
-              </div>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
-              Ping <span className="text-blue-200">Test</span>
-            </h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Test network connectivity and measure latency
-            </p>
+      <div className="fixed top-1/3 right-24 pointer-events-none">
+        <div className="relative w-20 h-20">
+          <div className="pulse-ring absolute inset-0 border-2 border-green-500/50 rounded-full" />
+          <div className="pulse-ring absolute inset-0 border-2 border-green-500/50 rounded-full" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Radio className="w-8 h-8 text-green-500/50" />
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="container-custom py-12">
+      <section className="relative py-12 border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <Link href="/tools" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Tools
+          </Link>
 
-        {/* Ping Form */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <form onSubmit={handlePing} className="relative">
-            <div className="relative">
-              <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-                placeholder="Enter hostname or IP address (e.g., google.com)"
-                className="w-full pl-12 pr-32 py-4 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all outline-none shadow-lg"
-                disabled={loading}
-              />
+          <div className="flex items-center gap-6 mb-8">
+            <div className="hero-ping-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-green-600/30 to-emerald-600/30 border border-green-500/30 flex items-center justify-center">
+              <Radio className="w-8 h-8 text-green-400" />
+            </div>
+            <div>
+              <h1 ref={titleRef} className="text-3xl md:text-4xl font-bold text-white mb-1">
+                Ping Test
+              </h1>
+              <p className="text-gray-400">
+                Test network connectivity and measure latency to any host
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handlePing} className="test-form max-w-3xl">
+            <div className="relative bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4">
+              <div className="flex gap-3">
+                <div className="flex-1 relative">
+                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <input
+                    type="text"
+                    value={host}
+                    onChange={(e) => setHost(e.target.value)}
+                    placeholder="Enter hostname or IP address"
+                    className="w-full pl-12 pr-4 py-4 bg-[#0d0d12] rounded-xl text-white placeholder-gray-500 outline-none border border-white/10 focus:border-green-500/50"
+                    disabled={loading}
+                  />
+                </div>
+                <div className="w-32 relative">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <select
+                    value={count}
+                    onChange={(e) => setCount(Number(e.target.value))}
+                    className="w-full pl-9 pr-3 py-4 bg-[#0d0d12] rounded-xl text-white outline-none border border-white/10 focus:border-green-500/50 appearance-none"
+                    disabled={loading}
+                  >
+                    <option value={3}>3 pings</option>
+                    <option value={5}>5 pings</option>
+                    <option value={10}>10 pings</option>
+                  </select>
+                </div>
+              </div>
               <button
                 type="submit"
                 disabled={loading || !host.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 disabled:from-gray-300 disabled:to-gray-300 rounded-lg font-semibold text-white transition-all flex items-center gap-2 disabled:cursor-not-allowed shadow-lg shadow-blue-500/25"
+                className="ping-btn w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-green-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Pinging...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    Ping
-                  </>
-                )}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
+                {loading ? 'Pinging...' : 'Start Ping Test'}
               </button>
             </div>
           </form>
-
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
         </div>
+      </section>
 
-        {/* Results */}
-        {result && (
-          <div className="max-w-5xl mx-auto space-y-6">
-            {/* Status Card */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+      <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="max-w-3xl mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3">
+            <Radio className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <p className="text-red-400">{error}</p>
+          </div>
+        )}
+
+        {data && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-green-600/10 to-emerald-600/10 border border-green-500/30 rounded-2xl p-6">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Host Status</h2>
-                  <p className="text-2xl font-mono text-gray-900">{result.host}</p>
+                  <p className="text-sm text-gray-400 mb-1">Target Host</p>
+                  <h2 className="text-2xl font-bold text-white">{data.host}</h2>
+                  {data.ip && <p className="text-gray-400 font-mono text-sm mt-1">{data.ip}</p>}
                 </div>
-                <div className={`flex items-center gap-3 px-6 py-3 ${result.alive ? 'bg-green-100' : 'bg-red-100'} rounded-xl`}>
-                  {result.alive ? (
-                    <>
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                      <span className="text-xl font-bold text-green-600">Online</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-6 h-6 text-red-600" />
-                      <span className="text-xl font-bold text-red-600">Offline</span>
-                    </>
-                  )}
-                </div>
+                <button
+                  onClick={copyResults}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                  <span className="text-gray-300 text-sm">{copied ? 'Copied!' : 'Copy Results'}</span>
+                </button>
               </div>
             </div>
 
-            {result.alive && (
-              <>
-                {/* Latency Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {/* Average */}
-                  <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-10 h-10 bg-${latencyColor}-100 rounded-lg flex items-center justify-center`}>
-                        <Clock className={`w-5 h-5 text-${latencyColor}-600`} />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Average</h3>
-                    </div>
-                    <p className={`text-3xl font-bold text-${latencyColor}-600`}>
-                      {result.avg?.toFixed(2)} ms
-                    </p>
-                  </div>
-
-                  {/* Min */}
-                  <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-green-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Min</h3>
-                    </div>
-                    <p className="text-3xl font-bold text-green-600">
-                      {result.min?.toFixed(2)} ms
-                    </p>
-                  </div>
-
-                  {/* Max */}
-                  <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-red-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Max</h3>
-                    </div>
-                    <p className="text-3xl font-bold text-red-600">
-                      {result.max?.toFixed(2)} ms
-                    </p>
-                  </div>
-
-                  {/* Packet Loss */}
-                  <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-10 h-10 ${result.packetLoss === 0 ? 'bg-green-100' : 'bg-red-100'} rounded-lg flex items-center justify-center`}>
-                        <Activity className={`w-5 h-5 ${result.packetLoss === 0 ? 'text-green-600' : 'text-red-600'}`} />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Packet Loss</h3>
-                    </div>
-                    <p className={`text-3xl font-bold ${result.packetLoss === 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.packetLoss?.toFixed(1)}%
-                    </p>
-                  </div>
+            {data.stats && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="stats-card bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                  <Zap className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-white">{data.stats.avg.toFixed(1)}ms</p>
+                  <p className="text-sm text-gray-400">Avg Latency</p>
                 </div>
-
-                {/* Performance Indicator */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Assessment</h3>
-                  <div className="space-y-3">
-                    {result.avg !== undefined && (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-gray-600">Latency</span>
-                          <span className={`text-${latencyColor}-600 font-semibold`}>
-                            {result.avg < 50 ? 'Excellent' : result.avg < 100 ? 'Good' : result.avg < 200 ? 'Fair' : 'Poor'}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`bg-${latencyColor}-500 h-2 rounded-full transition-all`}
-                            style={{ width: `${Math.min((200 - (result.avg || 0)) / 2, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                <div className="stats-card bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                  <BarChart3 className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-white">{data.stats.min.toFixed(1)}ms</p>
+                  <p className="text-sm text-gray-400">Min Latency</p>
                 </div>
-              </>
+                <div className="stats-card bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                  <BarChart3 className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-white">{data.stats.max.toFixed(1)}ms</p>
+                  <p className="text-sm text-gray-400">Max Latency</p>
+                </div>
+                <div className="stats-card bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                  <Radio className="w-6 h-6 text-red-400 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-white">{data.stats.lossPercent.toFixed(1)}%</p>
+                  <p className="text-sm text-gray-400">Packet Loss</p>
+                </div>
+              </div>
             )}
-          </div>
-        )}
 
-        {/* Info Section */}
-        {!result && !loading && (
-          <div className="max-w-3xl mx-auto mt-12">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">About Ping Test</h3>
-              <div className="space-y-3 text-gray-600">
-                <p>Ping tests network connectivity by sending packets to a host and measuring response time. This tool helps you:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Check if a host is reachable</li>
-                  <li>Measure network latency (round-trip time)</li>
-                  <li>Detect packet loss</li>
-                  <li>Troubleshoot network connectivity issues</li>
-                  <li>Monitor network performance</li>
-                </ul>
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    <strong>Latency Guide:</strong> {"<"}50ms (Excellent), 50-100ms (Good), 100-200ms (Fair), {">"}200ms (Poor)
-                  </p>
-                </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+              <div className="p-4 border-b border-white/10">
+                <h3 className="font-semibold text-white">Ping Results</h3>
+              </div>
+              <div className="divide-y divide-white/5">
+                {data.results.map((result, idx) => (
+                  <div key={idx} className="ping-result-row flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <span className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sm font-mono text-gray-400">
+                        {result.seq}
+                      </span>
+                      <div>
+                        <span className={`font-mono font-bold ${getLatencyColor(result.time)}`}>
+                          {result.time.toFixed(2)} ms
+                        </span>
+                        <span className="text-gray-500 ml-3 text-sm">TTL: {result.ttl}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${getLatencyBg(result.time)} transition-all`}
+                          style={{ width: `${Math.min(100, (result.time / 200) * 100)}%` }}
+                        />
+                      </div>
+                      {result.status === 'success' ? (
+                        <Check className="w-5 h-5 text-green-400" />
+                      ) : (
+                        <span className="text-red-400 text-sm">{result.status}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
-      </main>
+
+        {!loading && !error && !data && (
+          <div className="max-w-lg mx-auto text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <Radio className="w-10 h-10 text-gray-500" />
+            </div>
+            <h3 className="text-xl font-medium text-gray-400 mb-2">Network Ping Test</h3>
+            <p className="text-gray-500">
+              Enter a hostname or IP address to test network connectivity and measure round-trip latency.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

@@ -15780,7 +15780,7 @@ const BlogPage: React.FC = () => {
   const era = getEra(selectedYear);
 
   return (
-    <div className="min-h-screen bg-dark-bg">
+    <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* Header Spacer */}
       <div className="h-20"></div>
 

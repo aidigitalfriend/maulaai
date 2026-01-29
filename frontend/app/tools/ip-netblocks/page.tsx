@@ -1,325 +1,315 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { ArrowLeft, Network, Loader2, XCircle, Globe, Building2, Calendar, Server, MapPin, Hash } from 'lucide-react'
-import Link from 'next/link'
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Network, ArrowLeft, Search, Loader2, Copy, Check, Globe, Shield, Server } from 'lucide-react';
+import { gsap, ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase } from '@/lib/gsap';
 
-interface NetblockData {
+gsap.registerPlugin(ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase);
+
+interface NetblockInfo {
   ip: string;
-  range: string;
-  rangeStart: string;
-  rangeEnd: string;
-  rangeSize: number;
-  netname: string;
-  nethandle: string;
-  nettype: string;
-  cidr: string;
-  parent?: string;
-  organization: string;
-  orgId: string;
-  country: string;
-  city?: string;
-  updated: string;
-  created: string;
-  description: string;
-  source: string;
-  status: string;
-  as: {
-    asn: string;
-    name: string;
-    route: string;
-    domain: string;
-    type?: string;
-  };
-  abuseContact?: {
-    email: string;
-    phone: string;
-    role: string;
-  } | null;
-  adminContact?: {
-    email: string;
-    role: string;
-  } | null;
-  totalNetblocks: number;
-  allNetblocks: Array<{
-    range: string;
-    netname: string;
-    organization: string;
+  netblock: {
+    startAddress: string;
+    endAddress: string;
     cidr: string;
-    size: number;
-    asn?: string;
-    asnName?: string;
-  }>;
+    name: string;
+    handle: string;
+    type: string;
+    country: string;
+  };
+  organization: {
+    name: string;
+    handle: string;
+    address: string;
+  };
 }
 
-export default function IPNetblocksPage() {
-  const [ip, setIp] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [data, setData] = useState<NetblockData | null>(null)
+export default function IpNetblocksPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [ipAddress, setIpAddress] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<NetblockInfo | null>(null);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      CustomWiggle.create('netblockWiggle', { wiggles: 6, type: 'easeOut' });
+
+      gsap.to('.netblock-gradient-orb', {
+        x: 'random(-60, 60)',
+        y: 'random(-30, 30)',
+        scale: 'random(0.9, 1.1)',
+        duration: 5,
+        ease: 'sine.inOut',
+        stagger: { each: 0.8, repeat: -1, yoyo: true },
+      });
+
+      if (titleRef.current) {
+        const split = new SplitText(titleRef.current, { type: 'chars' });
+        gsap.from(split.chars, {
+          opacity: 0,
+          y: 50,
+          rotationX: -90,
+          stagger: 0.03,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          delay: 0.2,
+        });
+      }
+
+      gsap.to('.hero-netblock-icon', {
+        boxShadow: '0 0 50px rgba(132, 204, 22, 0.5)',
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+
+      gsap.from('.search-form', {
+        opacity: 0,
+        y: 30,
+        duration: 0.6,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const handleLookup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!ip.trim()) {
-      setError('Please enter an IP address')
-      return
+    e.preventDefault();
+    if (!ipAddress.trim()) return;
+
+    const btn = document.querySelector('.lookup-btn');
+    if (btn) {
+      gsap.to(btn, {
+        scale: 0.95,
+        duration: 0.1,
+        onComplete: () => gsap.to(btn, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.3)' }),
+      });
     }
 
-    setLoading(true)
-    setError('')
-    setData(null)
+    setLoading(true);
+    setError('');
+    setData(null);
 
     try {
       const response = await fetch('/api/tools/ip-netblocks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip: ip.trim() })
-      })
+        body: JSON.stringify({ ip: ipAddress.trim() }),
+      });
 
-      const result = await response.json()
-      if (!result.success) {
-        setError(result.error || 'Failed to lookup IP netblocks')
-        return
+      const result = await response.json();
+
+      if (result.success) {
+        setData(result.data);
+        setTimeout(() => {
+          gsap.from('.netblock-card', {
+            opacity: 0,
+            y: 30,
+            stagger: 0.1,
+            duration: 0.5,
+            ease: 'power2.out',
+          });
+        }, 50);
+      } else {
+        setError(result.error || 'Failed to fetch netblock information');
       }
-      setData(result.data)
     } catch (err) {
-      setError('An error occurred while looking up IP netblocks')
+      setError('Failed to connect to the server');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const formatSize = (size: number) => {
-    if (!size || size === 0) return 'N/A'
-    if (size >= 1000000) return `${(size / 1000000).toFixed(1)}M IPs`
-    if (size >= 1000) return `${(size / 1000).toFixed(1)}K IPs`
-    return `${size} IPs`
-  }
-
-  const InfoCard = ({ icon: Icon, label, value, highlight = false }: { icon: any; label: string; value: string | number; highlight?: boolean }) => (
-    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-        <Icon className="w-4 h-4" />
-        {label}
-      </div>
-      <div className={`text-lg ${highlight ? 'font-mono text-blue-600' : 'text-gray-900'}`}>
-        {value || 'N/A'}
-      </div>
-    </div>
-  )
+  const copyValue = async (value: string, id: string) => {
+    await navigator.clipboard.writeText(value);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Header */}
-      <div className="bg-gradient-to-r from-brand-600 to-accent-600 py-12">
-        <div className="container-custom">
-          <Link href="/tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Network Tools
-          </Link>
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                <Network className="w-10 h-10 text-white" />
-              </div>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
-              IP <span className="text-blue-100">Netblocks</span>
-            </h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Get IP range, network block, and organization information
-            </p>
-          </div>
-        </div>
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="netblock-gradient-orb absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-lime-600/20 to-green-600/20 blur-[100px]" />
+        <div className="netblock-gradient-orb absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-emerald-600/15 to-teal-600/15 blur-[80px]" />
       </div>
 
-      <div className="container-custom py-12">
-        {/* Search Form */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <form onSubmit={handleLookup} className="relative">
-            <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
-              <Network className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={ip}
-                onChange={(e) => setIp(e.target.value)}
-                placeholder="Enter IP address (e.g., 8.8.8.8)"
-                className="w-full pl-12 pr-36 py-4 bg-white border-0 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-0 transition-all outline-none"
-                disabled={loading}
-              />
+      <section className="relative py-12 border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <Link href="/tools" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Tools
+          </Link>
+
+          <div className="flex items-center gap-6 mb-8">
+            <div className="hero-netblock-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-lime-600/30 to-green-600/30 border border-lime-500/30 flex items-center justify-center">
+              <Network className="w-8 h-8 text-lime-400" />
+            </div>
+            <div>
+              <h1 ref={titleRef} className="text-3xl md:text-4xl font-bold text-white mb-1">
+                IP Netblocks Lookup
+              </h1>
+              <p className="text-gray-400">
+                Get IP range and network block information for any IP address
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleLookup} className="search-form max-w-3xl">
+            <div className="relative bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
+              <div className="flex-1 relative">
+                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input
+                  type="text"
+                  value={ipAddress}
+                  onChange={(e) => setIpAddress(e.target.value)}
+                  placeholder="Enter IP address (e.g., 8.8.8.8)"
+                  className="w-full pl-12 pr-4 py-4 bg-transparent text-white placeholder-gray-500 outline-none"
+                  disabled={loading}
+                />
+              </div>
               <button
                 type="submit"
-                disabled={loading || !ip.trim()}
-                className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:from-gray-400 disabled:to-gray-400 rounded-lg font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+                disabled={loading || !ipAddress.trim()}
+                className="lookup-btn px-8 py-4 bg-gradient-to-r from-lime-600 to-green-600 hover:from-lime-700 hover:to-green-700 text-white font-semibold rounded-xl shadow-lg shadow-lime-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Looking...</> : <><Network className="w-4 h-4" />Lookup</>}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                {loading ? 'Looking up...' : 'Lookup'}
               </button>
             </div>
           </form>
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
         </div>
+      </section>
 
-        {data && (
-          <div className="max-w-5xl mx-auto space-y-6">
-            {/* Main Netblock Info */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Network className="w-5 h-5 text-blue-600" />
-                Netblock Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoCard icon={Globe} label="IP Address" value={data.ip} highlight />
-                <InfoCard icon={Network} label="IP Range" value={data.range} highlight />
-                <InfoCard icon={Hash} label="CIDR" value={data.cidr} highlight />
-                <InfoCard icon={Server} label="Range Size" value={formatSize(data.rangeSize)} />
-                <InfoCard icon={Server} label="Network Name" value={data.netname} />
-                <InfoCard icon={Server} label="Network Type" value={data.nettype} />
-                <InfoCard icon={Server} label="Network Handle" value={data.nethandle} />
-                <InfoCard icon={Server} label="Status" value={data.status} />
-              </div>
-            </div>
-
-            {/* Organization Info */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-purple-500" />
-                Organization
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoCard icon={Building2} label="Organization" value={data.organization} />
-                <InfoCard icon={Hash} label="Org ID" value={data.orgId} />
-                <InfoCard icon={MapPin} label="Country" value={data.country} />
-                <InfoCard icon={Server} label="Source" value={data.source} />
-              </div>
-              {data.description && data.description !== 'N/A' && (
-                <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="text-sm text-gray-500 mb-1">Description</div>
-                  <div className="text-gray-900">{data.description}</div>
-                </div>
-              )}
-            </div>
-
-            {/* ASN Info */}
-            {data.as && data.as.asn !== 'N/A' && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-green-500" />
-                  ASN Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InfoCard icon={Hash} label="ASN" value={data.as.asn} highlight />
-                  <InfoCard icon={Building2} label="ASN Name" value={data.as.name} />
-                  <InfoCard icon={Network} label="Route" value={data.as.route} />
-                  <InfoCard icon={Globe} label="Domain" value={data.as.domain} />
-                  {data.as.type && <InfoCard icon={Server} label="Type" value={data.as.type} />}
-                </div>
-              </div>
-            )}
-
-            {/* Abuse Contact */}
-            {data.abuseContact && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <XCircle className="w-5 h-5 text-red-500" />
-                  Abuse Contact
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InfoCard icon={Building2} label="Role" value={data.abuseContact.role} />
-                  <InfoCard icon={Globe} label="Email" value={data.abuseContact.email} />
-                  <InfoCard icon={Server} label="Phone" value={data.abuseContact.phone} />
-                </div>
-              </div>
-            )}
-
-            {/* Dates */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-amber-500" />
-                Registration Dates
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoCard icon={Calendar} label="Created" value={data.created} />
-                <InfoCard icon={Calendar} label="Last Updated" value={data.updated} />
-              </div>
-            </div>
-
-            {/* All Netblocks */}
-            {data.allNetblocks && data.allNetblocks.length > 1 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Network className="w-5 h-5 text-blue-500" />
-                  Related Netblocks ({data.totalNetblocks} total)
-                </h3>
-                <div className="space-y-3">
-                  {data.allNetblocks.map((nb, idx) => (
-                    <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        <div>
-                          <span className="text-sm text-gray-500 block">Range</span>
-                          <span className="font-mono text-blue-600">{nb.range || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500 block">CIDR</span>
-                          <span className="font-mono text-gray-900">{nb.cidr || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500 block">Name</span>
-                          <span className="text-gray-900">{nb.netname || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500 block">Size</span>
-                          <span className="text-gray-900">{formatSize(nb.size)}</span>
-                        </div>
-                        {nb.asn && nb.asn !== 'N/A' && (
-                          <div>
-                            <span className="text-sm text-gray-500 block">ASN</span>
-                            <span className="text-green-600">{nb.asn}</span>
-                          </div>
-                        )}
-                        {nb.asnName && nb.asnName !== 'N/A' && (
-                          <div>
-                            <span className="text-sm text-gray-500 block">ASN Name</span>
-                            <span className="text-gray-900">{nb.asnName}</span>
-                          </div>
-                        )}
-                      </div>
-                      {nb.organization && nb.organization !== 'N/A' && (
-                        <div className="mt-2 pt-2 border-t border-gray-200">
-                          <span className="text-sm text-gray-500">Organization: </span>
-                          <span className="text-gray-900">{nb.organization}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+      <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="max-w-3xl mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3">
+            <Shield className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
-        {/* Info Card */}
-        {!data && !loading && (
-          <div className="max-w-3xl mx-auto mt-12">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">About IP Netblocks</h3>
-              <div className="space-y-3 text-gray-600">
-                <p>Get comprehensive information about IP address ranges. Perfect for:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Network administration and planning</li>
-                  <li>Security research and threat analysis</li>
-                  <li>Understanding IP address allocation</li>
-                  <li>Identifying network ownership</li>
-                </ul>
+        {data && (
+          <div className="space-y-6">
+            <div className="netblock-card bg-gradient-to-r from-lime-600/10 to-green-600/10 border border-lime-500/30 rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-400 mb-1">IP Address</p>
+                  <h2 className="text-3xl font-bold text-white font-mono">{data.ip}</h2>
+                </div>
+                {data.netblock?.cidr && (
+                  <div className="px-4 py-2 bg-lime-500/20 border border-lime-500/30 rounded-xl">
+                    <p className="text-sm text-gray-400">CIDR</p>
+                    <p className="text-lime-400 font-mono font-semibold">{data.netblock.cidr}</p>
+                  </div>
+                )}
               </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data.netblock && (
+                <div className="netblock-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-lime-600 to-green-600 flex items-center justify-center">
+                      <Network className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-white">Network Block</h3>
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center p-3 bg-[#0d0d12] rounded-lg">
+                      <span className="text-gray-400">Start Address</span>
+                      <div className="flex items-center gap-2">
+                        <code className="text-white font-mono">{data.netblock.startAddress}</code>
+                        <button onClick={() => copyValue(data.netblock.startAddress, 'start')} className="text-gray-400 hover:text-white">
+                          {copied === 'start' ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-[#0d0d12] rounded-lg">
+                      <span className="text-gray-400">End Address</span>
+                      <div className="flex items-center gap-2">
+                        <code className="text-white font-mono">{data.netblock.endAddress}</code>
+                        <button onClick={() => copyValue(data.netblock.endAddress, 'end')} className="text-gray-400 hover:text-white">
+                          {copied === 'end' ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    {data.netblock.name && (
+                      <div className="flex justify-between p-3 bg-[#0d0d12] rounded-lg">
+                        <span className="text-gray-400">Name</span>
+                        <span className="text-white">{data.netblock.name}</span>
+                      </div>
+                    )}
+                    {data.netblock.type && (
+                      <div className="flex justify-between p-3 bg-[#0d0d12] rounded-lg">
+                        <span className="text-gray-400">Type</span>
+                        <span className="text-lime-400">{data.netblock.type}</span>
+                      </div>
+                    )}
+                    {data.netblock.country && (
+                      <div className="flex justify-between p-3 bg-[#0d0d12] rounded-lg">
+                        <span className="text-gray-400">Country</span>
+                        <span className="text-white">{data.netblock.country}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {data.organization && (
+                <div className="netblock-card bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
+                      <Server className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-white">Organization</h3>
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    {data.organization.name && (
+                      <div className="p-3 bg-[#0d0d12] rounded-lg">
+                        <p className="text-gray-400 mb-1">Name</p>
+                        <p className="text-white">{data.organization.name}</p>
+                      </div>
+                    )}
+                    {data.organization.handle && (
+                      <div className="p-3 bg-[#0d0d12] rounded-lg">
+                        <p className="text-gray-400 mb-1">Handle</p>
+                        <p className="text-white font-mono">{data.organization.handle}</p>
+                      </div>
+                    )}
+                    {data.organization.address && (
+                      <div className="p-3 bg-[#0d0d12] rounded-lg">
+                        <p className="text-gray-400 mb-1">Address</p>
+                        <p className="text-white">{data.organization.address}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {!loading && !error && !data && (
+          <div className="max-w-lg mx-auto text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <Network className="w-10 h-10 text-gray-500" />
+            </div>
+            <h3 className="text-xl font-medium text-gray-400 mb-2">IP Netblocks Lookup</h3>
+            <p className="text-gray-500">
+              Enter an IP address to get network block information including CIDR, address range, and organization details.
+            </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

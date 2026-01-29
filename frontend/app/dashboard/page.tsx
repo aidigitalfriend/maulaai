@@ -21,6 +21,9 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { gsap, ScrollTrigger, SplitText, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, SplitText, CustomWiggle, Observer);
 
 function DashboardContent() {
   const searchParams = useSearchParams();
@@ -189,13 +192,46 @@ function DashboardContent() {
     };
   }, [state.user, fetchAnalytics]);
 
+  // GSAP animations for dark theme
+  useEffect(() => {
+    if (!loading && analyticsData) {
+      const ctx = gsap.context(() => {
+        CustomWiggle.create('dashWiggle', { wiggles: 5, type: 'easeOut' });
+        
+        // Animate gradient orbs
+        gsap.to('.dash-gradient-orb', {
+          x: 'random(-60, 60)', y: 'random(-40, 40)', scale: 'random(0.9, 1.15)',
+          duration: 8, ease: 'sine.inOut', stagger: { each: 1.2, repeat: -1, yoyo: true },
+        });
+        
+        // Animate floating symbols
+        gsap.utils.toArray('.dash-float-symbol').forEach((el) => {
+          gsap.to(el as Element, {
+            y: 'random(-20, 20)', rotation: 'random(-15, 15)',
+            duration: 'random(3, 5)', repeat: -1, yoyo: true, ease: 'sine.inOut',
+          });
+        });
+        
+        // Stats cards entrance
+        gsap.from('.stat-card', { opacity: 0, y: 40, stagger: 0.1, duration: 0.5, ease: 'power3.out', delay: 0.2 });
+        
+        // Section cards entrance
+        gsap.from('.section-card', {
+          scrollTrigger: { trigger: '.sections-grid', start: 'top 85%' },
+          opacity: 0, y: 50, stagger: 0.12, duration: 0.6, ease: 'power3.out',
+        });
+      });
+      return () => ctx.revert();
+    }
+  }, [loading, analyticsData]);
+
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-            <p className="text-neural-600">Loading your dashboard...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading your dashboard...</p>
           </div>
         </div>
       </ProtectedRoute>
@@ -205,17 +241,17 @@ function DashboardContent() {
   if (!analyticsData) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
           <div className="text-center max-w-lg">
-            <h2 className="text-2xl font-semibold text-neural-900 mb-3">
+            <h2 className="text-2xl font-semibold text-white mb-3">
               {error || 'Unable to load analytics right now'}
             </h2>
-            <p className="text-neural-600 mb-6">
+            <p className="text-gray-400 mb-6">
               Please verify your session is active and try refreshing the data.
             </p>
             <button
               onClick={() => fetchAnalytics()}
-              className="btn-primary"
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors"
               disabled={isRefreshing}
             >
               {isRefreshing ? 'Refreshing...' : 'Retry'}
@@ -243,9 +279,9 @@ function DashboardContent() {
   };
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return 'bg-red-500';
-    if (percentage >= 75) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (percentage >= 90) return 'bg-red-900/200';
+    if (percentage >= 75) return 'bg-yellow-900/200';
+    return 'bg-green-900/200';
   };
 
   const quickStats = [
@@ -373,28 +409,28 @@ function DashboardContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] text-white overflow-hidden">
+        {/* Animated Background */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="dash-gradient-orb absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-r from-purple-600/20 to-violet-600/20 blur-[120px]" />
+          <div className="dash-gradient-orb absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-blue-600/15 to-cyan-600/15 blur-[100px]" />
+          <div className="dash-gradient-orb absolute top-2/3 left-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-pink-600/10 to-rose-600/10 blur-[80px]" />
+          <div className="dash-float-symbol absolute top-[15%] left-[10%] text-4xl opacity-20">📊</div>
+          <div className="dash-float-symbol absolute top-[25%] right-[12%] text-3xl opacity-15">🤖</div>
+          <div className="dash-float-symbol absolute bottom-[30%] left-[8%] text-5xl opacity-10">⚡</div>
+          <div className="dash-float-symbol absolute top-[50%] right-[8%] text-4xl opacity-20">💬</div>
+        </div>
+
         {/* Hero Section */}
-        <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
-          {/* Decorative Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="dashboard-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <circle cx="20" cy="20" r="1.5" fill="currentColor" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#dashboard-grid)" />
-            </svg>
-          </div>
+        <section className="relative py-20 md:py-28 border-b border-white/10 overflow-hidden">
           <div className="container-custom text-center relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-              <Activity className="w-10 h-10" />
+            <div className="hero-dash-icon inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-600/30 to-violet-600/30 border border-purple-500/30 rounded-2xl mb-6">
+              <Activity className="w-10 h-10 text-purple-400" />
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
               Your Dashboard
             </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-4">
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-4">
               Monitor your AI agents, track usage, and manage your subscription in real-time.
             </p>
             {lastUpdated && (
@@ -406,16 +442,16 @@ function DashboardContent() {
         </section>
 
         {/* Dashboard Content */}
-        <div className="container-custom py-12">
+        <div className="container-custom py-12 relative z-10">
           {error && analyticsData && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 flex items-center justify-between">
+            <div className="mb-6 bg-red-900/200/10 border border-red-500/30 text-red-400 rounded-xl p-4 flex items-center justify-between">
               <div>
                 <p className="font-semibold">Real-time data may be delayed.</p>
                 <p className="text-sm">{error}</p>
               </div>
               <button
                 onClick={() => fetchAnalytics()}
-                className="btn-secondary"
+                className="px-4 py-2 bg-white/10 hover:bg-white/10 rounded-lg transition-colors"
                 disabled={isRefreshing}
               >
                 {isRefreshing ? 'Refreshing…' : 'Retry'}
@@ -424,15 +460,15 @@ function DashboardContent() {
           )}
           {/* Subscription Success Message */}
           {showSuccessMessage && subscriptionSuccess && (
-            <div className="mb-8 bg-green-50 border border-green-200 rounded-xl p-6">
+            <div className="mb-8 bg-green-900/200/10 border border-green-500/30 rounded-xl p-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center">
-                  <CheckCircle className="w-8 h-8 text-green-600 mr-4" />
+                  <CheckCircle className="w-8 h-8 text-green-400 mr-4" />
                   <div>
-                    <h3 className="text-lg font-semibold text-green-900 mb-2">
+                    <h3 className="text-lg font-semibold text-green-300 mb-2">
                       🎉 Subscription Successful!
                     </h3>
-                    <p className="text-green-700 mb-4">
+                    <p className="text-green-400 mb-4">
                       You now have access to{' '}
                       <strong>{subscriptionSuccess.agent}</strong> with your{' '}
                       <strong>{subscriptionSuccess.plan}</strong> plan.
@@ -447,7 +483,7 @@ function DashboardContent() {
                 </div>
                 <button
                   onClick={() => setShowSuccessMessage(false)}
-                  className="text-green-600 hover:text-green-700"
+                  className="text-green-400 hover:text-green-300"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -458,18 +494,18 @@ function DashboardContent() {
           {/* Agent Status Summary Card */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Quick Overview</h2>
-              <p className="text-gray-600">
+              <h2 className="text-2xl font-bold text-white mb-2">Quick Overview</h2>
+              <p className="text-gray-400">
                 Your current agent status and resource summary at a glance.
               </p>
             </div>
 
             {/* Agent Status Summary */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 min-w-[280px]">
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10 min-w-[280px]">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-sm text-gray-600">Agent Status</p>
-                  <p className="text-2xl font-bold text-gray-800">
+                  <p className="text-sm text-gray-400">Agent Status</p>
+                  <p className="text-2xl font-bold text-white">
                     {isAgentActive ? 'Active' : 'Inactive'}
                   </p>
                   {/* Real-time Agent Status */}
@@ -477,8 +513,8 @@ function DashboardContent() {
                     <span
                       className={`inline-block px-2 py-1 rounded-full font-semibold text-xs ${
                         isAgentActive
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-green-500/20 text-green-400'
+                          : 'bg-red-500/20 text-red-400'
                       }`}
                     >
                       {isAgentActive ? 'Active' : 'No Active'}
@@ -488,18 +524,18 @@ function DashboardContent() {
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     isAgentActive
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'bg-red-500/20 text-red-400'
                   }`}
                 >
                   {isAgentActive ? 'ACTIVE' : 'INACTIVE'}
                 </span>
               </div>
-              <div className="mt-2 mb-4 text-sm text-gray-600">
+              <div className="mt-2 mb-4 text-sm text-gray-400">
                 {hasActiveAgents ? (
                   <>
                     You currently have{' '}
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-white">
                       {analyticsData.usage.agents.current} active agent
                       {analyticsData.usage.agents.current === 1 ? '' : 's'}
                     </span>
@@ -512,7 +548,7 @@ function DashboardContent() {
 
               <Link
                 href="/dashboard/agent-management"
-                className="mt-4 w-full btn-secondary text-center block text-sm"
+                className="mt-4 w-full px-4 py-2 bg-white/10 hover:bg-white/10 text-center block text-sm rounded-lg transition-colors"
               >
                 Manage Agents
               </Link>
@@ -526,27 +562,27 @@ function DashboardContent() {
               return (
                 <div
                   key={index}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-neural-100 hover:shadow-md transition-shadow"
+                  className="stat-card bg-white/5 rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`p-3 rounded-lg bg-${stat.color}-50`}>
-                      <Icon className={`w-6 h-6 text-${stat.color}-600`} />
+                    <div className={`p-3 rounded-lg bg-${stat.color}-500/20`}>
+                      <Icon className={`w-6 h-6 text-${stat.color}-400`} />
                     </div>
                     {stat.trend === 'up' ? (
-                      <TrendingUp className="w-5 h-5 text-green-500" />
+                      <TrendingUp className="w-5 h-5 text-green-400" />
                     ) : (
-                      <TrendingDown className="w-5 h-5 text-red-500" />
+                      <TrendingDown className="w-5 h-5 text-red-400" />
                     )}
                   </div>
-                  <h3 className="text-sm font-medium text-neural-600 mb-1">
+                  <h3 className="text-sm font-medium text-gray-400 mb-1">
                     {stat.label}
                   </h3>
-                  <div className="text-3xl font-bold text-neural-800 mb-2">
+                  <div className="text-3xl font-bold text-white mb-2">
                     {stat.value}
                   </div>
                   <div
                     className={`text-sm flex items-center ${
-                      stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                      stat.trend === 'up' ? 'text-green-400' : 'text-red-400'
                     }`}
                   >
                     {stat.change}
@@ -559,18 +595,18 @@ function DashboardContent() {
           {/* Usage Analytics */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Usage Meters */}
-            <div className="bg-white rounded-xl p-8 shadow-sm border border-neural-100">
+            <div className="bg-white/5 rounded-xl p-8 border border-white/10">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-neural-800">
+                <h2 className="text-2xl font-bold text-white">
                   Resource Usage
                 </h2>
-                <Activity className="w-6 h-6 text-brand-600" />
+                <Activity className="w-6 h-6 text-purple-400" />
               </div>
               <div className="space-y-6">
                 {Object.entries(analyticsData.usage).map(([key, value]) => (
                   <div key={key}>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-neural-700 capitalize">
+                      <span className="text-sm font-medium text-gray-300 capitalize">
                         {key.replace(/([A-Z])/g, ' $1').trim()}
                       </span>
                       <span
@@ -582,7 +618,7 @@ function DashboardContent() {
                         {(value?.limit ?? 0).toLocaleString()} {value?.unit || ''}
                       </span>
                     </div>
-                    <div className="w-full bg-neural-200 rounded-full h-3 overflow-hidden">
+                    <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
                       <div
                         className={`h-3 rounded-full transition-all duration-500 ${getProgressColor(
                           value?.percentage ?? 0
@@ -590,7 +626,7 @@ function DashboardContent() {
                         style={{ width: `${Math.min(value?.percentage ?? 0, 100)}%` }}
                       ></div>
                     </div>
-                    <p className="text-xs text-neural-500 mt-1">
+                    <p className="text-xs text-gray-500 mt-1">
                       {(value?.percentage ?? 0).toFixed(1)}% used
                     </p>
                   </div>
@@ -599,12 +635,12 @@ function DashboardContent() {
             </div>
 
             {/* 7-Day Activity Chart */}
-            <div className="bg-white rounded-xl p-8 shadow-sm border border-neural-100">
+            <div className="bg-white/5 rounded-xl p-8 border border-white/10">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-neural-800">
+                <h2 className="text-2xl font-bold text-white">
                   7-Day Activity
                 </h2>
-                <TrendingUp className="w-6 h-6 text-green-600" />
+                <TrendingUp className="w-6 h-6 text-green-400" />
               </div>
               <div className="space-y-4">
                 {/* Chart */}
@@ -626,14 +662,14 @@ function DashboardContent() {
                         >
                           <div className="relative w-full">
                             <div
-                              className="w-full bg-gradient-to-t from-brand-500 to-brand-300 rounded-t-lg transition-all duration-300 group-hover:from-brand-600 group-hover:to-brand-400 cursor-pointer"
+                              className="w-full bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg transition-all duration-300 group-hover:from-purple-500 group-hover:to-purple-300 cursor-pointer"
                               style={{
                                 height: `${height}%`,
                                 minHeight: '20px',
                               }}
                             >
                               {/* Tooltip */}
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-neural-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10">
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 border border-white/10">
                                 <p className="font-semibold">
                                   {day.conversations} conversations
                                 </p>
@@ -642,7 +678,7 @@ function DashboardContent() {
                               </div>
                             </div>
                           </div>
-                          <span className="text-xs text-neural-500 mt-2">
+                          <span className="text-xs text-gray-500 mt-2">
                             {new Date(day.date).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
@@ -652,23 +688,23 @@ function DashboardContent() {
                       );
                     })
                   ) : (
-                    <div className="w-full text-center text-sm text-neural-500">
+                    <div className="w-full text-center text-sm text-gray-500">
                       No activity recorded for the past week.
                     </div>
                   )}
                 </div>
 
                 {/* Legend */}
-                <div className="flex items-center gap-6 pt-4 border-t border-neural-100">
+                <div className="flex items-center gap-6 pt-4 border-t border-white/10">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-brand-500"></div>
-                    <span className="text-sm text-neural-600">
+                    <div className="w-3 h-3 rounded-full bg-purple-900/200"></div>
+                    <span className="text-sm text-gray-400">
                       Conversations
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <TrendingUp className="w-4 h-4 text-green-600" />
-                    <span className="text-green-600 font-semibold">
+                    <TrendingUp className="w-4 h-4 text-green-400" />
+                    <span className="text-green-400 font-semibold">
                       {analyticsData.weeklyTrend.conversationsChange}
                     </span>
                   </div>
@@ -680,8 +716,8 @@ function DashboardContent() {
           {/* Agent Performance & Cost Analysis */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Top Performing Agents */}
-            <div className="bg-white rounded-xl p-8 shadow-sm border border-neural-100">
-              <h2 className="text-2xl font-bold text-neural-800 mb-6">
+            <div className="bg-white/5 rounded-xl p-8 border border-white/10">
+              <h2 className="text-2xl font-bold text-white mb-6">
                 Top Agents
               </h2>
               <div className="space-y-4">
@@ -689,25 +725,25 @@ function DashboardContent() {
                   analyticsData.topAgents.map((agent, index) => (
                     <div key={index}>
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-neural-700">
+                        <span className="text-sm font-medium text-gray-300">
                           {agent.name}
                         </span>
-                        <span className="text-sm font-semibold text-brand-600">
+                        <span className="text-sm font-semibold text-purple-400">
                           {agent.usage}%
                         </span>
                       </div>
-                      <div className="w-full bg-neural-100 rounded-full h-2.5 overflow-hidden">
+                      <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
                         <div
-                          className="h-2.5 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 transition-all duration-500"
+                          className="h-2.5 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 transition-all duration-500"
                           style={{ width: `${agent.usage}%` }}
                         ></div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-neural-500">
+                  <div className="text-center py-8 text-gray-500">
                     <p className="text-sm">No agent subscriptions yet.</p>
-                    <Link href="/agents" className="text-brand-600 hover:underline text-sm mt-2 inline-block">
+                    <Link href="/agents" className="text-purple-400 hover:underline text-sm mt-2 inline-block">
                       Browse available agents →
                     </Link>
                   </div>
@@ -716,31 +752,31 @@ function DashboardContent() {
             </div>
 
             {/* Cost Analysis */}
-            <div className="bg-white rounded-xl p-8 shadow-sm border border-neural-100">
+            <div className="bg-white/5 rounded-xl p-8 border border-white/10">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-neural-800">
+                <h2 className="text-2xl font-bold text-white">
                   Cost Analysis
                 </h2>
-                <DollarSign className="w-6 h-6 text-green-600" />
+                <DollarSign className="w-6 h-6 text-green-400" />
               </div>
               <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
-                  <span className="text-sm text-neural-700">Current Month</span>
-                  <span className="text-2xl font-bold text-brand-600">
+                <div className="flex justify-between items-center p-4 bg-blue-900/200/10 border border-blue-500/30 rounded-lg">
+                  <span className="text-sm text-gray-300">Current Month</span>
+                  <span className="text-2xl font-bold text-blue-400">
                     ${analyticsData.costAnalysis.currentMonth}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-purple-50 rounded-lg">
-                  <span className="text-sm text-neural-700">
+                <div className="flex justify-between items-center p-4 bg-purple-900/200/10 border border-purple-500/30 rounded-lg">
+                  <span className="text-sm text-gray-300">
                     Projected Total
                   </span>
-                  <span className="text-2xl font-bold text-purple-600">
+                  <span className="text-2xl font-bold text-purple-400">
                     ${analyticsData.costAnalysis.projectedMonth}
                   </span>
                 </div>
               </div>
               <div className="space-y-3">
-                <p className="text-sm font-semibold text-neural-700 mb-3">
+                <p className="text-sm font-semibold text-gray-300 mb-3">
                   Cost Breakdown
                 </p>
                 {analyticsData.costAnalysis.breakdown && analyticsData.costAnalysis.breakdown.length > 0 ? (
@@ -749,21 +785,21 @@ function DashboardContent() {
                       key={index}
                       className="flex justify-between items-center"
                     >
-                      <span className="text-sm text-neural-600">
+                      <span className="text-sm text-gray-400">
                         {item.category}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-neural-800">
+                        <span className="text-sm font-semibold text-white">
                           ${item.cost}
                         </span>
-                        <span className="text-xs text-neural-500">
+                        <span className="text-xs text-gray-500">
                           ({item.percentage}%)
                         </span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-neural-500 text-center py-4">
+                  <p className="text-sm text-gray-500 text-center py-4">
                     No costs this month
                   </p>
                 )}
@@ -772,27 +808,27 @@ function DashboardContent() {
           </div>
 
           {/* Agent Performance Table */}
-          <div className="bg-white rounded-xl p-8 shadow-sm border border-neural-100 mb-12">
-            <h2 className="text-2xl font-bold text-neural-800 mb-6">
+          <div className="bg-white/5 rounded-xl p-8 border border-white/10 mb-12">
+            <h2 className="text-2xl font-bold text-white mb-6">
               Agent Performance Details
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-neural-200">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neural-700">
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">
                       Agent Name
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neural-700">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">
                       Conversations
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neural-700">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">
                       Messages
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neural-700">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">
                       Avg Response
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-neural-700">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">
                       Success Rate
                     </th>
                   </tr>
@@ -802,21 +838,21 @@ function DashboardContent() {
                     analyticsData.agentPerformance.map((agent, index) => (
                       <tr
                         key={index}
-                        className="border-b border-neural-100 hover:bg-neural-50 transition-colors"
+                        className="border-b border-white/5 hover:bg-white/5 transition-colors"
                       >
                         <td className="py-4 px-4">
-                          <span className="font-medium text-neural-800">
+                          <span className="font-medium text-white">
                             {agent.name || 'Unknown Agent'}
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-neural-700">
+                        <td className="py-4 px-4 text-gray-300">
                           {(agent.conversations ?? 0).toLocaleString()}
                         </td>
-                        <td className="py-4 px-4 text-neural-700">
+                        <td className="py-4 px-4 text-gray-300">
                           {(agent.messages ?? 0).toLocaleString()}
                         </td>
                         <td className="py-4 px-4">
-                          <span className="flex items-center gap-1 text-neural-700">
+                          <span className="flex items-center gap-1 text-gray-300">
                             <Clock className="w-4 h-4" />
                             {agent.avgResponseTime ?? 0}s
                           </span>
@@ -825,10 +861,10 @@ function DashboardContent() {
                           <span
                             className={`font-semibold ${
                               (agent.successRate ?? 0) >= 95
-                                ? 'text-green-600'
+                                ? 'text-green-400'
                                 : (agent.successRate ?? 0) >= 90
-                                ? 'text-yellow-600'
-                                : 'text-red-600'
+                                ? 'text-yellow-400'
+                                : 'text-red-400'
                             }`}
                           >
                             {agent.successRate ?? 0}%
@@ -838,7 +874,7 @@ function DashboardContent() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-neural-500">
+                      <td colSpan={5} className="py-8 text-center text-gray-500">
                         No conversations yet. Start chatting with an AI agent to see performance data.
                       </td>
                     </tr>
@@ -849,9 +885,9 @@ function DashboardContent() {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white rounded-xl p-8 shadow-sm border border-neutral-200 mb-12">
+          <div className="bg-white/5 rounded-xl p-8 border border-white/10 mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-white">
                 Recent Activity
               </h2>
               <span className="text-sm text-gray-500">Last 30 minutes</span>
@@ -865,25 +901,25 @@ function DashboardContent() {
                   ).map((activity, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-100"
+                      className="flex items-center justify-between p-4 bg-white/[0.02] rounded-lg hover:bg-white/5 transition-colors border border-white/5"
                     >
                       <div className="flex items-center gap-4">
                         <div
                           className={`w-2 h-2 rounded-full ${
                             activity.status === 'success' || activity.status === 'completed'
-                              ? 'bg-green-500'
+                              ? 'bg-green-900/200'
                               : activity.status === 'active'
-                              ? 'bg-blue-500 animate-pulse'
+                              ? 'bg-blue-900/200 animate-pulse'
                               : activity.status === 'warning'
-                              ? 'bg-yellow-500'
-                              : 'bg-green-500'
+                              ? 'bg-yellow-900/200'
+                              : 'bg-green-900/200'
                           }`}
                         ></div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-white">
                             {activity.action}
                           </p>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-gray-400">
                             {activity.agent}
                           </p>
                         </div>
@@ -896,7 +932,7 @@ function DashboardContent() {
                   {analyticsData.recentActivity.length > 3 && (
                     <button
                       onClick={() => setShowAllActivities(!showAllActivities)}
-                      className="w-full mt-4 flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                      className="w-full mt-4 flex items-center justify-center gap-2 py-3 px-4 bg-white/5 hover:bg-white/10 text-gray-300 font-medium rounded-lg transition-colors"
                     >
                       {showAllActivities ? (
                         <>
@@ -922,32 +958,32 @@ function DashboardContent() {
           </div>
 
           {/* Dashboard Sections */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          <div className="sections-grid grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             {dashboardSections.map((section, index) => (
               <Link
                 key={index}
                 href={section.href}
-                className="group relative bg-white rounded-2xl p-8 shadow-sm border border-neural-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300"
+                className="section-card group relative bg-white/5 rounded-2xl p-8 border border-white/10 hover:border-purple-500/30 transition-all duration-300"
               >
                 {section.badge && (
-                  <div className="absolute top-4 right-4 bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <div className="absolute top-4 right-4 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
                     {section.badge}
                   </div>
                 )}
                 <div className="text-4xl mb-4">{section.icon}</div>
-                <h3 className="text-xl font-bold text-neural-800 mb-3 group-hover:text-brand-600 transition-colors">
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors">
                   {section.title}
                 </h3>
-                <p className="text-neural-600 mb-4 leading-relaxed">
+                <p className="text-gray-400 mb-4 leading-relaxed">
                   {section.description}
                 </p>
                 <ul className="space-y-2">
                   {section.stats.map((stat, statIndex) => (
                     <li
                       key={statIndex}
-                      className="text-sm text-neural-500 flex items-center"
+                      className="text-sm text-gray-500 flex items-center"
                     >
-                      <span className="w-1.5 h-1.5 bg-brand-400 rounded-full mr-3"></span>
+                      <span className="w-1.5 h-1.5 bg-purple-900/200 rounded-full mr-3"></span>
                       {stat}
                     </li>
                   ))}
@@ -957,49 +993,49 @@ function DashboardContent() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-800 mb-6">
+          <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <h2 className="text-2xl font-bold text-white mb-6">
               Quick Actions
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link
                 href="/agents/create"
-                className="flex items-center p-4 bg-brand-50 rounded-lg hover:bg-brand-100 transition-colors group"
+                className="flex items-center p-4 bg-purple-900/200/10 border border-purple-500/30 rounded-lg hover:bg-purple-500/20 transition-colors group"
               >
                 <span className="text-2xl mr-3">➕</span>
                 <div>
-                  <div className="font-medium text-neural-800 group-hover:text-brand-600">
+                  <div className="font-medium text-white group-hover:text-purple-400">
                     Create New Agent
                   </div>
-                  <div className="text-sm text-neural-600">
+                  <div className="text-sm text-gray-400">
                     Deploy a new AI agent
                   </div>
                 </div>
               </Link>
               <Link
                 href="/support/contact-us"
-                className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group"
+                className="flex items-center p-4 bg-green-900/200/10 border border-green-500/30 rounded-lg hover:bg-green-500/20 transition-colors group"
               >
                 <span className="text-2xl mr-3">💬</span>
                 <div>
-                  <div className="font-medium text-neural-800 group-hover:text-green-600">
+                  <div className="font-medium text-white group-hover:text-green-400">
                     Get Support
                   </div>
-                  <div className="text-sm text-neural-600">
+                  <div className="text-sm text-gray-400">
                     Contact our support team
                   </div>
                 </div>
               </Link>
               <Link
                 href="/resources/documentation"
-                className="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors group"
+                className="flex items-center p-4 bg-blue-900/200/10 border border-blue-500/30 rounded-lg hover:bg-blue-500/20 transition-colors group"
               >
                 <span className="text-2xl mr-3">📚</span>
                 <div>
-                  <div className="font-medium text-neural-800 group-hover:text-purple-600">
+                  <div className="font-medium text-white group-hover:text-blue-400">
                     View Documentation
                   </div>
-                  <div className="text-sm text-neural-600">
+                  <div className="text-sm text-gray-400">
                     Learn more about features
                   </div>
                 </div>
@@ -1016,7 +1052,7 @@ export default function Dashboard() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-neural-900 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
           <div className="text-white">Loading...</div>
         </div>
       }

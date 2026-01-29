@@ -1,181 +1,377 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { ArrowLeft, Tag, Loader2, XCircle, Globe, CheckCircle } from 'lucide-react'
-import Link from 'next/link'
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Tags, ArrowLeft, Search, Loader2, Globe, Shield, AlertTriangle, Check, ExternalLink, Eye, Lock, Users } from 'lucide-react';
+import { gsap, ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase } from '@/lib/gsap';
 
-interface CategoryData {
-  domain: string
-  categories: string[]
-  tier1: string
-  tier2: string[]
-  description: string
+gsap.registerPlugin(ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase);
+
+interface CategoryResult {
+  url: string;
+  domain: string;
+  categories: {
+    name: string;
+    confidence: number;
+    source: string;
+  }[];
+  primaryCategory: string;
+  riskLevel: 'safe' | 'low' | 'medium' | 'high';
+  flags: {
+    adult: boolean;
+    gambling: boolean;
+    malware: boolean;
+    phishing: boolean;
+    ads: boolean;
+    tracking: boolean;
+    social: boolean;
+    streaming: boolean;
+  };
+  metadata: {
+    title: string;
+    description: string;
+    language: string;
+    contentType: string;
+  };
+  recommendations: string[];
 }
 
 export default function WebsiteCategorizationPage() {
-  const [domain, setDomain] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [data, setData] = useState<CategoryData | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<CategoryResult | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      CustomWiggle.create('catWiggle', { wiggles: 5, type: 'easeOut' });
+
+      gsap.to('.cat-gradient-orb', {
+        x: 'random(-60, 60)',
+        y: 'random(-30, 30)',
+        scale: 'random(0.9, 1.15)',
+        duration: 6,
+        ease: 'sine.inOut',
+        stagger: { each: 0.8, repeat: -1, yoyo: true },
+      });
+
+      if (titleRef.current) {
+        const split = new SplitText(titleRef.current, { type: 'chars' });
+        gsap.from(split.chars, {
+          opacity: 0,
+          y: 50,
+          rotationX: -90,
+          stagger: 0.03,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          delay: 0.2,
+        });
+      }
+
+      gsap.to('.hero-cat-icon', {
+        boxShadow: '0 0 50px rgba(99, 102, 241, 0.5)',
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+
+      gsap.from('.search-form', {
+        opacity: 0,
+        y: 30,
+        duration: 0.6,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const handleCheck = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!domain.trim()) {
-      setError('Please enter a domain or URL')
-      return
+    e.preventDefault();
+    if (!url.trim()) return;
+
+    const btn = document.querySelector('.check-btn');
+    if (btn) {
+      gsap.to(btn, {
+        scale: 0.95,
+        duration: 0.1,
+        onComplete: () => gsap.to(btn, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.3)' }),
+      });
     }
 
-    setLoading(true)
-    setError('')
-    setData(null)
+    setLoading(true);
+    setError('');
+    setData(null);
 
     try {
       const response = await fetch('/api/tools/website-categorization', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain: domain.trim() })
-      })
-      const result = await response.json()
-      if (!result.success) {
-        setError(result.error || 'Failed to categorize website')
-        return
+        body: JSON.stringify({ url: url.trim() }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setData(result.data);
+        setTimeout(() => {
+          gsap.from('.cat-card', {
+            opacity: 0,
+            y: 30,
+            stagger: 0.1,
+            duration: 0.5,
+            ease: 'power2.out',
+          });
+        }, 50);
+      } else {
+        setError(result.error || 'Categorization failed');
       }
-      setData(result.data)
-    } catch (err: any) {
-      setError('An error occurred while categorizing the website')
+    } catch (err) {
+      setError('Failed to connect to the server');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'safe':
+        return 'from-green-600 to-emerald-600';
+      case 'low':
+        return 'from-blue-600 to-cyan-600';
+      case 'medium':
+        return 'from-yellow-600 to-amber-600';
+      case 'high':
+        return 'from-red-600 to-rose-600';
+      default:
+        return 'from-gray-600 to-gray-600';
+    }
+  };
+
+  const getFlagIcon = (flag: string) => {
+    switch (flag) {
+      case 'adult':
+        return <Eye className="w-4 h-4" />;
+      case 'gambling':
+        return <Tags className="w-4 h-4" />;
+      case 'malware':
+        return <AlertTriangle className="w-4 h-4" />;
+      case 'phishing':
+        return <Shield className="w-4 h-4" />;
+      case 'ads':
+        return <Tags className="w-4 h-4" />;
+      case 'tracking':
+        return <Eye className="w-4 h-4" />;
+      case 'social':
+        return <Users className="w-4 h-4" />;
+      case 'streaming':
+        return <Globe className="w-4 h-4" />;
+      default:
+        return <Tags className="w-4 h-4" />;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Header */}
-      <div className="bg-gradient-to-r from-brand-600 to-accent-600 py-12">
-        <div className="container-custom">
-          <Link href="/tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Network Tools
-          </Link>
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                <Tag className="w-10 h-10 text-white" />
-              </div>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
-              Website <span className="text-blue-100">Categorization</span>
-            </h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Automatically classify websites into content categories
-            </p>
-          </div>
-        </div>
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="cat-gradient-orb absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-indigo-600/20 to-purple-600/20 blur-[100px]" />
+        <div className="cat-gradient-orb absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-violet-600/15 to-fuchsia-600/15 blur-[80px]" />
       </div>
 
-      <div className="container-custom py-12">
-        {/* Search Form */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <form onSubmit={handleCheck} className="relative">
-            <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
-              <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                placeholder="Enter domain (e.g., amazon.com)"
-                className="w-full pl-12 pr-36 py-4 bg-white border-0 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-0 transition-all outline-none"
-                disabled={loading}
-              />
+      <section className="relative py-12 border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <Link href="/tools" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Tools
+          </Link>
+
+          <div className="flex items-center gap-6 mb-8">
+            <div className="hero-cat-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600/30 to-purple-600/30 border border-indigo-500/30 flex items-center justify-center">
+              <Tags className="w-8 h-8 text-indigo-400" />
+            </div>
+            <div>
+              <h1 ref={titleRef} className="text-3xl md:text-4xl font-bold text-white mb-1">
+                Website Categorization
+              </h1>
+              <p className="text-gray-400">
+                Analyze and categorize any website by content type
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleCheck} className="search-form max-w-3xl">
+            <div className="relative bg-white/5 border border-white/10 rounded-2xl p-2 flex gap-2">
+              <div className="flex-1 relative">
+                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input
+                  type="text"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="Enter URL or domain (e.g., example.com)"
+                  className="w-full pl-12 pr-4 py-4 bg-transparent text-white placeholder-gray-500 outline-none"
+                  disabled={loading}
+                />
+              </div>
               <button
                 type="submit"
-                disabled={loading || !domain.trim()}
-                className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:from-gray-400 disabled:to-gray-400 rounded-lg font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+                disabled={loading || !url.trim()}
+                className="check-btn px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Analyzing...</> : <><Tag className="w-4 h-4" />Categorize</>}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                {loading ? 'Analyzing...' : 'Categorize'}
               </button>
             </div>
           </form>
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
         </div>
+      </section>
 
-        {/* Results */}
+      <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="max-w-3xl mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <p className="text-red-400">{error}</p>
+          </div>
+        )}
+
         {data && (
-          <div className="max-w-5xl mx-auto space-y-6">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <Globe className="w-5 h-5 text-blue-600" />
-                <h2 className="text-xl font-bold text-gray-900">Domain</h2>
+          <div className="space-y-6">
+            <div className="cat-card bg-gradient-to-r from-indigo-600/10 to-purple-600/10 border border-indigo-500/30 rounded-2xl p-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <p className="text-gray-400 text-sm mb-1">Website</p>
+                  <h2 className="text-2xl font-bold text-white">{data.domain}</h2>
+                  <a href={data.url} target="_blank" rel="noopener noreferrer" className="text-indigo-400 text-sm hover:underline flex items-center gap-1 mt-1">
+                    {data.url} <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-center px-4 py-2 bg-white/5 rounded-xl">
+                    <p className="text-lg font-bold text-indigo-400">{data.primaryCategory}</p>
+                    <p className="text-xs text-gray-400">Primary Category</p>
+                  </div>
+                  <div className={`px-6 py-3 rounded-xl bg-gradient-to-r ${getRiskColor(data.riskLevel)} text-white font-bold uppercase`}>
+                    {data.riskLevel} Risk
+                  </div>
+                </div>
               </div>
-              <p className="text-2xl font-mono text-gray-900">{data.domain}</p>
-              {data.description && <p className="text-gray-600 mt-2">{data.description}</p>}
             </div>
 
-            {data.tier1 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  Primary Category
-                </h3>
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-gray-900">{data.tier1}</div>
-                </div>
-              </div>
-            )}
-
-            {data.tier2 && data.tier2.length > 0 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-blue-500" />
-                  Secondary Categories
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  {data.tier2.map((category, index) => (
-                    <div key={index} className="px-4 py-2 bg-blue-100 border border-blue-200 rounded-lg text-blue-800 font-medium">
-                      {category}
+            <div className="cat-card bg-white/5 border border-white/10 rounded-2xl p-5">
+              <h3 className="font-semibold text-white mb-4">Categories</h3>
+              <div className="space-y-3">
+                {data.categories.map((cat, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-[#0d0d12] rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <Tags className="w-5 h-5 text-indigo-400" />
+                      <span className="text-white">{cat.name}</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-4">
+                      <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-indigo-500 transition-all"
+                          style={{ width: `${cat.confidence}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-400 text-sm w-12 text-right">{cat.confidence}%</span>
+                      <span className="text-gray-500 text-xs">{cat.source}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="cat-card bg-white/5 border border-white/10 rounded-2xl p-5">
+              <h3 className="font-semibold text-white mb-4">Content Flags</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.entries(data.flags).map(([flag, value]) => (
+                  <div key={flag} className={`p-3 rounded-xl border flex items-center justify-between ${
+                    value ? 'bg-orange-500/10 border-orange-500/30' : 'bg-white/5 border-white/10'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {getFlagIcon(flag)}
+                      <span className="text-gray-300 capitalize text-sm">{flag}</span>
+                    </div>
+                    {value ? (
+                      <Check className="w-4 h-4 text-orange-400" />
+                    ) : (
+                      <span className="text-gray-600">—</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {data.metadata && (
+              <div className="cat-card bg-white/5 border border-white/10 rounded-2xl p-5">
+                <h3 className="font-semibold text-white mb-4">Page Metadata</h3>
+                <div className="space-y-3 text-sm">
+                  {data.metadata.title && (
+                    <div className="p-3 bg-[#0d0d12] rounded-lg">
+                      <p className="text-gray-400 mb-1">Title</p>
+                      <p className="text-white">{data.metadata.title}</p>
+                    </div>
+                  )}
+                  {data.metadata.description && (
+                    <div className="p-3 bg-[#0d0d12] rounded-lg">
+                      <p className="text-gray-400 mb-1">Description</p>
+                      <p className="text-white">{data.metadata.description}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-3">
+                    {data.metadata.language && (
+                      <div className="p-3 bg-[#0d0d12] rounded-lg">
+                        <p className="text-gray-400 mb-1">Language</p>
+                        <p className="text-white uppercase">{data.metadata.language}</p>
+                      </div>
+                    )}
+                    {data.metadata.contentType && (
+                      <div className="p-3 bg-[#0d0d12] rounded-lg">
+                        <p className="text-gray-400 mb-1">Content Type</p>
+                        <p className="text-white">{data.metadata.contentType}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
 
-            {data.categories && data.categories.length > 0 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">All Categories</h3>
-                <div className="flex flex-wrap gap-2">
-                  {data.categories.map((category, index) => (
-                    <span key={index} className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-full text-sm text-gray-700">
-                      {category}
-                    </span>
-                  ))}
+            {data.recommendations && data.recommendations.length > 0 && (
+              <div className="cat-card bg-blue-500/10 border border-blue-500/30 rounded-2xl p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <Lock className="w-5 h-5 text-blue-400" />
+                  <h3 className="font-semibold text-white">Recommendations</h3>
                 </div>
+                <ul className="space-y-2">
+                  {data.recommendations.map((rec, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-gray-300">
+                      <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-1" />
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
         )}
 
-        {!data && !loading && (
-          <div className="max-w-3xl mx-auto mt-12">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">About Website Categorization</h3>
-              <div className="space-y-3 text-gray-600">
-                <p>Automatically classify websites into content categories. Perfect for:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Content filtering and parental controls</li>
-                  <li>Market research and competitive analysis</li>
-                  <li>Ad targeting and brand safety</li>
-                  <li>Network security policies</li>
-                </ul>
-              </div>
+        {!loading && !error && !data && (
+          <div className="max-w-lg mx-auto text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <Tags className="w-10 h-10 text-gray-500" />
             </div>
+            <h3 className="text-xl font-medium text-gray-400 mb-2">Website Categorization</h3>
+            <p className="text-gray-500">
+              Enter a URL or domain to analyze its content and determine categories, risk level, and content flags.
+            </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

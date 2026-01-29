@@ -17,6 +17,9 @@ import {
   ArrowDownTrayIcon,
   DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 import Image from 'next/image';
 
 type Recommendation = {
@@ -601,11 +604,11 @@ use one of these codes to sign in.
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'text-green-600 bg-green-50';
+        return 'text-green-600 bg-green-900/20';
       case 'blocked':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-600 bg-red-900/20';
       default:
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-yellow-600 bg-yellow-900/20';
     }
   };
 
@@ -616,9 +619,9 @@ use one of these codes to sign in.
   const lastPasswordChange = securityOverview?.lastPasswordChange;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
         {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -631,16 +634,16 @@ use one of these codes to sign in.
           </svg>
         </div>
         <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
             <ShieldCheckIcon className="w-10 h-10" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Security Settings</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
             Manage your account security and privacy settings
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+            className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
           >
             Back to Dashboard
           </Link>
@@ -648,10 +651,10 @@ use one of these codes to sign in.
       </section>
 
       {/* Security Content */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
         <div className="container-custom max-w-6xl">
           {fetchState.error && (
-            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-900/20 px-4 py-3 text-red-300">
               <div className="flex items-center justify-between">
                 <p>{fetchState.error}</p>
                 <button
@@ -665,7 +668,7 @@ use one of these codes to sign in.
           )}
 
           {fetchState.loading && !fetchState.error && (
-            <div className="mb-6 rounded-xl border border-brand-100 bg-brand-50/70 px-4 py-3 text-brand-800">
+            <div className="mb-6 rounded-xl border border-purple-500/30 bg-purple-900/20/70 px-4 py-3 text-purple-300">
               Syncing your latest security activity...
             </div>
           )}
@@ -673,7 +676,7 @@ use one of these codes to sign in.
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Security Score */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100 text-center">
+              <div className="bg-white/5 rounded-2xl p-6 border border-white/10 text-center">
                 <div className="relative w-24 h-24 mx-auto mb-4">
                   <svg className="w-24 h-24 transform -rotate-90">
                     <circle
@@ -683,7 +686,7 @@ use one of these codes to sign in.
                       stroke="currentColor"
                       strokeWidth="8"
                       fill="transparent"
-                      className="text-neural-200"
+                      className="text-gray-200"
                     />
                     <circle
                       cx="48"
@@ -696,20 +699,20 @@ use one of these codes to sign in.
                       strokeDashoffset={`${
                         2 * Math.PI * 40 * (1 - securityScore / 100)
                       }`}
-                      className="text-brand-500"
+                      className="text-purple-400"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-neural-900">
+                    <span className="text-2xl font-bold text-white">
                       {securityScore}%
                     </span>
                   </div>
                 </div>
 
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">
+                <h3 className="text-lg font-semibold text-white mb-2">
                   Security Score
                 </h3>
-                <p className="text-sm text-neural-600 mb-4">
+                <p className="text-sm text-gray-400 mb-4">
                   Your account security rating
                 </p>
 
@@ -718,7 +721,7 @@ use one of these codes to sign in.
                     <div
                       key={rec.id}
                       className={`p-3 rounded-lg ${
-                        rec.priority === 'high' ? 'bg-red-50' : 'bg-yellow-50'
+                        rec.priority === 'high' ? 'bg-red-900/20' : 'bg-yellow-900/20'
                       }`}
                     >
                       <div className="flex items-center">
@@ -730,10 +733,10 @@ use one of these codes to sign in.
                           }`}
                         />
                         <div>
-                          <p className="text-xs font-medium text-neural-900">
+                          <p className="text-xs font-medium text-white">
                             {rec.title}
                           </p>
-                          <p className="text-xs text-neural-600">
+                          <p className="text-xs text-gray-400">
                             {rec.description}
                           </p>
                         </div>
@@ -748,25 +751,25 @@ use one of these codes to sign in.
             <div className="lg:col-span-3">
               <div className="space-y-6">
                 {/* Password & Authentication */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
                   <div className="flex items-center mb-6">
-                    <KeyIcon className="w-6 h-6 text-brand-500 mr-3" />
-                    <h3 className="text-xl font-semibold text-neural-900">
+                    <KeyIcon className="w-6 h-6 text-purple-400 mr-3" />
+                    <h3 className="text-xl font-semibold text-white">
                       Password & Authentication
                     </h3>
                   </div>
 
                   <div className="space-y-6">
                     {/* Change Password */}
-                    <div className="border border-neural-100 rounded-lg p-6">
+                    <div className="border border-white/10 rounded-lg p-6">
                       {message.text && (
                         <div
                           className={`mb-4 p-3 rounded-lg ${
                             message.type === 'success'
-                              ? 'bg-green-50 text-green-800'
+                              ? 'bg-green-900/20 text-green-300'
                               : message.type === 'info'
-                              ? 'bg-blue-50 text-blue-800'
-                              : 'bg-red-50 text-red-800'
+                              ? 'bg-blue-900/20 text-blue-300'
+                              : 'bg-red-900/20 text-red-300'
                           }`}
                         >
                           {message.text}
@@ -775,10 +778,10 @@ use one of these codes to sign in.
 
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h4 className="font-medium text-neural-900">
+                          <h4 className="font-medium text-white">
                             Password
                           </h4>
-                          <p className="text-sm text-neural-600">
+                          <p className="text-sm text-gray-400">
                             Last changed on {formatDate(lastPasswordChange)}
                           </p>
                         </div>
@@ -786,7 +789,7 @@ use one of these codes to sign in.
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             Current Password
                           </label>
                           <div className="relative">
@@ -797,7 +800,7 @@ use one of these codes to sign in.
                               onChange={(e) =>
                                 setCurrentPassword(e.target.value)
                               }
-                              className="w-full p-3 pr-12 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                              className="w-full p-3 pr-12 border border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                             <button
                               type="button"
@@ -805,15 +808,15 @@ use one of these codes to sign in.
                               className="absolute inset-y-0 right-0 pr-3 flex items-center"
                             >
                               {showPassword ? (
-                                <EyeSlashIcon className="w-5 h-5 text-neural-400" />
+                                <EyeSlashIcon className="w-5 h-5 text-gray-400" />
                               ) : (
-                                <EyeIcon className="w-5 h-5 text-neural-400" />
+                                <EyeIcon className="w-5 h-5 text-gray-400" />
                               )}
                             </button>
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             New Password
                           </label>
                           <input
@@ -821,11 +824,11 @@ use one of these codes to sign in.
                             placeholder="Enter new password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full p-3 border border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             Confirm Password
                           </label>
                           <input
@@ -833,7 +836,7 @@ use one of these codes to sign in.
                             placeholder="Confirm new password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full p-3 border border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -848,13 +851,13 @@ use one of these codes to sign in.
                     </div>
 
                     {/* Two-Factor Authentication */}
-                    <div className="border border-neural-100 rounded-lg p-6">
+                    <div className="border border-white/10 rounded-lg p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h4 className="font-medium text-neural-900">
+                          <h4 className="font-medium text-white">
                             Two-Factor Authentication
                           </h4>
-                          <p className="text-sm text-neural-600">
+                          <p className="text-sm text-gray-400">
                             Add an extra layer of security to your account
                           </p>
                         </div>
@@ -866,16 +869,16 @@ use one of these codes to sign in.
                             disabled={verifying2FA || setting2FA}
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600 peer-disabled:opacity-50"></div>
+                          <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 peer-disabled:opacity-50"></div>
                         </label>
                       </div>
 
                       {/* Show QR code when setting up */}
                       {verifying2FA && showQRCode && qrCodeUrl && (
                         <div className="space-y-4 mt-4">
-                          <div className="p-6 bg-white border-2 border-brand-200 rounded-lg">
+                          <div className="p-6 bg-white/5 border-2 border-purple-200 rounded-lg">
                             <div className="text-center">
-                              <div className="bg-white p-4 rounded-lg inline-block mb-4 border border-neural-200">
+                              <div className="bg-white/5 p-4 rounded-lg inline-block mb-4 border border-white/10">
                                 <Image
                                   src={qrCodeUrl}
                                   alt="2FA QR Code"
@@ -884,10 +887,10 @@ use one of these codes to sign in.
                                   className="w-64 h-64"
                                 />
                               </div>
-                              <p className="text-sm text-neural-600 mb-2">
+                              <p className="text-sm text-gray-400 mb-2">
                                 Scan this QR code with your authenticator app
                               </p>
-                              <p className="text-xs text-neural-500">
+                              <p className="text-xs text-gray-500">
                                 (Google Authenticator, Authy, Microsoft
                                 Authenticator, etc.)
                               </p>
@@ -896,7 +899,7 @@ use one of these codes to sign in.
 
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-sm font-medium text-neural-700 mb-2">
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
                                 Enter 6-Digit Verification Code
                               </label>
                               <input
@@ -911,7 +914,7 @@ use one of these codes to sign in.
                                 }
                                 placeholder="000000"
                                 maxLength={6}
-                                className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest bg-white border-2 border-neural-200 rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
+                                className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest bg-white/5 border-2 border-white/10 rounded-lg focus:border-purple-primary focus:ring-2 focus:ring-purple-primary/20"
                               />
                             </div>
                             <button
@@ -936,14 +939,14 @@ use one of these codes to sign in.
                       {/* Show status when 2FA is enabled */}
                       {twoFactorEnabled && !verifying2FA && (
                         <div className="space-y-4 mt-4">
-                          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                          <div className="flex items-center justify-between p-4 bg-green-900/20 rounded-lg">
                             <div className="flex items-center">
                               <CheckCircleIcon className="w-5 h-5 text-green-500 mr-3" />
                               <div>
                                 <p className="font-medium text-green-900">
                                   Authenticator App Active
                                 </p>
-                                <p className="text-sm text-green-700">
+                                <p className="text-sm text-green-400">
                                   {backupCodes.length} backup codes available
                                 </p>
                               </div>
@@ -962,14 +965,14 @@ use one of these codes to sign in.
                           )}
 
                           {showBackupCodes && backupCodes.length > 0 && (
-                            <div className="p-6 bg-yellow-50 rounded-lg">
+                            <div className="p-6 bg-yellow-900/20 rounded-lg">
                               <div className="flex items-start mb-4">
                                 <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
                                 <div>
                                   <p className="font-medium text-yellow-900">
                                     Save these backup codes
                                   </p>
-                                  <p className="text-sm text-yellow-700">
+                                  <p className="text-sm text-yellow-400">
                                     Store them in a safe place. Each code can
                                     only be used once.
                                   </p>
@@ -977,16 +980,16 @@ use one of these codes to sign in.
                               </div>
 
                               {/* Backup codes grid with clear visibility */}
-                              <div className="grid grid-cols-2 gap-3 bg-white p-4 rounded-lg border border-neural-200 mb-4">
+                              <div className="grid grid-cols-2 gap-3 bg-white/5 p-4 rounded-lg border border-white/10 mb-4">
                                 {backupCodes.map((code, index) => (
                                   <div
                                     key={index}
-                                    className="flex items-center justify-between p-3 bg-neural-50 rounded-lg border border-neural-100"
+                                    className="flex items-center justify-between p-3 bg-[#0a0a0f] rounded-lg border border-white/10"
                                   >
-                                    <span className="text-xs text-neural-500 mr-2">
+                                    <span className="text-xs text-gray-500 mr-2">
                                       {index + 1}.
                                     </span>
-                                    <code className="text-sm font-mono font-bold text-neural-900 tracking-wider select-all">
+                                    <code className="text-sm font-mono font-bold text-white tracking-wider select-all">
                                       {code}
                                     </code>
                                   </div>
@@ -997,14 +1000,14 @@ use one of these codes to sign in.
                               <div className="flex gap-3">
                                 <button
                                   onClick={handleDownloadBackupCodes}
-                                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors font-medium"
+                                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
                                 >
                                   <ArrowDownTrayIcon className="w-5 h-5" />
                                   Download Codes
                                 </button>
                                 <button
                                   onClick={handleCopyBackupCodes}
-                                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-neural-100 text-neural-700 rounded-lg hover:bg-neural-200 transition-colors font-medium"
+                                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#13131a]100 text-gray-300 rounded-lg hover:bg-[#13131a]200 transition-colors font-medium"
                                 >
                                   <DocumentDuplicateIcon className="w-5 h-5" />
                                   Copy All
@@ -1019,11 +1022,11 @@ use one of these codes to sign in.
                 </div>
 
                 {/* Trusted Devices */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
-                      <ShieldCheckIcon className="w-6 h-6 text-brand-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-neural-900">
+                      <ShieldCheckIcon className="w-6 h-6 text-purple-400 mr-3" />
+                      <h3 className="text-xl font-semibold text-white">
                         Trusted Devices
                       </h3>
                     </div>
@@ -1054,30 +1057,30 @@ use one of these codes to sign in.
                           key={device.id}
                           className={`p-4 border rounded-lg ${
                             device.current
-                              ? 'border-brand-200 bg-brand-50'
-                              : 'border-neural-100'
+                              ? 'border-purple-200 bg-purple-900/20'
+                              : 'border-white/10'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <div className="p-2 bg-neural-100 rounded-lg mr-4">
+                              <div className="p-2 bg-[#13131a]100 rounded-lg mr-4">
                                 {getDeviceIcon(device.type)}
                               </div>
                               <div>
                                 <div className="flex items-center">
-                                  <h4 className="font-medium text-neural-900">
+                                  <h4 className="font-medium text-white">
                                     {device.name}
                                   </h4>
                                   {device.current && (
-                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">
+                                    <span className="ml-2 px-2 py-1 text-xs bg-purple-900/30 text-purple-400 rounded-full">
                                       Current
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-sm text-neural-600">
+                                <p className="text-sm text-gray-400">
                                   {device.browser} • {device.location}
                                 </p>
-                                <p className="text-xs text-neural-500">
+                                <p className="text-xs text-gray-500">
                                   Last seen {formatDateTime(device.lastSeen)}
                                 </p>
                               </div>
@@ -1098,11 +1101,11 @@ use one of these codes to sign in.
                 </div>
 
                 {/* Active Sessions */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
-                      <ComputerDesktopIcon className="w-6 h-6 text-brand-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-neural-900">
+                      <ComputerDesktopIcon className="w-6 h-6 text-purple-400 mr-3" />
+                      <h3 className="text-xl font-semibold text-white">
                         Active Sessions
                       </h3>
                     </div>
@@ -1128,30 +1131,30 @@ use one of these codes to sign in.
                           key={session.id}
                           className={`p-4 border rounded-lg ${
                             session.isCurrent
-                              ? 'border-brand-200 bg-brand-50'
-                              : 'border-neural-100'
+                              ? 'border-purple-200 bg-purple-900/20'
+                              : 'border-white/10'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <div className="p-2 bg-neural-100 rounded-lg mr-4">
+                              <div className="p-2 bg-[#13131a]100 rounded-lg mr-4">
                                 <ComputerDesktopIcon className="w-5 h-5" />
                               </div>
                               <div>
                                 <div className="flex items-center">
-                                  <h4 className="font-medium text-neural-900">
+                                  <h4 className="font-medium text-white">
                                     {session.browser} • {session.device}
                                   </h4>
                                   {session.isCurrent && (
-                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">
+                                    <span className="ml-2 px-2 py-1 text-xs bg-purple-900/30 text-purple-400 rounded-full">
                                       Current
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-sm text-neural-600">
+                                <p className="text-sm text-gray-400">
                                   IP: {session.ipAddress}
                                 </p>
-                                <p className="text-xs text-neural-500">
+                                <p className="text-xs text-gray-500">
                                   Last active:{' '}
                                   {formatDateTime(session.lastActivity)}
                                 </p>
@@ -1173,11 +1176,11 @@ use one of these codes to sign in.
                 </div>
 
                 {/* Login History */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
-                      <ClockIcon className="w-6 h-6 text-brand-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-neural-900">
+                      <ClockIcon className="w-6 h-6 text-purple-400 mr-3" />
+                      <h3 className="text-xl font-semibold text-white">
                         Login History
                       </h3>
                     </div>
@@ -1193,20 +1196,20 @@ use one of these codes to sign in.
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b border-neural-100">
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                          <tr className="border-b border-white/10">
+                            <th className="text-left py-3 text-sm font-medium text-gray-300">
                               Date & Time
                             </th>
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                            <th className="text-left py-3 text-sm font-medium text-gray-300">
                               Device
                             </th>
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                            <th className="text-left py-3 text-sm font-medium text-gray-300">
                               Location
                             </th>
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                            <th className="text-left py-3 text-sm font-medium text-gray-300">
                               Status
                             </th>
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                            <th className="text-left py-3 text-sm font-medium text-gray-300">
                               IP Address
                             </th>
                           </tr>
@@ -1227,13 +1230,13 @@ use one of these codes to sign in.
                                 key={login.id}
                                 className="border-b border-neural-50"
                               >
-                                <td className="py-4 text-sm text-neural-900">
+                                <td className="py-4 text-sm text-white">
                                   {formatDateTime(login.date)}
                                 </td>
-                                <td className="py-4 text-sm text-neural-600">
+                                <td className="py-4 text-sm text-gray-400">
                                   {login.device}
                                 </td>
-                                <td className="py-4 text-sm text-neural-600">
+                                <td className="py-4 text-sm text-gray-400">
                                   {login.location}
                                 </td>
                                 <td className="py-4">
@@ -1252,7 +1255,7 @@ use one of these codes to sign in.
                                       login.status.slice(1)}
                                   </span>
                                 </td>
-                                <td className="py-4 text-sm text-neural-600 font-mono">
+                                <td className="py-4 text-sm text-gray-400 font-mono">
                                   {login.ip}
                                 </td>
                               </tr>
@@ -1264,7 +1267,7 @@ use one of these codes to sign in.
                   )}
 
                   {!showLoginHistory && loginHistory.length > 0 && (
-                    <p className="text-sm text-neural-500">
+                    <p className="text-sm text-gray-500">
                       {loginHistory.length} login records • Click &quot;View
                       All&quot; to see history
                     </p>

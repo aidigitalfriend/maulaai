@@ -1,652 +1,368 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { Newspaper, Zap, TrendingUp, Award, Calendar, ArrowRight, MessageSquare, Info } from 'lucide-react'
-import { useState } from 'react'
-import { allAgents } from '@/app/agents/registry'
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, ScrollTrigger, CustomWiggle } from '@/lib/gsap';
+import { Newspaper, Zap, TrendingUp, Award, Calendar, ArrowRight, MessageSquare, X, Clock, ChevronRight, Sparkles, Bell } from 'lucide-react';
+
+const categories = [
+  { id: 'all', label: 'All News', icon: Newspaper, color: 'cyan' },
+  { id: 'product', label: 'Product Updates', icon: Zap, color: 'emerald' },
+  { id: 'industry', label: 'Industry News', icon: TrendingUp, color: 'purple' },
+  { id: 'awards', label: 'Awards', icon: Award, color: 'amber' }
+];
+
+const newsArticles = [
+  {
+    id: 1,
+    title: 'Maula AI Launches New $1/Day Testing Plan',
+    description: 'We\'re excited to announce our affordable new testing plan, allowing users to evaluate all features for just $1 per day.',
+    category: 'product',
+    date: 'October 22, 2025',
+    image: '🚀',
+    readTime: '3 min read',
+    featured: true,
+    color: 'emerald'
+  },
+  {
+    id: 2,
+    title: 'AI Adoption Reaches All-Time High in Enterprise',
+    description: 'A new industry report shows that 78% of enterprises have adopted some form of AI technology.',
+    category: 'industry',
+    date: 'October 20, 2025',
+    image: '📈',
+    readTime: '5 min read',
+    featured: true,
+    color: 'purple'
+  },
+  {
+    id: 3,
+    title: 'Maula AI Recognized as Top AI Platform',
+    description: 'We\'re thrilled to announce that Maula AI has been recognized by TechCrunch as one of the top 10 emerging AI platforms.',
+    category: 'awards',
+    date: 'October 18, 2025',
+    image: '🏆',
+    readTime: '2 min read',
+    featured: true,
+    color: 'amber'
+  },
+  {
+    id: 4,
+    title: 'New Voice Integration Features Now Available',
+    description: 'We\'ve rolled out enhanced voice capabilities for all agents, enabling more natural conversations.',
+    category: 'product',
+    date: 'October 15, 2025',
+    image: '🎙️',
+    readTime: '4 min read',
+    featured: false,
+    color: 'cyan'
+  },
+  {
+    id: 5,
+    title: 'The Future of Conversational AI in 2026',
+    description: 'Industry experts weigh in on what to expect from conversational AI technology in the coming year.',
+    category: 'industry',
+    date: 'October 12, 2025',
+    image: '🔮',
+    readTime: '6 min read',
+    featured: false,
+    color: 'purple'
+  },
+  {
+    id: 6,
+    title: 'Canvas Feature: AI-Powered Code Generation',
+    description: 'Introducing Canvas - our new AI-powered workspace for code and content generation.',
+    category: 'product',
+    date: 'October 10, 2025',
+    image: '🎨',
+    readTime: '4 min read',
+    featured: false,
+    color: 'emerald'
+  }
+];
 
 export default function NewsPage() {
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedAgent, setSelectedAgent] = useState<any>(null)
-  const [showAgentDetails, setShowAgentDetails] = useState(false)
-  const [selectedArticle, setSelectedArticle] = useState<any>(null)
-  const [showArticleModal, setShowArticleModal] = useState(false)
-
-  // Build Available Agents from the central registry (18 total)
-  const agentSlugs: string[] = [
-    'ben-sega',
-    'bishop-burger',
-    'chef-biew',
-    'chess-player',
-    'comedy-king',
-    'drama-queen',
-    'einstein',
-    'emma-emotional',
-    'fitness-guru',
-    'julie-girlfriend',
-    'knight-logic',
-    'lazy-pawn',
-    'mrs-boss',
-    'nid-gaming',
-    'professor-astrology',
-    'rook-jokey',
-    'tech-wizard',
-    'travel-buddy'
-  ]
-
-  const availableAgents = agentSlugs
-    .map(id => allAgents.find(a => a.id === id))
-    .filter(Boolean)
-    .map((a: any, i: number) => ({
-      key: `${a.id}-${i}`,
-      id: a.id,
-      name: a.name,
-      emoji: a?.details?.icon || '🤖',
-      description: a.description,
-      path: `/agents/${a.id}`,
-      specialties: a?.personality?.specialties || [],
-      details: a?.details?.sections || []
-    }))
-
-  // Coming Soon Agents (40-50)
-  const comingSoonAgents = [
-    { id: 1, name: 'Quantum Einstein', emoji: '⚛️', description: 'Quantum Physics Specialist' },
-    { id: 2, name: 'Marketing Maven', emoji: '📢', description: 'Marketing Strategy Expert' },
-    { id: 3, name: 'Financial Advisor Pro', emoji: '💼', description: 'Investment & Finance Expert' },
-    { id: 4, name: 'Legal Eagle', emoji: '⚖️', description: 'Legal Advice Specialist' },
-    { id: 5, name: 'Health Guru', emoji: '🏥', description: 'Medical Information Expert' },
-    { id: 6, name: 'Design Master', emoji: '🎨', description: 'UI/UX Design Expert' },
-    { id: 7, name: 'Yoga Master', emoji: '🧘', description: 'Meditation & Yoga Guide' },
-    { id: 8, name: 'Music Producer', emoji: '🎵', description: 'Music & Sound Expert' },
-    { id: 9, name: 'Photography Pro', emoji: '📸', description: 'Photography Tips' },
-    { id: 10, name: 'Writing Wizard', emoji: '✍️', description: 'Content Writing Expert' },
-    { id: 11, name: 'History Scholar', emoji: '📚', description: 'Historical Knowledge' },
-    { id: 12, name: 'Language Master', emoji: '🌍', description: 'Language Learning' },
-    { id: 13, name: 'Poetry Poet', emoji: '🖋️', description: 'Poetry & Literature' },
-    { id: 14, name: 'Movie Critic', emoji: '🎬', description: 'Film & Entertainment' },
-    { id: 15, name: 'Sports Analyst', emoji: '⚽', description: 'Sports News & Analysis' },
-    { id: 16, name: 'Weather Wizard', emoji: '🌦️', description: 'Weather & Climate Expert' },
-    { id: 17, name: 'Car Enthusiast', emoji: '🚗', description: 'Automotive Expert' },
-    { id: 18, name: 'Fashion Guru', emoji: '👗', description: 'Fashion & Style Advisor' },
-    { id: 19, name: 'Architecture Expert', emoji: '🏛️', description: 'Building & Design Expert' },
-    { id: 20, name: 'Astronomy Ace', emoji: '🌌', description: 'Space Science Expert' },
-    { id: 21, name: 'Gardening Guide', emoji: '🌿', description: 'Plant Care Expert' },
-    { id: 22, name: 'Pet Companion', emoji: '🐕', description: 'Pet Care Advisor' },
-    { id: 23, name: 'Coffee Connoisseur', emoji: '☕', description: 'Coffee Expert' },
-    { id: 24, name: 'Wine Sommelier', emoji: '🍷', description: 'Wine & Beverages' },
-    { id: 25, name: 'Sustainability Expert', emoji: '♻️', description: 'Environmental Expert' },
-    { id: 26, name: 'Robotics Engineer', emoji: '🤖', description: 'Robotics & Automation' },
-    { id: 27, name: 'Data Scientist', emoji: '📊', description: 'Data Analytics Expert' },
-    { id: 28, name: 'Cloud Architect', emoji: '☁️', description: 'Cloud Computing Expert' },
-    { id: 29, name: 'Cybersecurity Guard', emoji: '🔐', description: 'Security Expert' },
-    { id: 30, name: 'DevOps Master', emoji: '⚙️', description: 'DevOps Specialist' },
-    { id: 31, name: 'Mobile Developer', emoji: '📱', description: 'App Development Expert' },
-    { id: 32, name: 'Web Designer', emoji: '💻', description: 'Web Development' },
-    { id: 33, name: 'Database Pro', emoji: '🗄️', description: 'Database Management' },
-    { id: 34, name: 'AI Researcher', emoji: '🤖', description: 'AI & Machine Learning' },
-    { id: 35, name: 'Crypto Expert', emoji: '₿', description: 'Cryptocurrency Advisor' },
-    { id: 36, name: 'Startup Coach', emoji: '🚀', description: 'Entrepreneurship Guide' },
-    { id: 37, name: 'Career Counselor', emoji: '💼', description: 'Career Development' },
-    { id: 38, name: 'Lifestyle Coach', emoji: '🌟', description: 'Personal Development' },
-    { id: 39, name: 'Parenting Expert', emoji: '👨‍👩‍👧‍👦', description: 'Parenting Advice' },
-    { id: 40, name: 'Education Tutor', emoji: '📖', description: 'Learning & Tutoring' },
-    { id: 41, name: 'Philosophy Thinker', emoji: '🤔', description: 'Philosophy Expert' },
-    { id: 42, name: 'Psychology Analyst', emoji: '🧠', description: 'Psychology & Mind' },
-    { id: 43, name: 'Nutrition Specialist', emoji: '🥗', description: 'Diet & Nutrition' },
-    { id: 44, name: 'Meditation Guide', emoji: '🙏', description: 'Mindfulness Expert' },
-    { id: 45, name: 'Adventure Seeker', emoji: '⛰️', description: 'Adventure & Exploration' },
-  ]
-
-  const categories = [
-    { id: 'all', label: '📰 All News', icon: Newspaper },
-    { id: 'product', label: '🚀 Product Updates', icon: Zap },
-    { id: 'industry', label: '📊 Industry News', icon: TrendingUp },
-    { id: 'awards', label: '🏆 Awards & Recognition', icon: Award }
-  ]
-
-  const newsArticles = [
-    {
-      id: 1,
-      title: 'One Last AI Launches New $1/Day Testing Plan',
-      description: 'We\'re excited to announce our affordable new testing plan, allowing users to evaluate all features for just $1 per day before committing to larger subscriptions.',
-      category: 'product',
-      date: 'October 22, 2025',
-      image: '🚀',
-      readTime: '3 min read',
-      featured: true,
-      content: `We\'re making it easier than ever to try our agents. With the new $1/day testing plan,\n\n- Get full access to core features\n- Test any agent at your own pace\n- Upgrade or cancel any time\n\nThis plan is perfect for experimenting with agent workflows, evaluating voice and chat experiences, and validating your use cases before moving to higher tiers.`
-    },
-    {
-      id: 2,
-      title: 'AI Adoption Reaches All-Time High in Enterprise',
-      description: 'A new industry report shows that 78% of enterprises have adopted some form of AI technology, with chatbots and intelligent agents leading the charge.',
-      category: 'industry',
-      date: 'October 20, 2025',
-      image: '📈',
-      readTime: '5 min read',
-      featured: true,
-      content: `The latest industry data shows enterprise AI adoption at unprecedented levels.\n\nTop drivers include:\n- Intelligent customer support agents\n- Automated content workflows\n- Real-time analytics and insights\n\nOrganizations report faster response times, improved customer satisfaction, and reduced operational costs.`
-    },
-    {
-      id: 3,
-      title: 'One Last AI Recognized as Top AI Platform',
-      description: 'We\'re thrilled to announce that One Last AI has been recognized by TechCrunch as one of the top 10 emerging AI platforms for 2025.',
-      category: 'awards',
-      date: 'October 18, 2025',
-      image: '🏆',
-      readTime: '2 min read',
-      featured: true,
-      content: `We\'re honored to be recognized for product innovation, real-time community features, and voice-enabled experiences.\n\nThe judges highlighted:\n- Agent catalog breadth\n- Production-ready App Router APIs\n- Robust infrastructure behind Cloudflare with SSE support`
-    },
-    {
-      id: 4,
-      title: 'New Voice Integration Features Now Available',
-      description: 'We\'ve rolled out enhanced voice capabilities for all agents, enabling more natural and human-like conversations with users.',
-      category: 'product',
-      date: 'October 15, 2025',
-      image: '🎙️',
-      readTime: '4 min read',
-      featured: false,
-      content: `Voice just got better: improved TTS quality, expressive styles, and lower latency.\n\nWhat\'s new:\n- Emotional TTS presets\n- Faster streaming responses\n- Fine-grained voice controls`
-    },
-    {
-      id: 5,
-      title: 'The Future of Customer Service with AI',
-      description: 'Industry experts discuss how AI-powered agents are transforming customer service and improving customer satisfaction scores.',
-      category: 'industry',
-      date: 'October 12, 2025',
-      image: '💬',
-      readTime: '6 min read',
-      featured: false,
-      content: `AI agents are redefining service with 24/7 availability, instant routing, and personalized responses.\n\nKey takeaways:\n- Augment, don\'t replace, human teams\n- Use analytics to continuously improve\n- Ensure privacy and security from day one`
-    },
-    {
-      id: 6,
-      title: 'One Last AI Community Crosses 50,000 Members',
-      description: 'Our community has grown to over 50,000 active members sharing insights, best practices, and innovative use cases.',
-      category: 'product',
-      date: 'October 10, 2025',
-      image: '👥',
-      readTime: '3 min read',
-      featured: false,
-      content: `Thank you to our growing global community!\n\nWhat\'s happening:\n- Real-time presence and metrics\n- Weekly AMAs with the dev team\n- Community-driven feature requests`
-    },
-    {
-      id: 7,
-      title: 'Natural Language Processing Breakthrough',
-      description: 'Researchers announce major advancements in NLP technology, enabling more accurate understanding of human intent and context.',
-      category: 'industry',
-      date: 'October 8, 2025',
-      image: '🧠',
-      readTime: '7 min read',
-      featured: false,
-      content: `Emerging architectures improve context retention, reasoning, and controllability. Expect better performance on complex tasks with fewer tokens.`
-    },
-    {
-      id: 8,
-      title: 'One Last AI Security Certification Achieved',
-      description: 'We\'re proud to announce that One Last AI has achieved SOC 2 Type II certification, ensuring the highest security standards.',
-      category: 'awards',
-      date: 'October 5, 2025',
-      image: '🔒',
-      readTime: '3 min read',
-      featured: false,
-      content: `Security first: SOC 2 Type II compliance validates our processes, monitoring, and controls across the platform.`
-    }
-  ]
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const filteredArticles = selectedCategory === 'all' 
     ? newsArticles 
-    : newsArticles.filter(article => article.category === selectedCategory)
+    : newsArticles.filter(a => a.category === selectedCategory);
 
-  const featuredArticles = filteredArticles.filter(article => article.featured)
-  const regularArticles = filteredArticles.filter(article => !article.featured)
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const timer = setTimeout(() => {
+      const ctx = gsap.context(() => {
+        CustomWiggle.create('newsWiggle', { wiggles: 5, type: 'uniform' });
+        gsap.registerPlugin(ScrollTrigger);
+
+        gsap.fromTo('.floating-icon', { y: 30, opacity: 0, scale: 0 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(2)' });
+        gsap.fromTo('.gradient-orb', { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.5, stagger: 0.2, ease: 'expo.out' });
+
+        ScrollTrigger.batch('.news-card', {
+          onEnter: (elements) => gsap.fromTo(elements, { y: 60, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(1.5)' }),
+          start: 'top 90%',
+          once: true
+        });
+
+        // Floating icons animation
+        document.querySelectorAll('.floating-icon').forEach((icon, i) => {
+          gsap.to(icon, {
+            y: `random(-15, 15)`,
+            x: `random(-10, 10)`,
+            rotation: `random(-10, 10)`,
+            duration: `random(3, 5)`,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+            delay: i * 0.2
+          });
+        });
+
+        // Gradient orbs animation
+        gsap.to('.gradient-orb-1', {
+          x: 80,
+          y: -60,
+          duration: 15,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+
+        gsap.to('.gradient-orb-2', {
+          x: -70,
+          y: 80,
+          duration: 18,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        });
+
+        // Card hover effects
+        const cards = document.querySelectorAll('.news-card');
+        cards.forEach(card => {
+          const glow = card.querySelector('.card-glow');
+          
+          card.addEventListener('mouseenter', () => {
+            gsap.to(card, { scale: 1.02, y: -5, duration: 0.3, ease: 'back.out(2)' });
+            if (glow) gsap.to(glow, { opacity: 1, duration: 0.3 });
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            gsap.to(card, { scale: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+            if (glow) gsap.to(glow, { opacity: 0, duration: 0.3 });
+          });
+        });
+
+        ScrollTrigger.refresh();
+      }, containerRef);
+
+      return () => ctx.revert();
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Latest News</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto">
-            Stay updated with the latest news, product announcements, and industry insights about AI and One Last AI.
-          </p>
-        </div>
-      </section>
+    <div ref={containerRef} className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Background gradient orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="gradient-orb gradient-orb-1 absolute top-20 left-1/4 w-[700px] h-[700px] bg-amber-500/15 rounded-full blur-3xl" />
+        <div className="gradient-orb gradient-orb-2 absolute bottom-40 right-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-3xl" />
+      </div>
 
-      {/* Agent Updates Hero Section */}
-      <section className="py-12 bg-white border-b border-neural-200">
-        <div className="container-custom text-center max-w-3xl">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl mb-4">
-            <span className="text-4xl">🤖</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-neural-900 mb-4">Discover Our AI Agents</h2>
-          <p className="text-lg text-neural-600 mb-8">
-            One Last AI offers a diverse collection of AI agents designed to help you with virtually anything. From scientific experts to lifestyle coaches, our agents are ready to assist you. Explore our current agents and stay tuned for exciting new additions coming soon!
-          </p>
-          <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-              <p className="text-3xl font-bold text-blue-600">{agentSlugs.length}</p>
-              <p className="text-sm text-neural-600">Available Agents</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-              <p className="text-3xl font-bold text-purple-600">{comingSoonAgents.length}</p>
-              <p className="text-sm text-neural-600">Coming Soon</p>
-            </div>
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
-              <p className="text-3xl font-bold text-amber-600">{agentSlugs.length + comingSoonAgents.length}</p>
-              <p className="text-sm text-neural-600">Total Agents</p>
-            </div>
+      {/* Floating icons */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="floating-icon absolute top-24 left-[10%]">
+          <div className="relative w-12 h-12 rounded-xl bg-amber-500/10 backdrop-blur-sm flex items-center justify-center border border-amber-500/30 shadow-lg shadow-amber-500/10">
+            <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-amber-500/50 rounded-tr" />
+            <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-amber-500/50 rounded-bl" />
+            <Newspaper className="w-6 h-6 text-amber-400" />
           </div>
         </div>
-      </section>
-
-      {/* Category Filter */}
-      <section className="py-8 bg-white border-b border-neural-200">
-        <div className="container-custom">
-          <div className="flex flex-wrap gap-3 justify-center">
-            {categories.map((cat) => {
-              const Icon = cat.icon
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-5 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 ${
-                    selectedCategory === cat.id
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-                      : 'bg-neural-100 text-neural-700 hover:bg-neural-200 border border-neural-200'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              )
-            })}
+        <div className="floating-icon absolute top-40 right-[12%]">
+          <div className="relative w-10 h-10 rounded-lg bg-cyan-500/10 backdrop-blur-sm flex items-center justify-center border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
+            <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-cyan-500/50 rounded-tr" />
+            <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-cyan-500/50 rounded-bl" />
+            <Bell className="w-5 h-5 text-cyan-400" />
           </div>
         </div>
-      </section>
+        <div className="floating-icon absolute bottom-48 left-[12%]">
+          <div className="relative w-11 h-11 rounded-xl bg-purple-500/10 backdrop-blur-sm flex items-center justify-center border border-purple-500/30 shadow-lg shadow-purple-500/10">
+            <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-purple-500/50 rounded-tr" />
+            <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-purple-500/50 rounded-bl" />
+            <Sparkles className="w-5 h-5 text-purple-400" />
+          </div>
+        </div>
+      </div>
 
-      {/* Featured Articles */}
-      {featuredArticles.length > 0 && (
-        <section className="py-12">
-          <div className="container-custom">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white">
-                <Zap className="w-5 h-5" />
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-neural-900">Featured News</h2>
+      <div className="relative">
+        {/* Hero Section */}
+        <section className="pt-32 pb-16 px-6">
+          <div className="max-w-5xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 mb-8">
+              <Newspaper className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-medium text-amber-300">Latest Updates</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredArticles.map((article) => (
-                <div key={article.id} className="group bg-white rounded-2xl border border-neural-200 shadow-lg hover:shadow-xl hover:border-blue-300 overflow-hidden transition-all">
-                  {/* Image Area */}
-                  <div className="h-40 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center text-5xl group-hover:scale-110 transition-transform">
-                    {article.image}
-                  </div>
 
-                  {/* Content */}
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 text-sm text-neural-500 mb-3">
-                      <Calendar className="w-4 h-4" />
-                      <span>{article.date}</span>
-                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
-                        {article.readTime}
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-white">
+              News & Updates
+            </h1>
+
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto">
+              Stay informed with the latest product updates, industry news, and
+              <span className="text-amber-400"> company announcements.</span>
+            </p>
+          </div>
+        </section>
+
+        {/* Category Filter */}
+        <section className="py-8 px-6">
+          <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-3">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`category-btn flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === cat.id
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+                    : 'bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-600 hover:text-white'
+                }`}
+              >
+                <cat.icon className="w-4 h-4" />
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Featured Articles */}
+        <section className="py-8 px-6">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-xl font-bold text-white mb-6">Featured</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              {filteredArticles.filter(a => a.featured).map((article) => (
+                <div key={article.id} className="news-card group relative">
+                  <div className={`card-glow absolute inset-0 bg-${article.color}-500/20 rounded-2xl opacity-0 blur-xl transition-opacity`} />
+                  
+                  <div className="relative h-full p-6 rounded-2xl bg-gradient-to-br from-gray-900/95 to-gray-950 border border-gray-800 overflow-hidden">
+                    <div className={`absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-${article.color}-500/30 rounded-tr-lg opacity-0 group-hover:opacity-100 transition-opacity`} />
+                    <div className={`absolute bottom-3 left-3 w-5 h-5 border-b-2 border-l-2 border-${article.color}-500/30 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity`} />
+                    
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="text-4xl">{article.image}</div>
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full bg-${article.color}-500/10 text-${article.color}-400 border border-${article.color}-500/20`}>
+                        Featured
                       </span>
                     </div>
-
-                    <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition line-clamp-2">
+                    
+                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors line-clamp-2">
                       {article.title}
                     </h3>
-                    <p className="text-neural-600 text-sm mb-4 line-clamp-3">
+                    
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">
                       {article.description}
                     </p>
-
-                    <button
-                      className="flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform"
-                      onClick={() => { setSelectedArticle(article); setShowArticleModal(true); }}
-                      aria-label={`Read more about ${article.title}`}
-                    >
-                      Read More
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </button>
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {article.date}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {article.readTime}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </section>
-      )}
 
-      {/* All Articles */}
-      <section className="py-12 bg-white border-t border-neural-200">
-        <div className="container-custom">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white">
-              <Newspaper className="w-5 h-5" />
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-neural-900">
-              {selectedCategory === 'all' ? 'All News' : 'Latest News'}
-            </h2>
-          </div>
-          
-          {regularArticles.length > 0 ? (
+        {/* All Articles */}
+        <section className="py-8 px-6">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-xl font-bold text-white mb-6">All Articles</h2>
             <div className="space-y-4">
-              {regularArticles.map((article) => (
-                <div key={article.id} className="group bg-gradient-to-r from-neural-50 to-white border border-neural-200 hover:border-blue-300 rounded-2xl p-6 transition-all hover:shadow-lg">
-                  <div className="flex gap-6 items-start">
-                    {/* Icon */}
-                    <div className="text-4xl flex-shrink-0 bg-gradient-to-br from-blue-100 to-indigo-100 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      {article.image}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 text-sm text-neural-500 mb-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>{article.date}</span>
-                        <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
-                          {article.readTime}
-                        </span>
-                      </div>
-
-                      <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition line-clamp-2">
+              {filteredArticles.map((article) => (
+                <div key={article.id} className="news-card group relative">
+                  <div className="card-glow absolute inset-0 bg-cyan-500/10 rounded-xl opacity-0 blur-xl transition-opacity" />
+                  
+                  <div className="relative p-5 rounded-xl bg-gradient-to-br from-gray-900/95 to-gray-950 border border-gray-800 flex items-center gap-5 overflow-hidden">
+                    <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                    
+                    <div className="text-3xl flex-shrink-0">{article.image}</div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors truncate">
                         {article.title}
                       </h3>
-                      <p className="text-neural-600 text-sm mb-3 line-clamp-2">
+                      <p className="text-gray-400 text-sm truncate">
                         {article.description}
                       </p>
-
-                      <button
-                        className="flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform"
-                        onClick={() => { setSelectedArticle(article); setShowArticleModal(true); }}
-                        aria-label={`Read article ${article.title}`}
-                      >
-                        Read Article
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </button>
                     </div>
+                    
+                    <div className="hidden sm:flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {article.date}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {article.readTime}
+                      </div>
+                    </div>
+                    
+                    <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
                   </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-neural-500 text-lg">No news articles in this category yet.</p>
-            </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* Article Modal (floating, scrollable) */}
-      {showArticleModal && selectedArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowArticleModal(false)} />
-
-          {/* Modal */}
-          <div className="relative bg-white border border-neural-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
-            {/* Header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-neural-200 bg-white/95 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl bg-gradient-to-br from-blue-100 to-indigo-100 w-12 h-12 rounded-xl flex items-center justify-center">{selectedArticle.image}</div>
-                <div>
-                  <h2 className="text-xl font-bold text-neural-900">{selectedArticle.title}</h2>
-                  <p className="text-neural-500 text-sm flex items-center gap-2">
-                    <Calendar className="w-4 h-4" /> {selectedArticle.date}
-                    <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full ml-2">{selectedArticle.readTime}</span>
-                  </p>
+        {/* Newsletter CTA */}
+        <section className="py-20 px-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative p-8 md:p-12 rounded-2xl bg-gradient-to-br from-amber-500/10 via-gray-900 to-orange-500/10 border border-gray-800 text-center overflow-hidden group">
+              {/* Glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              {/* Corner accents */}
+              <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-amber-500/40 rounded-tr-lg" />
+              <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-orange-500/40 rounded-bl-lg" />
+              <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-amber-500/20 rounded-tl-lg" />
+              <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-orange-500/20 rounded-br-lg" />
+              
+              <div className="relative z-10">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-amber-500/25">
+                  <Bell className="w-8 h-8 text-white" />
                 </div>
-              </div>
-              <button aria-label="Close" onClick={() => setShowArticleModal(false)} className="px-3 py-2 rounded-xl bg-neural-100 hover:bg-neural-200 border border-neural-200 text-sm text-neural-700">
-                Close
-              </button>
-            </div>
-
-            {/* Scrollable Content */}
-            <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[calc(85vh-64px)]">
-              <p className="whitespace-pre-line text-neural-700 leading-relaxed">{selectedArticle.content || selectedArticle.description}</p>
-
-              {/* Bottom actions including Close button */}
-              <div className="pt-4 border-t border-neural-200 flex justify-end">
-                <button onClick={() => setShowArticleModal(false)} className="px-4 py-2 bg-neural-100 hover:bg-neural-200 border border-neural-200 rounded-xl text-sm text-neural-700">
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Available Agents Section */}
-      <section className="py-12 border-t border-neural-200">
-        <div className="container-custom">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center text-white">
-              <MessageSquare className="w-5 h-5" />
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-neural-900">Available Agents</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {availableAgents.map((agent) => (
-              <div key={agent.id} className="group bg-white rounded-2xl border border-neural-200 shadow-lg hover:shadow-xl hover:border-blue-300 p-6 transition-all">
-                <div className="text-5xl mb-4 bg-gradient-to-br from-blue-100 to-indigo-100 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">{agent.emoji}</div>
-                <h3 className="text-xl font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition">{agent.name}</h3>
-                <p className="text-neural-600 text-sm mb-6">{agent.description}</p>
-                <div className="flex gap-2">
-                  <Link href={agent.path} className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-xl font-semibold text-center transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-blue-500/25">
-                    <MessageSquare className="w-4 h-4" />
-                    Launch Agent
-                  </Link>
-                  <button onClick={() => {
-                    setSelectedAgent(agent)
-                    setShowAgentDetails(true)
-                  }} className="bg-neural-100 hover:bg-neural-200 border border-neural-200 px-4 py-2 rounded-xl transition flex items-center justify-center text-neural-700">
-                    <Info className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Coming Soon Agents Section */}
-      <section className="py-12 bg-white border-t border-neural-200">
-        <div className="container-custom">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white">
-              <Zap className="w-5 h-5" />
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-neural-900">Coming Soon Agents</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {comingSoonAgents.map((agent) => (
-              <div key={agent.id} className="group bg-gradient-to-br from-neural-50 to-white border border-neural-200 hover:border-purple-300 rounded-2xl p-6 transition-all hover:shadow-lg opacity-80 hover:opacity-100">
-                <div className="text-5xl mb-4 bg-gradient-to-br from-purple-100 to-pink-100 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">{agent.emoji}</div>
-                <h3 className="text-xl font-bold text-neural-900 mb-2 group-hover:text-purple-600 transition">{agent.name}</h3>
-                <p className="text-neural-600 text-sm mb-6">{agent.description}</p>
-                <div className="flex gap-2">
-                  <button className="flex-1 bg-purple-100 text-purple-600 px-4 py-2 rounded-xl font-semibold text-center cursor-not-allowed opacity-75 text-sm border border-purple-200">
-                    Available Soon
-                  </button>
-                  <button onClick={() => {
-                    setSelectedAgent(agent)
-                    setShowAgentDetails(true)
-                  }} className="bg-neural-100 hover:bg-neural-200 border border-neural-200 px-4 py-2 rounded-xl transition flex items-center justify-center text-neural-700">
-                    <Info className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Agent Details Modal (floating with internal scroll) */}
-      {showAgentDetails && selectedAgent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAgentDetails(false)} />
-
-          {/* Modal */}
-          <div className="relative bg-white border border-neural-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
-            {/* Header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-neural-200 bg-white/95 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <div className="text-4xl bg-gradient-to-br from-blue-100 to-indigo-100 w-14 h-14 rounded-xl flex items-center justify-center">{selectedAgent.emoji}</div>
-                <div>
-                  <h2 className="text-xl font-bold text-neural-900">{selectedAgent.name}</h2>
-                  <p className="text-neural-500 text-sm">{selectedAgent.description}</p>
-                </div>
-              </div>
-              <button aria-label="Close" onClick={() => setShowAgentDetails(false)} className="px-3 py-2 rounded-xl bg-neural-100 hover:bg-neural-200 border border-neural-200 text-sm text-neural-700">
-                Close
-              </button>
-            </div>
-
-            {/* Scrollable Content */}
-            <div className="px-6 py-5 space-y-6 overflow-y-auto max-h-[calc(85vh-64px)]">
-              {/* Specialties */}
-              {selectedAgent.specialties?.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-neural-900 mb-2">Specialties</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedAgent.specialties.map((s: string, idx: number) => (
-                      <span key={idx} className="text-xs bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-full text-blue-700">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* How they work / Details */}
-              {selectedAgent.details?.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-neural-900 mb-3">How this agent works</h3>
-                  <div className="space-y-4">
-                    {selectedAgent.details.map((section: any, idx: number) => (
-                      <div key={idx} className="bg-neural-50 border border-neural-200 rounded-xl p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xl" aria-hidden>{section.icon}</span>
-                          <h4 className="font-semibold text-neural-900">{section.title}</h4>
-                        </div>
-                        {section.items?.length ? (
-                          <ul className="list-disc list-inside text-neural-600 space-y-1">
-                            {section.items.map((item: string, i: number) => (
-                              <li key={i}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-neural-600">{section.content}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Getting Started */}
-              <div>
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">
-                  {selectedAgent.path ? 'How to Get Started' : 'Coming Soon'}
-                </h3>
-                {selectedAgent.path ? (
-                  <>
-                    <ol className="list-decimal list-inside text-neural-600 space-y-1">
-                      <li>Open the agent and try a conversation using the Launch button.</li>
-                      <li>Create an account or sign in when prompted.</li>
-                      <li>Choose a subscription to unlock full features. You can manage or cancel anytime.</li>
-                    </ol>
-                    <div className="mt-3 flex gap-3">
-                      <Link href="/pricing" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/25">View Plans</Link>
-                      <Link href={selectedAgent.path} className="px-4 py-2 bg-neural-100 hover:bg-neural-200 border border-neural-200 rounded-xl text-sm text-neural-700">Launch Agent</Link>
-                    </div>
-                    <p className="text-amber-600 text-sm mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">💡 Pro tip: Our lowest subscription is just $1 — test an agent before committing to a larger plan.</p>
-                  </>
-                ) : (
-                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                    <p className="text-purple-700 mb-3">
-                      This agent is currently in development and will be available soon! Stay tuned for updates.
-                    </p>
-                    <div className="flex gap-3">
-                      <Link href="/pricing" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-purple-500/25">View Current Plans</Link>
-                      <Link href="/agents" className="px-4 py-2 bg-neural-100 hover:bg-neural-200 border border-neural-200 rounded-xl text-sm text-neural-700">Browse Available Agents</Link>
-                    </div>
-                    <p className="text-purple-600 text-sm mt-3">🔔 Sign up for our newsletter to be notified when new agents launch!</p>
-                  </div>
-                )}
+                
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                  Never Miss an Update
+                </h2>
+                
+                <p className="text-gray-400 mb-8">
+                  Subscribe to our newsletter and stay ahead with the latest news and announcements.
+                </p>
+                
+                <Link
+                  href="/subscribe"
+                  className="inline-flex items-center px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-lg hover:shadow-2xl hover:shadow-amber-500/25 transition-all hover:scale-105"
+                >
+                  Subscribe Now
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Newsletter Section */}
-      <section className="py-12 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
-        <div className="container-custom max-w-2xl mx-auto text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
-            <span className="text-2xl">📧</span>
-          </div>
-          <h2 className="text-3xl font-bold mb-4 text-white">Stay Updated</h2>
-          <p className="text-white/90 mb-6">
-            Subscribe to our newsletter to get the latest news, product updates, and industry insights delivered directly to your inbox.
-          </p>
-          <div className="flex gap-3">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 bg-white border border-neural-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-neural-900 placeholder-gray-500"
-            />
-            <button className="px-6 py-3 bg-white hover:bg-gray-100 text-blue-600 rounded-xl font-semibold transition shadow-lg">
-              Subscribe
-            </button>
-          </div>
-          <p className="text-white/70 text-sm mt-3">No spam, just quality news and updates.</p>
-        </div>
-      </section>
-
-      {/* Related Links */}
-      <section className="py-12">
-        <div className="container-custom max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-neural-900">Explore More</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link href="/resources/blog" className="group bg-white border border-neural-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
-              <div className="text-3xl mb-3 bg-gradient-to-br from-blue-100 to-indigo-100 w-12 h-12 rounded-xl flex items-center justify-center">📖</div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition">Read Blog Articles</h3>
-              <p className="text-neural-600 text-sm mb-4">Explore in-depth articles on AI, agents, and technology trends.</p>
-              <div className="flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform">
-                Read Blog
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </div>
-            </Link>
-
-            <Link href="/community" className="group bg-white border border-neural-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
-              <div className="text-3xl mb-3 bg-gradient-to-br from-purple-100 to-pink-100 w-12 h-12 rounded-xl flex items-center justify-center">👥</div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition">Join Community</h3>
-              <p className="text-neural-600 text-sm mb-4">Connect with other users and share insights with the community.</p>
-              <div className="flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform">
-                Go to Community
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </div>
-            </Link>
-
-            <Link href="/resources/documentation" className="group bg-white border border-neural-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
-              <div className="text-3xl mb-3 bg-gradient-to-br from-green-100 to-emerald-100 w-12 h-12 rounded-xl flex items-center justify-center">📚</div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition">View Documentation</h3>
-              <p className="text-neural-600 text-sm mb-4">Check out our comprehensive documentation and guides.</p>
-              <div className="flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform">
-                Read Docs
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
-  )
+  );
 }

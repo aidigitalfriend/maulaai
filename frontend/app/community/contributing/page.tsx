@@ -1,205 +1,293 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { Heart, MessageCircle, Users, TrendingUp, Award, Zap, BookOpen, Share2, CheckCircle, ArrowRight, Star } from 'lucide-react'
+import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
+
 
 export default function ContributingPage() {
-  const [likedContributions, setLikedContributions] = useState<Set<string>>(new Set())
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
+  const [likedContributions, setLikedContributions] = useState<Set<string>>(new Set());
 
   const toggleLike = (id: string) => {
-    const newLiked = new Set(likedContributions)
-    if (newLiked.has(id)) {
-      newLiked.delete(id)
-    } else {
-      newLiked.add(id)
-    }
-    setLikedContributions(newLiked)
-  }
+    const newLiked = new Set(likedContributions);
+    if (newLiked.has(id)) { newLiked.delete(id); } else { newLiked.add(id); }
+    setLikedContributions(newLiked);
+  };
+
+  const stats = [
+    { value: '15K+', label: 'Active Contributors' },
+    { value: '2.5K+', label: 'Discussions' },
+    { value: '5.2K+', label: 'Posts This Month' },
+    { value: '89%', label: 'Community Satisfaction' }
+  ];
 
   const contributionTypes = [
-    {
-      id: 'ideas',
-      title: '💡 Share Ideas & Feedback',
-      description: 'Have suggestions for new features or improvements? Share your ideas in the Ideas & Suggestions category.',
-      details: [
-        'Propose new agent features',
-        'Suggest platform improvements',
-        'Vote on community ideas',
-        'Discuss feasibility and impact'
-      ],
-      category: 'ideas',
-      impact: 'High'
-    },
-    {
-      id: 'help',
-      title: '🤝 Help Other Community Members',
-      description: 'Answer questions and help fellow users in the Help & Support category.',
-      details: [
-        'Share solutions to common problems',
-        'Provide tips and workarounds',
-        'Share your best practices',
-        'Mentor newer members'
-      ],
-      category: 'help',
-      impact: 'High'
-    },
-    {
-      id: 'success',
-      title: '🎯 Share Success Stories',
-      description: 'Post about your successful agent implementations and use cases in the Agents & Features category.',
-      details: [
-        'Share project outcomes',
-        'Discuss integration experiences',
-        'Showcase innovative applications',
-        'Inspire other community members'
-      ],
-      category: 'agents',
-      impact: 'Medium'
-    },
-    {
-      id: 'engage',
-      title: '💬 Engage in Discussions',
-      description: 'Participate in General discussions about AI, agents, and technology trends.',
-      details: [
-        'Share industry insights',
-        'Discuss emerging technologies',
-        'Network with other members',
-        'Contribute to knowledge sharing'
-      ],
-      category: 'general',
-      impact: 'Medium'
-    },
-    {
-      id: 'create',
-      title: '✍️ Create Content',
-      description: 'Write guides, tutorials, or case studies based on your experience with One Last AI.',
-      details: [
-        'Write how-to guides',
-        'Document best practices',
-        'Create case studies',
-        'Share learning experiences'
-      ],
-      category: 'general',
-      impact: 'Very High'
-    },
-    {
-      id: 'report',
-      title: '🐛 Report Issues & Bugs',
-      description: 'Help improve the platform by reporting bugs and technical issues you encounter.',
-      details: [
-        'Document bugs clearly',
-        'Provide reproduction steps',
-        'Suggest improvements',
-        'Help with troubleshooting'
-      ],
-      category: 'help',
-      impact: 'High'
-    }
-  ]
+    { id: 'ideas', title: '💡 Share Ideas & Feedback', description: 'Have suggestions for new features or improvements? Share your ideas.', details: ['Propose new agent features', 'Suggest platform improvements', 'Vote on community ideas', 'Discuss feasibility and impact'], impact: 'High', color: 'from-amber-500 to-orange-500' },
+    { id: 'help', title: '🤝 Help Other Members', description: 'Answer questions and help fellow users in the community.', details: ['Share solutions to problems', 'Provide tips and workarounds', 'Share your best practices', 'Mentor newer members'], impact: 'High', color: 'from-green-500 to-emerald-500' },
+    { id: 'success', title: '🎯 Share Success Stories', description: 'Post about your successful agent implementations and use cases.', details: ['Share project outcomes', 'Discuss integration experiences', 'Showcase innovative apps', 'Inspire other members'], impact: 'Medium', color: 'from-blue-500 to-cyan-500' },
+    { id: 'engage', title: '💬 Engage in Discussions', description: 'Participate in discussions about AI, agents, and technology trends.', details: ['Share industry insights', 'Discuss emerging technologies', 'Network with members', 'Knowledge sharing'], impact: 'Medium', color: 'from-purple-500 to-pink-500' },
+    { id: 'create', title: '✍️ Create Content', description: 'Write guides, tutorials, or case studies based on your experience.', details: ['Write how-to guides', 'Document best practices', 'Create case studies', 'Share learnings'], impact: 'Very High', color: 'from-pink-500 to-rose-500' },
+    { id: 'report', title: '🐛 Report Issues & Bugs', description: 'Help improve the platform by reporting bugs and technical issues.', details: ['Document bugs clearly', 'Provide reproduction steps', 'Suggest improvements', 'Help troubleshooting'], impact: 'High', color: 'from-red-500 to-orange-500' }
+  ];
+
+  const recognitionLevels = [
+    { level: 'Bronze', icon: '🥉', requirement: '10+ contributions', perks: ['Community badge', 'Discord role'] },
+    { level: 'Silver', icon: '🥈', requirement: '50+ contributions', perks: ['Featured profile', 'Early access'] },
+    { level: 'Gold', icon: '🥇', requirement: '100+ contributions', perks: ['Direct team access', 'Special events'] },
+    { level: 'Diamond', icon: '💎', requirement: '500+ contributions', perks: ['Advisory board', 'Exclusive swag'] }
+  ];
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero Animation
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSub = new SplitText('.hero-subtitle', { type: 'words' });
+      gsap.set(heroTitle.chars, { y: 100, opacity: 0, rotateX: -90, scale: 0.9 });
+      gsap.set(heroSub.words, { y: 40, opacity: 0 });
+      gsap.set('.hero-icon', { scale: 0, rotation: -360 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-icon', { scale: 1, rotation: 0, duration: 1.3, ease: 'elastic.out(1, 0.5)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, scale: 1, duration: 0.7, stagger: 0.015 }, '-=0.9')
+        .to(heroSub.words, { y: 0, opacity: 1, duration: 0.5, stagger: 0.02 }, '-=0.4');
+
+      // 2. ScrambleText on stats
+      gsap.utils.toArray<HTMLElement>('.stat-value').forEach((el, i) => {
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 85%',
+          onEnter: () => {
+            gsap.to(el, {
+              duration: 1.5,
+              scrambleText: { text: el.dataset.value || el.innerText, chars: '0123456789+%K.', speed: 0.5 },
+            });
+          },
+          once: true
+        });
+      });
+
+      // 3. ScrollTrigger for stat cards
+      gsap.set('.stat-card', { y: 60, opacity: 0, scale: 0.9 });
+      ScrollTrigger.batch('.stat-card', {
+        start: 'top 85%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.08, ease: 'back.out(1.5)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 60, opacity: 0, scale: 0.9, duration: 0.3 })
+      });
+
+      // 4. Flip animation for contribution cards
+      gsap.set('.contrib-card', { opacity: 0, y: 80, rotateY: -20 });
+      ScrollTrigger.batch('.contrib-card', {
+        start: 'top 80%',
+        onEnter: (batch) => {
+          batch.forEach((el, i) => {
+            const state = Flip.getState(el);
+            gsap.set(el, { opacity: 1, y: 0, rotateY: 0 });
+            Flip.from(state, { duration: 0.6, delay: i * 0.08, ease: 'power2.out' });
+          });
+        }
+      });
+
+      // 5. Observer for parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.2, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.18, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-3', { y: scrollY * 0.12, x: scrollY * 0.05, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting element
+      gsap.to('.orbit-element', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 50, y: -30 }, { x: 100, y: 0 }, { x: 50, y: 30 }, { x: 0, y: 0 }],
+          curviness: 2,
+        },
+        duration: 9,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on like buttons
+      gsap.utils.toArray<HTMLElement>('.like-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          gsap.to(btn, { scale: 1.3, rotation: 15, duration: 0.3, ease: 'contribWiggle' });
+          gsap.to(btn, { scale: 1, rotation: 0, duration: 0.3, delay: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for timeline connector
+      gsap.set('.timeline-line', { drawSVG: '0%' });
+      ScrollTrigger.create({
+        trigger: '.recognition-section',
+        start: 'top 70%',
+        onEnter: () => gsap.to('.timeline-line', { drawSVG: '100%', duration: 1.5, ease: 'power2.inOut' })
+      });
+
+      // 9. Recognition cards stagger
+      gsap.set('.recognition-card', { y: 50, opacity: 0, scale: 0.9 });
+      ScrollTrigger.batch('.recognition-card', {
+        start: 'top 85%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.4)' })
+      });
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.float-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-60, 60)`,
+          y: `random(-50, 50)`,
+          rotation: `random(-120, 120)`,
+          duration: `random(5, 9)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.2
+        });
+      });
+
+      // 11. Draggable contribution cards
+      if (cardsContainerRef.current) {
+        Draggable.create('.draggable-contrib', {
+          type: 'x,y',
+          bounds: cardsContainerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.6)' });
+          }
+        });
+      }
+
+      // 12. Impact badges pulse animation
+      gsap.utils.toArray<HTMLElement>('.impact-badge').forEach((badge, i) => {
+        gsap.to(badge, {
+          scale: 1.1,
+          duration: 1,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.2
+        });
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const handleCardHover = (e: React.MouseEvent, entering: boolean) => {
+    const card = e.currentTarget;
+    gsap.to(card, { y: entering ? -8 : 0, scale: entering ? 1.02 : 1, duration: 0.3 });
+    gsap.to(card.querySelector('.card-glow'), { opacity: entering ? 0.15 : 0, duration: 0.3 });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <section className="py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="contrib-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#contrib-pattern)" />
-          </svg>
-        </div>
-        <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-            <Heart className="w-8 h-8" />
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-green-500/15 rounded-full blur-[150px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-cyan-500/15 rounded-full blur-[120px]" />
+        <div className="parallax-orb-3 absolute top-1/2 right-1/5 w-[300px] h-[300px] bg-amber-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'linear-gradient(rgba(34, 197, 94, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px)',
+          backgroundSize: '80px 80px'
+        }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="float-particle absolute w-1.5 h-1.5 bg-green-400/30 rounded-full" style={{ left: `${10 + i * 8}%`, top: `${15 + (i % 4) * 18}%` }} />
+        ))}
+        <div className="orbit-element absolute top-32 right-1/3 w-2 h-2 bg-cyan-400/60 rounded-full" />
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative z-10 pt-24 pb-16 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="hero-icon inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-500/20 to-cyan-500/20 backdrop-blur-sm rounded-3xl border border-green-500/30 mb-8 shadow-2xl shadow-green-500/20">
+            <span className="text-5xl">❤️</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Contributing to One Last AI</h1>
-          <p className="text-xl text-white/90 mb-4">Help us build a thriving community of AI enthusiasts and innovators</p>
-          <p className="text-lg text-white/75">Every contribution matters. Help shape the future of One Last AI.</p>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <span className="hero-title bg-gradient-to-r from-green-400 via-cyan-400 to-green-400 bg-clip-text text-transparent">Contributing to Maula AI</span>
+          </h1>
+          <p className="hero-subtitle text-xl md:text-2xl text-gray-400 mb-4">Help us build a thriving community of AI enthusiasts and innovators</p>
+          <p className="text-gray-500 text-lg">Every contribution matters. Help shape the future of Maula AI.</p>
         </div>
       </section>
 
-      {/* Quick Stats */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom max-w-5xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-2">15K+</div>
-              <p className="text-neural-600">Active Contributors</p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent mb-2">2.5K+</div>
-              <p className="text-neural-600">Discussions</p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent mb-2">5.2K+</div>
-              <p className="text-neural-600">Posts This Month</p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
-              <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent mb-2">89%</div>
-              <p className="text-neural-600">Community Satisfaction</p>
-            </div>
+      {/* Stats Section */}
+      <section className="relative z-10 py-12 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.map((s, idx) => (
+              <div key={idx} className="stat-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center group">
+                <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-green-500/30 rounded-tr-lg" />
+                <div className="stat-value text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent" data-value={s.value}>
+                  {s.value}
+                </div>
+                <p className="text-gray-400 text-sm mt-2">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Contribution Types */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom max-w-5xl">
-          <div className="mb-10">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl mb-3">
-              <Star className="w-6 h-6 text-white" />
+      <section ref={cardsContainerRef} className="relative z-10 py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-green-500 to-cyan-500 rounded-xl mb-4 shadow-lg">
+              <span className="text-2xl">⭐</span>
             </div>
-            <h2 className="text-3xl font-bold text-neural-900 mb-2">Ways to Contribute</h2>
-            <p className="text-neural-600">Choose how you'd like to contribute to One Last AI</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Ways to Contribute</h2>
+            <p className="text-gray-400 text-lg">Choose how you'd like to contribute to Maula AI</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {contributionTypes.map((contribution) => (
+          <div className="grid md:grid-cols-2 gap-6">
+            {contributionTypes.map((contrib) => (
               <div
-                key={contribution.id}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-blue-300 hover:shadow-xl transition-all group"
+                key={contrib.id}
+                className="contrib-card draggable-contrib relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm group hover:border-green-500/50 transition-colors cursor-grab"
+                onMouseEnter={(e) => handleCardHover(e, true)}
+                onMouseLeave={(e) => handleCardHover(e, false)}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-neural-900 mb-2">{contribution.title}</h3>
-                    <p className="text-neural-600 text-sm">{contribution.description}</p>
-                  </div>
-                  <button
-                    onClick={() => toggleLike(contribution.id)}
-                    className="text-neural-400 hover:text-pink-500 transition-colors"
-                  >
-                    <Heart
-                      className="w-5 h-5"
-                      fill={likedContributions.has(contribution.id) ? 'currentColor' : 'none'}
-                    />
-                  </button>
-                </div>
+                <div className={`card-glow absolute inset-0 bg-gradient-to-br ${contrib.color} rounded-2xl opacity-0`} />
+                <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-green-500/30 rounded-tr-lg" />
 
-                <div className="space-y-2 mb-4">
-                  {contribution.details.map((detail, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-neural-600 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span>{detail}</span>
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2">{contrib.title}</h3>
+                      <p className="text-gray-400 text-sm">{contrib.description}</p>
                     </div>
-                  ))}
-                </div>
+                    <button
+                      onClick={() => toggleLike(contrib.id)}
+                      className={`like-btn text-2xl transition-colors ${likedContributions.has(contrib.id) ? 'text-pink-400' : 'text-gray-500 hover:text-pink-400'}`}
+                    >
+                      {likedContributions.has(contrib.id) ? '❤️' : '🤍'}
+                    </button>
+                  </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-neural-100">
-                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full text-xs text-blue-700 font-medium">
-                    <Zap className="w-3 h-3" />
-                    Impact: {contribution.impact}
-                  </span>
-                  <Link
-                    href="/community"
-                    className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all"
-                  >
-                    Go to Community <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="space-y-2 mb-4">
+                    {contrib.details.map((detail, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-gray-400 text-sm">
+                        <span className="text-green-400">✓</span>
+                        {detail}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+                    <span className={`impact-badge inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r ${contrib.color} rounded-full text-xs font-medium text-white`}>
+                      ⚡ Impact: {contrib.impact}
+                    </span>
+                    <Link href="/community" className="text-green-400 hover:text-green-300 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                      Start Contributing →
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
@@ -207,282 +295,75 @@ export default function ContributingPage() {
         </div>
       </section>
 
-      {/* Guidelines */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom max-w-4xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">Community Contribution Guidelines</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white rounded-2xl p-8 border border-green-200 shadow-lg">
-              <h3 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                </span>
-                Do's
-              </h3>
-              <ul className="space-y-3 text-neural-700">
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>Be respectful and constructive in all interactions</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>Search existing discussions before posting</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>Provide clear, detailed information</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>Give credit and link to original sources</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>Use appropriate category for your post</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>Engage positively with different viewpoints</span>
-                </li>
-              </ul>
+      {/* Recognition Section */}
+      <section className="recognition-section relative z-10 py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl mb-4 shadow-lg">
+              <span className="text-2xl">🏆</span>
             </div>
-
-            <div className="bg-white rounded-2xl p-8 border border-red-200 shadow-lg">
-              <h3 className="text-xl font-bold text-red-700 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-red-600" />
-                </span>
-                Don'ts
-              </h3>
-              <ul className="space-y-3 text-neural-700">
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Post spam or promotional content</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Share personal information or credentials</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Engage in harassment or bullying</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Cross-post the same content multiple times</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Use offensive language or hate speech</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Violate intellectual property rights</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contributor Recognition */}
-      <section className="py-16 md:py-20 bg-white/50">
-        <div className="container-custom max-w-4xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">Contributor Recognition</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Recognition Levels</h2>
+            <p className="text-gray-400 text-lg">Earn badges and perks as you contribute</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 text-center hover:shadow-xl hover:border-amber-300 transition-all">
-              <div className="text-5xl mb-3">🌟</div>
-              <h3 className="text-xl font-bold text-neural-900 mb-2">Featured Contributor</h3>
-              <p className="text-neural-600 text-sm mb-4">
-                Top contributors are featured on our community page and recognized monthly.
-              </p>
-              <div className="text-xs text-neural-500 bg-amber-50 rounded-full px-3 py-1 inline-block">Awarded after 10+ impactful contributions</div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 text-center hover:shadow-xl hover:border-purple-300 transition-all">
-              <div className="text-5xl mb-3">🎖️</div>
-              <h3 className="text-xl font-bold text-neural-900 mb-2">Community Badge</h3>
-              <p className="text-neural-600 text-sm mb-4">
-                Earn special badges in your profile for contributions to specific areas.
-              </p>
-              <div className="text-xs text-neural-500 bg-purple-50 rounded-full px-3 py-1 inline-block">Badges include Helper, Innovator, Mentor</div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 text-center hover:shadow-xl hover:border-blue-300 transition-all">
-              <div className="text-5xl mb-3">🏆</div>
-              <h3 className="text-xl font-bold text-neural-900 mb-2">Top Contributors</h3>
-              <p className="text-neural-600 text-sm mb-4">
-                Top community members get perks like early access and special features.
-              </p>
-              <div className="text-xs text-neural-500 bg-blue-50 rounded-full px-3 py-1 inline-block">Exclusive to top 1% of contributors</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Top Categories */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom max-w-4xl">
-          <div className="mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">Where to Contribute</h2>
-          </div>
-
-          <div className="space-y-4">
-            <Link
-              href="/community?category=ideas"
-              className="block bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-blue-300 hover:shadow-xl transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl">💡</div>
-                  <div>
-                    <h3 className="text-xl font-bold text-neural-900 mb-1">Ideas & Suggestions</h3>
-                    <p className="text-neural-600">Share feature ideas and vote on platform improvements</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-5 h-5 text-blue-500 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
-
-            <Link
-              href="/community?category=help"
-              className="block bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-green-300 hover:shadow-xl transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-2xl">❓</div>
-                  <div>
-                    <h3 className="text-xl font-bold text-neural-900 mb-1">Help & Support</h3>
-                    <p className="text-neural-600">Answer questions and help community members solve problems</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-5 h-5 text-green-500 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
-
-            <Link
-              href="/community?category=agents"
-              className="block bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-purple-300 hover:shadow-xl transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl">🤖</div>
-                  <div>
-                    <h3 className="text-xl font-bold text-neural-900 mb-1">Agents & Features</h3>
-                    <p className="text-neural-600">Share success stories and discuss agent implementations</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-5 h-5 text-purple-500 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
-
-            <Link
-              href="/community"
-              className="block bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-pink-300 hover:shadow-xl transition-all group"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center text-2xl">🌍</div>
-                  <div>
-                    <h3 className="text-xl font-bold text-neural-900 mb-1">General Discussion</h3>
-                    <p className="text-neural-600">Chat about AI, technology trends, and industry insights</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-5 h-5 text-pink-500 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Getting Started */}
-      <section className="py-20 md:py-28 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          {/* SVG Timeline Line */}
+          <svg className="absolute left-1/2 h-full w-1 opacity-30 hidden md:block" style={{ transform: 'translateX(-50%)', top: 0 }}>
+            <line className="timeline-line" x1="0" y1="0" x2="0" y2="100%" stroke="url(#timelineGrad)" strokeWidth="3" />
             <defs>
-              <pattern id="start-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
-              </pattern>
+              <linearGradient id="timelineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#22c55e" />
+                <stop offset="50%" stopColor="#06b6d4" />
+                <stop offset="100%" stopColor="#f59e0b" />
+              </linearGradient>
             </defs>
-            <rect width="100%" height="100%" fill="url(#start-pattern)" />
           </svg>
-        </div>
-        <div className="container-custom max-w-4xl text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-            <Users className="w-8 h-8" />
+
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {recognitionLevels.map((level, idx) => (
+              <div key={idx} className="recognition-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center group hover:border-amber-500/50 transition-colors">
+                <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-amber-500/30 rounded-tr-lg" />
+                <span className="text-5xl mb-4 block">{level.icon}</span>
+                <h3 className="text-xl font-bold text-white mb-2">{level.level}</h3>
+                <p className="text-gray-500 text-sm mb-4">{level.requirement}</p>
+                <ul className="space-y-2">
+                  {level.perks.map((perk, pIdx) => (
+                    <li key={pIdx} className="text-gray-400 text-sm flex items-center justify-center gap-2">
+                      <span className="text-amber-400">•</span>
+                      {perk}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-white/90 mb-8 text-lg max-w-xl mx-auto">
-            Join our community and start making an impact today. Your contributions help everyone in the One Last AI ecosystem.
-          </p>
-          <Link
-            href="/community"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl"
-          >
-            <Users className="w-5 h-5" />
-            Visit Community Page
-            <ArrowRight className="w-5 h-5" />
-          </Link>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-16 md:py-20">
-        <div className="container-custom max-w-3xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-neural-900">Frequently Asked Questions</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: Do I need special skills to contribute?</h3>
-              <p className="text-neural-600">
-                No! Everyone can contribute. Whether you're a beginner or expert, there are ways to help. Share your experiences,
-                ask questions, or help others learn.
+      {/* Bottom CTA */}
+      <section className="relative z-10 py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative p-12 rounded-3xl bg-gradient-to-br from-green-900/40 to-cyan-900/40 border border-green-500/30 backdrop-blur-sm overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-cyan-500/10" />
+            <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-green-500/40 rounded-tr-lg" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/40 rounded-bl-lg" />
+            <div className="relative z-10">
+              <span className="text-6xl mb-6 block">🚀</span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Contribute?</h2>
+              <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
+                Start making an impact today. Every contribution helps shape the future of AI.
               </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: How often should I post?</h3>
-              <p className="text-neural-600">
-                Contribute at your own pace. Quality matters more than quantity. Post meaningful contributions whenever you have
-                something valuable to share.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: Can I get rewarded for contributions?</h3>
-              <p className="text-neural-600">
-                Yes! Active contributors earn badges, get featured on our page, and may qualify for perks like early access to new
-                features or premium benefits.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: What if I disagree with someone?</h3>
-              <p className="text-neural-600">
-                Respectful disagreement is encouraged! We value diverse perspectives. Engage constructively, focus on ideas rather
-                than people, and maintain professionalism.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: How do I report inappropriate content?</h3>
-              <p className="text-neural-600">
-                Use the report feature on any post or contact our moderation team through the Support page. We take community
-                safety seriously and respond to reports quickly.
-              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/community" className="px-8 py-4 bg-gradient-to-r from-green-500 to-cyan-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-green-500/25 transition-all transform hover:scale-105">
+                  Start Contributing →
+                </Link>
+                <Link href="/community/discord" className="px-8 py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl font-semibold hover:bg-gray-700/50 transition-all">
+                  Join Discord
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

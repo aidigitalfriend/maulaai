@@ -1,701 +1,551 @@
 'use client';
 
-import { useState } from 'react';
-import { X } from 'lucide-react';
-
-interface ArticleReference {
-  title: string;
-  content: string;
-  source: string;
-}
-
-interface ArticlePopupProps {
-  article: ArticleReference;
-  onClose: () => void;
-}
-
-function ArticlePopup({ article, onClose }: ArticlePopupProps) {
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] shadow-2xl border border-neural-200 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-neural-200 bg-neural-50">
-          <h3 className="text-xl font-bold text-neural-900">{article.title}</h3>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-neural-500 hover:text-neural-700"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          <div className="text-neural-700 whitespace-pre-line leading-relaxed">
-            {article.content}
-          </div>
-          <div className="pt-4 border-t border-neural-200">
-            <p className="text-sm text-blue-600 font-medium">
-              Source: {article.source}
-            </p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-neural-200 bg-neural-50">
-          <button
-            onClick={onClose}
-            className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { useEffect, useRef, useState } from 'react';
+import { gsap, ScrollTrigger, SplitText, ScrambleTextPlugin, Flip, Observer, CustomWiggle, CustomEase, DrawSVGPlugin, MotionPathPlugin, Draggable } from '@/lib/gsap';
+import Link from 'next/link';
+import { Shield, Lock, Eye, Database, UserCheck, Globe, Server, Key, ArrowLeft, ChevronDown, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function PrivacyPolicyPage() {
-  const [selectedArticle, setSelectedArticle] =
-    useState<ArticleReference | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
-  const articles: Record<string, ArticleReference> = {
-    gdpr: {
-      title: 'GDPR (General Data Protection Regulation)',
-      content: `The General Data Protection Regulation (EU) 2016/679 is a regulation in EU law on data protection and privacy in the European Union and the European Economic Area. It also addresses the transfer of personal data outside the EU and EEA areas.
-
-Key Principles:
-• Lawfulness, fairness and transparency
-• Purpose limitation
-• Data minimisation
-• Accuracy
-• Storage limitation
-• Integrity and confidentiality
-• Accountability
-
-Rights of Data Subjects:
-• Right to access
-• Right to rectification
-• Right to erasure ("right to be forgotten")
-• Right to restriction of processing
-• Right to data portability
-• Right to object
-• Rights related to automated decision making and profiling`,
-      source: 'Regulation (EU) 2016/679 of the European Parliament',
+  const sections = [
+    {
+      id: 'data-collection',
+      icon: Database,
+      title: 'Information We Collect',
+      color: 'cyan',
+      content: [
+        {
+          subtitle: 'Personal Information',
+          text: 'When you create an account, we collect your name, email address, and payment information. This is essential for providing our AI agent services and processing transactions.'
+        },
+        {
+          subtitle: 'Usage Data',
+          text: 'We automatically collect information about how you interact with our platform, including pages visited, features used, and time spent on various sections.'
+        },
+        {
+          subtitle: 'Device Information',
+          text: 'We collect device identifiers, browser type, operating system, and IP address to ensure security and optimize your experience.'
+        },
+        {
+          subtitle: 'AI Interaction Data',
+          text: 'Conversations with our AI agents may be stored to improve service quality, train our models, and provide personalized experiences.'
+        }
+      ]
     },
-    ccpa: {
-      title: 'CCPA (California Consumer Privacy Act)',
-      content: `The California Consumer Privacy Act of 2018 (CCPA) gives consumers more control over the personal information that businesses collect about them.
-
-Consumer Rights:
-• Right to know what personal information is collected
-• Right to know whether personal information is sold or disclosed
-• Right to say no to the sale of personal information
-• Right to access personal information
-• Right to equal service and price
-• Right to deletion of personal information
-
-Business Obligations:
-• Provide notice at collection
-• Honor consumer rights requests
-• Maintain reasonable security procedures
-• Update privacy policy annually`,
-      source: 'California Civil Code Section 1798.100-1798.199',
+    {
+      id: 'data-usage',
+      icon: Eye,
+      title: 'How We Use Your Data',
+      color: 'purple',
+      content: [
+        {
+          subtitle: 'Service Delivery',
+          text: 'Your data enables us to provide, maintain, and improve our AI agent services, including personalization and feature enhancements.'
+        },
+        {
+          subtitle: 'Communication',
+          text: 'We use your contact information to send important updates, security alerts, and optional marketing communications (with your consent).'
+        },
+        {
+          subtitle: 'Security & Fraud Prevention',
+          text: 'We analyze usage patterns to detect and prevent fraudulent activities, unauthorized access, and potential security threats.'
+        },
+        {
+          subtitle: 'Analytics & Improvement',
+          text: 'Aggregated, anonymized data helps us understand usage trends and improve our platform for all users.'
+        }
+      ]
     },
-    coppa: {
-      title: "COPPA (Children's Online Privacy Protection Act)",
-      content: `The Children's Online Privacy Protection Act (COPPA) is a United States federal law designed to protect the privacy of children under 13 years of age.
-
-Requirements:
-• Obtain verifiable parental consent before collecting personal information from children
-• Provide clear privacy policies
-• Limit collection to what is necessary
-• Protect confidentiality, security, and integrity of information
-• Delete information when no longer needed
-
-Our Compliance:
-One Last AI does not knowingly collect information from children under 13. Our services are intended for users 18 years and older.`,
-      source: '15 U.S.C. §§ 6501–6506',
+    {
+      id: 'data-sharing',
+      icon: Globe,
+      title: 'Information Sharing',
+      color: 'amber',
+      content: [
+        {
+          subtitle: 'Service Providers',
+          text: 'We share data with trusted third-party providers who assist in payment processing, hosting, analytics, and customer support—under strict confidentiality agreements.'
+        },
+        {
+          subtitle: 'Legal Requirements',
+          text: 'We may disclose information when required by law, court order, or to protect our rights, users, or public safety.'
+        },
+        {
+          subtitle: 'Business Transfers',
+          text: 'In the event of a merger, acquisition, or sale, user data may be transferred as part of the business assets.'
+        },
+        {
+          subtitle: 'With Your Consent',
+          text: 'We will share your information with third parties when you explicitly authorize us to do so.'
+        }
+      ]
     },
+    {
+      id: 'data-security',
+      icon: Lock,
+      title: 'Data Security',
+      color: 'emerald',
+      content: [
+        {
+          subtitle: 'Encryption',
+          text: 'All data is encrypted in transit using TLS 1.3 and at rest using AES-256 encryption. Your information is protected at every stage.'
+        },
+        {
+          subtitle: 'Access Controls',
+          text: 'We implement strict role-based access controls, ensuring only authorized personnel can access user data, with full audit logging.'
+        },
+        {
+          subtitle: 'Regular Audits',
+          text: 'Our security practices undergo regular third-party audits and penetration testing to identify and address vulnerabilities.'
+        },
+        {
+          subtitle: 'Incident Response',
+          text: 'We maintain a comprehensive incident response plan to quickly address any security events and notify affected users as required by law.'
+        }
+      ]
+    },
+    {
+      id: 'your-rights',
+      icon: UserCheck,
+      title: 'Your Rights',
+      color: 'rose',
+      content: [
+        {
+          subtitle: 'Access & Portability',
+          text: 'You can request a copy of all personal data we hold about you in a machine-readable format at any time.'
+        },
+        {
+          subtitle: 'Correction',
+          text: 'You have the right to correct any inaccurate personal information in your account or by contacting our support team.'
+        },
+        {
+          subtitle: 'Deletion',
+          text: 'You can request deletion of your account and associated data. We will comply within 30 days, subject to legal retention requirements.'
+        },
+        {
+          subtitle: 'Opt-Out',
+          text: 'You can opt out of marketing communications, AI training data usage, and certain analytics at any time through your account settings.'
+        }
+      ]
+    },
+    {
+      id: 'cookies',
+      icon: Key,
+      title: 'Cookies & Tracking',
+      color: 'blue',
+      content: [
+        {
+          subtitle: 'Essential Cookies',
+          text: 'Required for basic site functionality, authentication, and security. These cannot be disabled.'
+        },
+        {
+          subtitle: 'Analytics Cookies',
+          text: 'Help us understand how users interact with our platform. You can opt out through your browser settings or our cookie preferences.'
+        },
+        {
+          subtitle: 'Preference Cookies',
+          text: 'Remember your settings, language preferences, and customizations across sessions.'
+        },
+        {
+          subtitle: 'Marketing Cookies',
+          text: 'Used only with your consent to deliver relevant advertisements and measure campaign effectiveness.'
+        }
+      ]
+    },
+    {
+      id: 'international',
+      icon: Server,
+      title: 'International Transfers',
+      color: 'indigo',
+      content: [
+        {
+          subtitle: 'Data Locations',
+          text: 'Your data may be processed in the United States and other countries where our service providers operate.'
+        },
+        {
+          subtitle: 'Safeguards',
+          text: 'We use Standard Contractual Clauses (SCCs) and other approved mechanisms to ensure adequate protection for international data transfers.'
+        },
+        {
+          subtitle: 'EU/UK Users',
+          text: 'For users in the European Union and United Kingdom, we comply with GDPR requirements and maintain appropriate data transfer agreements.'
+        },
+        {
+          subtitle: 'California Residents',
+          text: 'California residents have additional rights under the CCPA, including the right to know what data is sold and to opt out of such sales.'
+        }
+      ]
+    }
+  ];
+
+  const toggleSection = (id: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // Register custom wiggle
+      CustomWiggle.create('privacyWiggle', { wiggles: 5, type: 'uniform' });
+
+      // Hero animations
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSubtitle = new SplitText('.hero-subtitle', { type: 'words' });
+
+      gsap.set(heroTitle.chars, { y: 80, opacity: 0, rotateX: -90 });
+      gsap.set(heroSubtitle.words, { y: 25, opacity: 0 });
+      gsap.set('.hero-shield', { scale: 0, rotate: -180 });
+      gsap.set('.hero-badge', { y: 30, opacity: 0 });
+      gsap.set('.hero-line', { scaleX: 0 });
+      gsap.set('.floating-lock', { y: -50, opacity: 0 });
+
+      const heroTl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+      heroTl
+        .to('.hero-shield', {
+          scale: 1,
+          rotate: 0,
+          duration: 1,
+          ease: 'back.out(1.7)'
+        })
+        .to('.floating-lock', {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          stagger: 0.1
+        }, '-=0.5')
+        .to(heroTitle.chars, {
+          y: 0,
+          opacity: 1,
+          rotateX: 0,
+          duration: 0.7,
+          stagger: 0.02
+        }, '-=0.4')
+        .to(heroSubtitle.words, {
+          y: 0,
+          opacity: 1,
+          duration: 0.4,
+          stagger: 0.02
+        }, '-=0.3')
+        .to('.hero-line', {
+          scaleX: 1,
+          duration: 0.8,
+          ease: 'power2.inOut'
+        }, '-=0.2')
+        .to('.hero-badge', {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'back.out(1.5)'
+        }, '-=0.4');
+
+      // Floating shield animation
+      gsap.to('.hero-shield', {
+        y: -10,
+        rotate: 5,
+        duration: 2.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        delay: 1.2
+      });
+
+      // Floating locks orbit
+      document.querySelectorAll('.floating-lock').forEach((lock, i) => {
+        gsap.to(lock, {
+          y: `random(-20, 20)`,
+          x: `random(-15, 15)`,
+          rotation: `random(-10, 10)`,
+          duration: `random(3, 5)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.3
+        });
+      });
+
+      // Section cards entrance
+      gsap.set('.section-card', { y: 60, opacity: 0 });
+      
+      ScrollTrigger.batch('.section-card', {
+        start: 'top 85%',
+        onEnter: (batch) => {
+          gsap.to(batch, {
+            y: 0,
+            opacity: 1,
+            duration: 0.7,
+            stagger: 0.1,
+            ease: 'power3.out'
+          });
+        }
+      });
+
+      // Section card hover effects
+      document.querySelectorAll('.section-card').forEach((card) => {
+        const icon = card.querySelector('.section-icon');
+        const chevron = card.querySelector('.section-chevron');
+
+        card.addEventListener('mouseenter', () => {
+          gsap.to(card, {
+            scale: 1.01,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+          gsap.to(icon, {
+            scale: 1.2,
+            rotate: 10,
+            duration: 0.3,
+            ease: 'back.out(2)'
+          });
+        });
+
+        card.addEventListener('mouseleave', () => {
+          gsap.to(card, {
+            scale: 1,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+          gsap.to(icon, {
+            scale: 1,
+            rotate: 0,
+            duration: 0.3,
+            ease: 'power2.out'
+          });
+        });
+      });
+
+      // Table of contents sticky animation
+      gsap.to('.toc-container', {
+        scrollTrigger: {
+          trigger: '.content-section',
+          start: 'top 100px',
+          end: 'bottom bottom',
+          pin: '.toc-container',
+          pinSpacing: false
+        }
+      });
+
+      // Gradient orbs
+      gsap.to('.gradient-orb-1', {
+        x: 60,
+        y: -30,
+        duration: 8,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+      gsap.to('.gradient-orb-2', {
+        x: -50,
+        y: 40,
+        duration: 10,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+      // Observer for scroll velocity
+      Observer.create({
+        target: containerRef.current,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const velocity = Math.min(Math.abs(self.velocityY) / 1500, 0.5);
+          gsap.to('.section-card', {
+            skewY: self.velocityY > 0 ? velocity : -velocity,
+            duration: 0.2
+          });
+        },
+        onStop: () => {
+          gsap.to('.section-card', {
+            skewY: 0,
+            duration: 0.4,
+            ease: 'elastic.out(1, 0.5)'
+          });
+        }
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const getColorClasses = (color: string) => {
+    const colors: Record<string, { bg: string; border: string; text: string; iconBg: string }> = {
+      cyan: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-400', iconBg: 'bg-cyan-500/20' },
+      purple: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400', iconBg: 'bg-purple-500/20' },
+      amber: { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', iconBg: 'bg-amber-500/20' },
+      emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', iconBg: 'bg-emerald-500/20' },
+      rose: { bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', iconBg: 'bg-rose-500/20' },
+      blue: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', iconBg: 'bg-blue-500/20' },
+      indigo: { bg: 'bg-indigo-500/10', border: 'border-indigo-500/30', text: 'text-indigo-400', iconBg: 'bg-indigo-500/20' },
+    };
+    return colors[color] || colors.cyan;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={containerRef} className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Background gradient orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="gradient-orb-1 absolute top-20 right-1/4 w-[500px] h-[500px] bg-cyan-500/8 rounded-full blur-3xl" />
+        <div className="gradient-orb-2 absolute bottom-40 left-1/4 w-[400px] h-[400px] bg-purple-500/8 rounded-full blur-3xl" />
+      </div>
+
       {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Privacy Policy</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto">
-            Last updated: November 6, 2025 • Effective Date: November 6, 2025
+      <section className="relative min-h-[60vh] flex items-center justify-center py-20 px-6">
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/20 via-black to-black" />
+        
+        {/* Floating locks */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(6)].map((_, i) => (
+            <Lock
+              key={i}
+              className={`floating-lock absolute w-6 h-6 text-cyan-400/30`}
+              style={{
+                left: `${15 + i * 15}%`,
+                top: `${25 + (i % 3) * 20}%`
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+          {/* Back button */}
+          <Link 
+            href="/legal" 
+            className="inline-flex items-center text-gray-400 hover:text-cyan-400 transition-colors mb-8"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Legal
+          </Link>
+
+          {/* Shield Icon */}
+          <div className="hero-shield mb-8 inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30">
+            <Shield className="w-12 h-12 text-cyan-400" />
+          </div>
+
+          <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-cyan-200 to-blue-200 bg-clip-text text-transparent">
+            Privacy Policy
+          </h1>
+          
+          <p className="hero-subtitle text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+            Your privacy is fundamental to us. This policy explains how we collect, use, and protect your personal information.
           </p>
+
+          <div className="hero-line w-32 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto mb-8 rounded-full" />
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <div className="hero-badge px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-sm">
+              Effective: January 15, 2026
+            </div>
+            <div className="hero-badge px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-sm">
+              GDPR & CCPA Compliant
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Content */}
-      <div className="container-custom section-padding max-w-5xl">
-        <div className="space-y-12">
-          {/* Introduction */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              1. Introduction
-            </h2>
-            <p className="text-neural-700 leading-relaxed mb-4">
-              Welcome to One Last AI ("we," "our," or "us"). We operate a global
-              multi-agent AI platform that provides specialized AI personalities
-              and services to users worldwide. This Privacy Policy explains how
-              we collect, use, disclose, and safeguard your information when you
-              use our platform at{' '}
-              <a
-                href="https://onelastai.co"
-                className="text-blue-600 hover:text-blue-700 underline"
+      {/* Content Section */}
+      <section className="content-section relative py-16 px-6">
+        <div className="max-w-5xl mx-auto">
+          {/* Quick Summary */}
+          <div className="mb-12 p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20">
+            <div className="flex items-start gap-4">
+              <CheckCircle className="w-6 h-6 text-cyan-400 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Quick Summary</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  We collect only the data necessary to provide our AI services. Your data is encrypted, never sold to third parties, and you have full control over it including the right to access, correct, or delete your information at any time.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sections */}
+          <div className="space-y-6">
+            {sections.map((section) => {
+              const IconComponent = section.icon;
+              const colors = getColorClasses(section.color);
+              const isExpanded = expandedSections.has(section.id);
+
+              return (
+                <div
+                  key={section.id}
+                  id={section.id}
+                  className="section-card"
+                >
+                  <button
+                    onClick={() => toggleSection(section.id)}
+                    className={`w-full p-6 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-gray-700 transition-all text-left`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`section-icon w-12 h-12 rounded-xl ${colors.iconBg} border ${colors.border} flex items-center justify-center`}>
+                          <IconComponent className={`w-6 h-6 ${colors.text}`} />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">{section.title}</h3>
+                      </div>
+                      <ChevronDown 
+                        className={`section-chevron w-6 h-6 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                      />
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-6 pt-6 border-t border-gray-800 space-y-6">
+                        {section.content.map((item, idx) => (
+                          <div key={idx} className="pl-16">
+                            <h4 className={`text-lg font-semibold ${colors.text} mb-2`}>
+                              {item.subtitle}
+                            </h4>
+                            <p className="text-gray-400 text-sm leading-relaxed">
+                              {item.text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Contact Section */}
+          <div className="mt-16 p-8 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800">
+            <h3 className="text-2xl font-bold text-white mb-4">Questions About Your Privacy?</h3>
+            <p className="text-gray-400 mb-6">
+              If you have any questions about this Privacy Policy or our data practices, please contact our Data Protection Officer.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="mailto:privacy@maula.ai"
+                className="inline-flex items-center px-6 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-medium hover:bg-cyan-500/30 transition-colors"
               >
-                onelastai.co
-              </a>
-              .
-            </p>
-            <p className="text-neural-700 leading-relaxed mb-4">
-              We are committed to protecting your privacy and complying with
-              applicable data protection laws globally, including:
-            </p>
-            <ul className="list-disc pl-6 text-neural-700 space-y-2">
-              <li>
-                <button
-                  onClick={() => setSelectedArticle(articles.gdpr)}
-                  className="text-blue-600 hover:text-blue-700 underline font-medium"
-                >
-                  GDPR (General Data Protection Regulation)
-                </button>{' '}
-                - European Union
-              </li>
-              <li>
-                <button
-                  onClick={() => setSelectedArticle(articles.ccpa)}
-                  className="text-blue-600 hover:text-blue-700 underline font-medium"
-                >
-                  CCPA (California Consumer Privacy Act)
-                </button>{' '}
-                - United States
-              </li>
-              <li>
-                <button
-                  onClick={() => setSelectedArticle(articles.coppa)}
-                  className="text-blue-600 hover:text-blue-700 underline font-medium"
-                >
-                  COPPA (Children's Online Privacy Protection Act)
-                </button>{' '}
-                - United States
-              </li>
-              <li>
-                PIPEDA (Personal Information Protection and Electronic Documents
-                Act) - Canada
-              </li>
-              <li>Privacy Act 1988 - Australia</li>
-              <li>LGPD (Lei Geral de Proteção de Dados) - Brazil</li>
-            </ul>
-            <p className="text-neural-500 mt-4 text-sm">
-              By using our services, you agree to the collection and use of
-              information in accordance with this policy.
-            </p>
-          </section>
-
-          {/* Information We Collect */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              2. Information We Collect
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  2.1 Personal Information
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  Information you provide directly:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>
-                    <strong className="text-neural-900">Account Information:</strong>{' '}
-                    Name, email address, username, password
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Profile Information:</strong>{' '}
-                    Company name, job title, profile picture
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Payment Information:</strong>{' '}
-                    Billing address, payment method details (processed securely)
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Communication Data:</strong>{' '}
-                    Support tickets, feedback, chat conversations with AI agents
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Content Data:</strong> Files,
-                    documents, prompts submitted to AI agents
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  2.2 Automatically Collected Information
-                </h3>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>
-                    <strong className="text-neural-900">Usage Data:</strong> Pages
-                    visited, features used, time spent, interaction patterns
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Device Information:</strong>{' '}
-                    IP address, browser type, operating system, device
-                    identifiers
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Location Data:</strong>{' '}
-                    Approximate geographic location based on IP address
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Cookies & Tracking:</strong>{' '}
-                    Session cookies, analytics cookies, preference cookies
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Performance Data:</strong>{' '}
-                    API response times, error logs, system diagnostics
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  2.3 AI Interaction Data
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  When you interact with our AI agents:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>Conversation history and context</li>
-                  <li>Prompts and queries submitted</li>
-                  <li>AI-generated responses</li>
-                  <li>Agent preferences and customizations</li>
-                  <li>Voice recordings (if voice features are used)</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* How We Use Your Information */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              3. How We Use Your Information
-            </h2>
-            <p className="text-neural-700 mb-4">
-              We use collected information for the following purposes:
-            </p>
-
-            <div className="space-y-4">
-              <div className="bg-neural-50 rounded-xl p-6 border border-neural-200">
-                <h3 className="text-lg font-semibold mb-2 text-blue-700">
-                  3.1 Service Delivery
-                </h3>
-                <ul className="list-disc pl-6 text-neural-700 space-y-1">
-                  <li>Provide access to AI agents and platform features</li>
-                  <li>Process your requests and transactions</li>
-                  <li>Maintain your account and preferences</li>
-                  <li>Deliver personalized AI interactions</li>
-                </ul>
-              </div>
-
-              <div className="bg-neural-50 rounded-xl p-6 border border-neural-200">
-                <h3 className="text-lg font-semibold mb-2 text-blue-700">
-                  3.2 Platform Improvement
-                </h3>
-                <ul className="list-disc pl-6 text-neural-700 space-y-1">
-                  <li>Analyze usage patterns to improve AI accuracy</li>
-                  <li>Train and enhance AI models (anonymized data only)</li>
-                  <li>Develop new features and services</li>
-                  <li>Optimize performance and user experience</li>
-                </ul>
-              </div>
-
-              <div className="bg-neural-50 rounded-xl p-6 border border-neural-200">
-                <h3 className="text-lg font-semibold mb-2 text-blue-700">
-                  3.3 Communication
-                </h3>
-                <ul className="list-disc pl-6 text-neural-700 space-y-1">
-                  <li>Send service updates and notifications</li>
-                  <li>Provide customer support</li>
-                  <li>Respond to inquiries and requests</li>
-                  <li>Send marketing communications (with consent)</li>
-                </ul>
-              </div>
-
-              <div className="bg-neural-50 rounded-xl p-6 border border-neural-200">
-                <h3 className="text-lg font-semibold mb-2 text-blue-700">
-                  3.4 Security & Compliance
-                </h3>
-                <ul className="list-disc pl-6 text-neural-700 space-y-1">
-                  <li>Detect and prevent fraud and abuse</li>
-                  <li>Enforce our Terms of Service</li>
-                  <li>Comply with legal obligations</li>
-                  <li>Protect user safety and platform integrity</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Data Sharing */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              4. Data Sharing and Disclosure
-            </h2>
-            <p className="text-neural-700 mb-4">
-              We do not sell your personal information. We may share data in the
-              following circumstances:
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-neural-900">
-                  4.1 Service Providers
-                </h3>
-                <p className="text-neural-700">
-                  Third-party vendors who assist with:
-                </p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-1 mt-2">
-                  <li>Payment processing (Stripe, PayPal)</li>
-                  <li>Cloud hosting (AWS, Google Cloud)</li>
-                  <li>Analytics (Google Analytics)</li>
-                  <li>Customer support tools</li>
-                  <li>Email delivery services</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-neural-900">
-                  4.2 Legal Requirements
-                </h3>
-                <p className="text-neural-700">When required by law or to:</p>
-                <ul className="list-disc pl-6 text-neural-700 space-y-1 mt-2">
-                  <li>Comply with legal process or government requests</li>
-                  <li>Enforce our Terms of Service</li>
-                  <li>Protect our rights, property, or safety</li>
-                  <li>Investigate potential violations</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-neural-900">
-                  4.3 Business Transfers
-                </h3>
-                <p className="text-neural-700">
-                  In the event of a merger, acquisition, or sale of assets, your
-                  information may be transferred. We will notify you of any such
-                  change.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-neural-900">
-                  4.4 With Your Consent
-                </h3>
-                <p className="text-neural-700">
-                  We may share information with third parties when you
-                  explicitly consent to such sharing.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Data Retention */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              5. Data Retention
-            </h2>
-            <p className="text-neural-700 mb-4">
-              We retain your information for as long as necessary to:
-            </p>
-            <ul className="list-disc pl-6 text-neural-700 space-y-2">
-              <li>Provide our services to you</li>
-              <li>Comply with legal obligations</li>
-              <li>Resolve disputes and enforce agreements</li>
-              <li>Improve our AI models (anonymized data)</li>
-            </ul>
-            <div className="mt-4 bg-blue-50 rounded-xl p-4 border border-blue-200">
-              <p className="text-neural-700">
-                <strong className="text-neural-900">Retention Periods:</strong>
-              </p>
-              <ul className="list-disc pl-6 text-neural-700 space-y-1 mt-2">
-                <li>
-                  Active accounts: Duration of account + 30 days after deletion
-                </li>
-                <li>
-                  Conversation history: 90 days (or until manual deletion)
-                </li>
-                <li>Payment records: 7 years (tax compliance)</li>
-                <li>Analytics data: 26 months</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* Your Rights */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              6. Your Privacy Rights
-            </h2>
-            <p className="text-neural-700 mb-4">
-              Depending on your location, you may have the following rights:
-            </p>
-
-            <div className="grid gap-4">
-              <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                <h3 className="font-semibold text-blue-700 mb-2">
-                  ✓ Right to Access
-                </h3>
-                <p className="text-neural-600 text-sm">
-                  Request a copy of your personal data
-                </p>
-              </div>
-              <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                <h3 className="font-semibold text-blue-700 mb-2">
-                  ✓ Right to Rectification
-                </h3>
-                <p className="text-neural-600 text-sm">
-                  Correct inaccurate or incomplete data
-                </p>
-              </div>
-              <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                <h3 className="font-semibold text-blue-700 mb-2">
-                  ✓ Right to Erasure
-                </h3>
-                <p className="text-neural-600 text-sm">
-                  Request deletion of your personal data
-                </p>
-              </div>
-              <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                <h3 className="font-semibold text-blue-700 mb-2">
-                  ✓ Right to Data Portability
-                </h3>
-                <p className="text-neural-600 text-sm">
-                  Receive your data in a structured, machine-readable format
-                </p>
-              </div>
-              <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                <h3 className="font-semibold text-blue-700 mb-2">
-                  ✓ Right to Object
-                </h3>
-                <p className="text-neural-600 text-sm">
-                  Object to processing of your personal data
-                </p>
-              </div>
-              <div className="bg-neural-50 rounded-xl p-4 border border-neural-200">
-                <h3 className="font-semibold text-blue-700 mb-2">
-                  ✓ Right to Withdraw Consent
-                </h3>
-                <p className="text-neural-600 text-sm">
-                  Withdraw consent for data processing at any time
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-blue-50 rounded-xl p-6 border border-blue-200">
-              <p className="text-neural-900 font-semibold mb-2">
-                How to Exercise Your Rights:
-              </p>
-              <p className="text-neural-700">
-                Email us at{' '}
-                <a
-                  href="mailto:privacy@onelastai.co"
-                  className="text-blue-600 hover:text-blue-700 underline"
-                >
-                  privacy@onelastai.co
-                </a>{' '}
-                or use the privacy controls in your account settings. We will
-                respond within 30 days.
-              </p>
-            </div>
-          </section>
-
-          {/* Security */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              7. Data Security
-            </h2>
-            <p className="text-neural-700 mb-4">
-              We implement industry-standard security measures to protect your
-              information:
-            </p>
-            <ul className="list-disc pl-6 text-neural-700 space-y-2">
-              <li>
-                <strong className="text-neural-900">Encryption:</strong> TLS/SSL
-                encryption for data in transit, AES-256 encryption for data at
-                rest
-              </li>
-              <li>
-                <strong className="text-neural-900">Access Controls:</strong>{' '}
-                Role-based access, multi-factor authentication
-              </li>
-              <li>
-                <strong className="text-neural-900">Monitoring:</strong> 24/7
-                security monitoring and intrusion detection
-              </li>
-              <li>
-                <strong className="text-neural-900">Regular Audits:</strong>{' '}
-                Third-party security assessments and penetration testing
-              </li>
-              <li>
-                <strong className="text-neural-900">Data Backup:</strong> Regular
-                encrypted backups with disaster recovery
-              </li>
-              <li>
-                <strong className="text-neural-900">Employee Training:</strong>{' '}
-                Security awareness and data protection training
-              </li>
-            </ul>
-            <p className="text-neural-500 mt-4 text-sm">
-              While we strive to protect your data, no method of transmission
-              over the Internet is 100% secure. We cannot guarantee absolute
-              security.
-            </p>
-          </section>
-
-          {/* International Transfers */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              8. International Data Transfers
-            </h2>
-            <p className="text-neural-700 mb-4">
-              As a global platform, we may transfer your data to countries
-              outside your residence. We ensure appropriate safeguards are in
-              place:
-            </p>
-            <ul className="list-disc pl-6 text-neural-700 space-y-2">
-              <li>
-                Standard Contractual Clauses (SCCs) approved by the European
-                Commission
-              </li>
-              <li>
-                Data Processing Agreements with all third-party processors
-              </li>
-              <li>Adequacy decisions where applicable</li>
-              <li>Binding Corporate Rules for intra-group transfers</li>
-            </ul>
-          </section>
-
-          {/* Children's Privacy */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              9. Children's Privacy
-            </h2>
-            <div className="bg-red-50 rounded-xl p-6 border border-red-200">
-              <p className="text-neural-700 mb-3">
-                <strong className="text-neural-900">Age Restriction:</strong> Our
-                services are NOT intended for individuals under 18 years of age.
-                We do not knowingly collect personal information from children
-                under 18.
-              </p>
-              <p className="text-neural-700">
-                If you are a parent or guardian and believe your child has
-                provided us with personal information, please contact us
-                immediately at{' '}
-                <a
-                  href="mailto:privacy@onelastai.co"
-                  className="text-blue-600 hover:text-blue-700 underline"
-                >
-                  privacy@onelastai.co
-                </a>
-                . We will delete such information promptly.
-              </p>
-            </div>
-          </section>
-
-          {/* Cookies */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              10. Cookies and Tracking
-            </h2>
-            <p className="text-neural-700 mb-4">
-              We use cookies and similar tracking technologies. For detailed
-              information, please see our{' '}
-              <a
-                href="/legal/cookie-policy"
-                className="text-blue-600 hover:text-blue-700 underline font-medium"
+                privacy@maula.ai
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center px-6 py-3 rounded-xl bg-gray-800 border border-gray-700 text-white font-medium hover:bg-gray-700 transition-colors"
               >
-                Cookie Policy
-              </a>
-              .
-            </p>
-          </section>
-
-          {/* Changes to Policy */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              11. Changes to This Policy
-            </h2>
-            <p className="text-neural-700">
-              We may update this Privacy Policy periodically. We will notify you
-              of significant changes via email or a prominent notice on our
-              platform. Continued use of our services after changes constitutes
-              acceptance of the updated policy.
-            </p>
-          </section>
-
-          {/* Contact */}
-          <section className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-8">
-            <h2 className="text-3xl font-bold mb-6 text-white">
-              12. Contact Us
-            </h2>
-            <div className="space-y-3 text-blue-100">
-              <p>
-                <strong className="text-white">Data Protection Officer:</strong>
-              </p>
-              <p>One Last AI Privacy Team</p>
-              <p>
-                Email:{' '}
-                <a
-                  href="mailto:privacy@onelastai.co"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  privacy@onelastai.co
-                </a>
-              </p>
-              <p>
-                Support:{' '}
-                <a
-                  href="mailto:support@onelastai.co"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  support@onelastai.co
-                </a>
-              </p>
-              <p>
-                Website:{' '}
-                <a
-                  href="https://onelastai.co"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  https://onelastai.co
-                </a>
-              </p>
-
-              <div className="mt-6 pt-6 border-t border-white/20">
-                <p className="text-sm text-blue-100">
-                  <strong className="text-white">EU Representative:</strong> For
-                  users in the European Union, you may contact our EU
-                  representative regarding data protection matters.
-                </p>
-              </div>
+                Contact Support
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Link>
             </div>
-          </section>
+          </div>
         </div>
-      </div>
-
-      {/* Article Popup */}
-      {selectedArticle && (
-        <ArticlePopup
-          article={selectedArticle}
-          onClose={() => setSelectedArticle(null)}
-        />
-      )}
+      </section>
     </div>
   );
 }

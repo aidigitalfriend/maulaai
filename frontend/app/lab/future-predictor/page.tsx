@@ -1,310 +1,332 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { TrendingUp, Zap, Target, Calendar, RefreshCw } from 'lucide-react'
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
+
+
+interface PredictionScenario {
+  title: string;
+  probability: number;
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  timeline: string;
+}
+
+interface PredictionResult {
+  topic: string;
+  timeframe: string;
+  scenarios: PredictionScenario[];
+  confidence: number;
+  keyFactors: string[];
+}
 
 export default function FuturePredictorPage() {
-  const [topic, setTopic] = useState('')
-  const [timeframe, setTimeframe] = useState('1-year')
-  const [isPredicting, setIsPredicting] = useState(false)
-  const [prediction, setPrediction] = useState<any>(null)
-  const [stats, setStats] = useState({ activeUsers: 0, totalPredictions: 0 })
-
-  // Fetch real-time stats
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch('/api/lab/future-prediction?stats=true')
-        if (response.ok) {
-          const data = await response.json()
-          setStats({
-            activeUsers: data.activeUsers || 0,
-            totalPredictions: data.totalPredictions || 0
-          })
-        }
-      } catch (error) {
-        console.error('Failed to fetch stats:', error)
-      }
-    }
-
-    fetchStats()
-    const interval = setInterval(fetchStats, 30000)
-    return () => clearInterval(interval)
-  }, [])
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [topic, setTopic] = useState('');
+  const [timeframe, setTimeframe] = useState('5years');
+  const [isPredicting, setIsPredicting] = useState(false);
+  const [prediction, setPrediction] = useState<PredictionResult | null>(null);
 
   const timeframes = [
-    { id: '6-months', label: '6 Months' },
-    { id: '1-year', label: '1 Year' },
-    { id: '3-years', label: '3 Years' },
-    { id: '5-years', label: '5 Years' },
-    { id: '10-years', label: '10 Years' }
-  ]
-
-  const exampleTopics = [
-    'AI in healthcare',
-    'Remote work trends',
-    'Electric vehicles adoption',
-    'Space exploration',
-    'Cryptocurrency regulation',
-    'Climate change solutions'
-  ]
+    { id: '1year', label: '1 Year' },
+    { id: '5years', label: '5 Years' },
+    { id: '10years', label: '10 Years' },
+    { id: '25years', label: '25 Years' },
+  ];
 
   const handlePredict = async () => {
-    if (!topic.trim()) {
-      alert('Please enter a topic to predict')
-      return
-    }
-    
-    setIsPredicting(true)
-    
+    if (!topic.trim()) return;
+    setIsPredicting(true);
+    setPrediction(null);
     try {
       const response = await fetch('/api/lab/future-prediction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic,
-          timeframe
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Prediction failed')
+        body: JSON.stringify({ topic, timeframe })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPrediction(data.prediction);
       }
-
-      const data = await response.json()
-      
-      // Format the prediction to match our UI
-      const formattedPrediction = {
-        confidence: data.prediction.confidence,
-        trend: data.prediction.trend === 'rising' ? 'Rising' : data.prediction.trend === 'falling' ? 'Falling' : 'Stable',
-        keyInsights: data.prediction.keyInsights,
-        scenarios: data.prediction.scenarios.map((s: any) => ({
-          type: s.name,
-          probability: s.probability,
-          description: s.description
-        })),
-        relatedTrends: data.prediction.relatedTrends
-      }
-      
-      setPrediction(formattedPrediction)
-    } catch (error) {
-      console.error('Prediction error:', error)
-      alert('Future prediction failed. Please try again.')
+    } catch (err) {
+      console.error('Prediction error:', err);
     } finally {
-      setIsPredicting(false)
+      setIsPredicting(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      gsap.set(heroTitle.chars, { y: 80, opacity: 0, rotateX: -45 });
+      gsap.set('.hero-badge', { y: -40, opacity: 0, scale: 0.8 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.5)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, duration: 0.55, stagger: 0.02 }, '-=0.3');
+
+      // 2. ScrambleText on confidence/probability
+      gsap.utils.toArray<HTMLElement>('.probability-text').forEach((el, i) => {
+        const originalText = el.textContent || '';
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 95%',
+          onEnter: () => {
+            gsap.to(el, { duration: 1, scrambleText: { text: originalText, chars: '0123456789%', speed: 0.4 }, delay: i * 0.1 });
+          }
+        });
+      });
+
+      // 3. ScrollTrigger batch for scenario cards
+      gsap.set('.scenario-card', { y: 50, opacity: 0, rotateY: -10 });
+      ScrollTrigger.batch('.scenario-card', {
+        start: 'top 90%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, rotateY: 0, duration: 0.5, stagger: 0.1, ease: 'back.out(1.2)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 50, opacity: 0, duration: 0.3 })
+      });
+
+      // 4. Flip for results panel
+      gsap.set('.prediction-panel', { opacity: 0, scale: 0.92 });
+
+      // 5. Observer parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.15, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.12, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-3', { y: scrollY * 0.08, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting crystal ball
+      gsap.to('.orbit-crystal', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 70, y: -40 }, { x: 140, y: 0 }, { x: 70, y: 40 }, { x: 0, y: 0 }],
+          curviness: 2,
+        },
+        duration: 18,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on predict button
+      gsap.utils.toArray<HTMLElement>('.predict-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { scale: 1.06, duration: 0.5, ease: 'futureWiggle' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { scale: 1, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for timeline lines
+      gsap.set('.timeline-line', { drawSVG: '0%' });
+      gsap.to('.timeline-line', { drawSVG: '100%', duration: 1.5, delay: 0.5, ease: 'power2.inOut' });
+
+      // 9. Draggable input card
+      if (window.innerWidth > 768) {
+        Draggable.create('.draggable-form', {
+          type: 'x,y',
+          bounds: containerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
+      }
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.future-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-45, 45)`,
+          y: `random(-40, 40)`,
+          duration: `random(6, 10)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.15
+        });
+      });
+
+      // 11. Timeframe button hover
+      gsap.utils.toArray<HTMLElement>('.timeframe-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { y: -3, boxShadow: '0 8px 25px rgba(99, 102, 241, 0.3)', duration: 0.2 });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { y: 0, boxShadow: 'none', duration: 0.2 });
+        });
+      });
+
+      // 12. Impact badge pulse
+      gsap.to('.impact-high', {
+        boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)',
+        duration: 1,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (prediction) {
+      gsap.to('.prediction-panel', { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.2)' });
+      // Animate probability bars
+      prediction.scenarios.forEach((s, i) => {
+        gsap.fromTo(`.prob-bar-${i}`, { scaleX: 0 }, { scaleX: s.probability / 100, duration: 0.8, delay: 0.3 + i * 0.1, ease: 'power2.out', transformOrigin: 'left center' });
+      });
+    }
+  }, [prediction]);
+
+  const getImpactColor = (impact: string) => {
+    switch (impact) {
+      case 'high': return 'bg-red-500/20 text-red-400 border-red-500/30 impact-high';
+      case 'medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      default: return 'bg-green-500/20 text-green-400 border-green-500/30';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-brand-600 to-accent-600 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
-        </div>
-        <div className="container mx-auto px-4 py-16 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
-              <span>←</span> Back to AI Lab
-            </Link>
-            
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 shadow-lg shadow-indigo-500/25">
-                <TrendingUp className="w-12 h-12 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold text-white">
-                  Future Predictor
-                </h1>
-                <p className="text-xl text-blue-100 mt-2">
-                  Forecast trends and explore future scenarios with AI
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6 mt-6">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-blue-100">{stats.activeUsers} users active</span>
-              </div>
-              <div className="text-sm text-blue-200">•</div>
-              <div className="text-sm text-blue-100">{stats.totalPredictions.toLocaleString()} predictions made</div>
-            </div>
-          </motion.div>
-        </div>
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/5 w-[520px] h-[520px] bg-indigo-500/15 rounded-full blur-[140px]" />
+        <div className="parallax-orb-2 absolute bottom-1/4 right-1/5 w-[460px] h-[460px] bg-blue-500/12 rounded-full blur-[120px]" />
+        <div className="parallax-orb-3 absolute top-1/2 left-1/3 w-[320px] h-[320px] bg-violet-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-8" style={{ backgroundImage: 'linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="future-particle absolute w-2 h-2 bg-indigo-400/25 rounded-full" style={{ left: `${7 + i * 9}%`, top: `${12 + (i % 5) * 16}%` }} />
+        ))}
+        <div className="orbit-crystal absolute top-28 right-1/4 w-4 h-4 bg-blue-400/50 rounded-full shadow-lg shadow-indigo-400/30" />
+        <svg className="absolute top-40 left-1/4 w-80 h-8 opacity-30">
+          <line className="timeline-line" x1="0" y1="15" x2="100%" y2="15" stroke="url(#futureGrad)" strokeWidth="2" strokeDasharray="8 4" />
+          <defs>
+            <linearGradient id="futureGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#6366f1" />
+              <stop offset="50%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#8b5cf6" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="space-y-6"
-          >
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-              <label className="text-lg font-semibold mb-4 block flex items-center gap-2 text-gray-900">
-                <Target className="w-5 h-5 text-indigo-500" />
-                What do you want to predict?
-              </label>
-              <input
-                type="text"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="e.g., AI in healthcare, remote work trends..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-500 transition-colors mb-4"
-              />
-              
-              <div className="text-sm text-gray-500 mb-2">Example topics:</div>
-              <div className="flex flex-wrap gap-2">
-                {exampleTopics.map((ex, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setTopic(ex)}
-                    className="text-xs px-3 py-1.5 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200 hover:border-indigo-300 transition-all text-gray-700"
-                  >
-                    {ex}
-                  </button>
-                ))}
-              </div>
-            </div>
+      {/* Hero */}
+      <section className="relative z-10 pt-24 pb-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <Link href="/lab" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+            ← Back to AI Lab
+          </Link>
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-indigo-500/20 to-blue-500/20 backdrop-blur-sm rounded-full border border-indigo-500/30 mb-4">
+            <span className="text-xl">🔮</span>
+            <span className="font-medium text-indigo-300">Trend Forecasting</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            <span className="hero-title bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 bg-clip-text text-transparent">Future Predictor</span>
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            AI-powered predictions for technology, society, and more
+          </p>
+        </div>
+      </section>
 
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-              <label className="text-lg font-semibold mb-4 block flex items-center gap-2 text-gray-900">
-                <Calendar className="w-5 h-5 text-blue-500" />
-                Timeframe
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {timeframes.map((tf) => (
-                  <button
-                    key={tf.id}
-                    onClick={() => setTimeframe(tf.id)}
-                    className={`px-4 py-3 rounded-xl text-sm transition-all ${
-                      timeframe === tf.id
-                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 border border-indigo-500 text-white'
-                        : 'bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700'
-                    }`}
-                  >
-                    {tf.label}
-                  </button>
-                ))}
-              </div>
+      {/* Input Form */}
+      <section className="relative z-10 py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="draggable-form p-8 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-indigo-500/30 backdrop-blur-sm">
+            <label className="text-lg font-semibold mb-4 block">What would you like to predict?</label>
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="e.g., Artificial Intelligence, Space Travel, Climate Change..."
+              className="w-full bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition-colors mb-4"
+            />
+            
+            <label className="text-sm font-semibold mb-3 block text-gray-400">Timeframe</label>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {timeframes.map((tf) => (
+                <button
+                  key={tf.id}
+                  onClick={() => setTimeframe(tf.id)}
+                  className={`timeframe-btn px-5 py-2 rounded-xl text-sm font-medium transition-all ${timeframe === tf.id ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white' : 'bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-700/50'}`}
+                >
+                  {tf.label}
+                </button>
+              ))}
             </div>
 
             <button
               onClick={handlePredict}
               disabled={!topic.trim() || isPredicting}
-              className="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              className="predict-btn w-full py-4 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-indigo-500/25 transition-all"
             >
-              {isPredicting ? (
-                <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  Predicting Future...
-                </>
-              ) : (
-                <>
-                  <Zap className="w-5 h-5" />
-                  Generate Prediction
-                </>
-              )}
+              {isPredicting ? '🔮 Predicting...' : '✨ Generate Prediction'}
             </button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
-          >
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-900">
-              <TrendingUp className="w-6 h-6 text-blue-500" />
-              Prediction Results
-            </h2>
-
-            {isPredicting ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <RefreshCw className="w-16 h-16 text-indigo-500 animate-spin mb-4" />
-                <p className="text-lg font-semibold text-gray-900">Analyzing trends...</p>
-                <p className="text-sm text-gray-500 mt-2">Processing data patterns</p>
-              </div>
-            ) : prediction ? (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-center">
-                    <div className="text-3xl font-bold text-indigo-600">{prediction.confidence}%</div>
-                    <div className="text-sm text-gray-600 mt-1">Confidence</div>
-                  </div>
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-center">
-                    <div className="text-3xl font-bold text-green-600">↗</div>
-                    <div className="text-sm text-gray-600 mt-1">{prediction.trend}</div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-lg font-semibold mb-3 text-gray-900">Key Insights</div>
-                  <ul className="space-y-2">
-                    {prediction.keyInsights.map((insight: string, i: number) => (
-                      <li key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <Zap className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-700">{insight}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <div className="text-lg font-semibold mb-3 text-gray-900">Future Scenarios</div>
-                  <div className="space-y-3">
-                    {prediction.scenarios.map((scenario: any, i: number) => (
-                      <div key={i} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-gray-900">{scenario.type}</span>
-                          <span className="text-sm text-gray-500">{scenario.probability}% chance</span>
-                        </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
-                          <div
-                            className="h-full bg-gradient-to-r from-indigo-500 to-blue-500"
-                            style={{ width: `${scenario.probability}%` }}
-                          />
-                        </div>
-                        <p className="text-sm text-gray-600">{scenario.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-lg font-semibold mb-3 text-gray-900">Related Trends</div>
-                  <div className="flex flex-wrap gap-2">
-                    {prediction.relatedTrends.map((trend: string, i: number) => (
-                      <span key={i} className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-full text-sm text-blue-700">
-                        {trend}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                <TrendingUp className="w-16 h-16 mb-4 opacity-50" />
-                <p className="text-center px-4">Your prediction will appear here</p>
-                <p className="text-sm mt-2">Enter a topic and timeframe</p>
-              </div>
-            )}
-          </motion.div>
+          </div>
         </div>
+      </section>
 
-      </div>
+      {/* Prediction Results */}
+      {prediction && (
+        <section className="relative z-10 py-8 px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="prediction-panel space-y-6">
+              {/* Confidence Header */}
+              <div className="p-6 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-indigo-500/30 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-indigo-400">{prediction.topic}</h3>
+                  <span className="probability-text text-lg font-bold text-white">{prediction.confidence}% confidence</span>
+                </div>
+                <p className="text-gray-400">Timeframe: {timeframes.find(t => t.id === prediction.timeframe)?.label}</p>
+              </div>
+
+              {/* Scenarios */}
+              {prediction.scenarios.map((scenario, idx) => (
+                <div key={idx} className="scenario-card p-6 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h4 className="font-bold text-white text-lg">{scenario.title}</h4>
+                      <span className="text-gray-500 text-sm">{scenario.timeline}</span>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getImpactColor(scenario.impact)}`}>
+                      {scenario.impact.toUpperCase()} IMPACT
+                    </span>
+                  </div>
+                  <p className="text-gray-300 mb-4 leading-relaxed">{scenario.description}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-400">Probability:</span>
+                    <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                      <div className={`prob-bar-${idx} h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full`} style={{ transform: 'scaleX(0)', transformOrigin: 'left center' }} />
+                    </div>
+                    <span className="probability-text text-sm text-indigo-400 font-bold w-12 text-right">{scenario.probability}%</span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Key Factors */}
+              <div className="p-6 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-blue-500/30 backdrop-blur-sm">
+                <h4 className="font-bold text-blue-400 mb-4">🔑 Key Factors</h4>
+                <div className="flex flex-wrap gap-2">
+                  {prediction.keyFactors.map((factor, idx) => (
+                    <span key={idx} className="px-4 py-2 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 text-sm">{factor}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
-  )
+  );
 }

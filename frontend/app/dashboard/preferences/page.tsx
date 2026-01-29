@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -17,6 +17,9 @@ import {
   LanguageIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 
 const defaultPreferences = {
   theme: 'system',
@@ -231,11 +234,11 @@ export default function PreferencesPage() {
   ];
 
   const colors = [
-    { id: 'brand', name: 'Brand Blue', color: 'bg-brand-500' },
-    { id: 'blue', name: 'Ocean Blue', color: 'bg-blue-500' },
-    { id: 'green', name: 'Forest Green', color: 'bg-green-500' },
-    { id: 'purple', name: 'Royal Purple', color: 'bg-purple-500' },
-    { id: 'orange', name: 'Sunset Orange', color: 'bg-orange-500' },
+    { id: 'brand', name: 'Brand Blue', color: 'bg-purple-900/200' },
+    { id: 'blue', name: 'Ocean Blue', color: 'bg-blue-900/200' },
+    { id: 'green', name: 'Forest Green', color: 'bg-green-900/200' },
+    { id: 'purple', name: 'Royal Purple', color: 'bg-purple-900/200' },
+    { id: 'orange', name: 'Sunset Orange', color: 'bg-orange-900/200' },
   ];
 
   const languages = [
@@ -250,41 +253,36 @@ export default function PreferencesPage() {
   // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
-          <p className="text-neural-600">Loading your preferences...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading your preferences...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] text-white overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-r from-purple-600/20 to-violet-600/20 blur-[120px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-blue-600/15 to-cyan-600/15 blur-[100px]" />
+      </div>
+
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
-        {/* Decorative Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <pattern id="preferences-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="currentColor"/>
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#preferences-grid)"/>
-          </svg>
-        </div>
+      <section className="relative py-20 md:py-28 border-b border-white/10 overflow-hidden">
         <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-            <Cog6ToothIcon className="w-10 h-10" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-600/30 to-violet-600/30 border border-purple-500/30 rounded-2xl mb-6">
+            <Cog6ToothIcon className="w-10 h-10 text-purple-400" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Preferences</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">Preferences</h1>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
             Customize your experience and interface settings
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+            className="inline-flex items-center bg-white/10 hover:bg-white/10 text-white px-8 py-3 rounded-xl font-semibold transition-all border border-white/10"
           >
             Back to Dashboard
           </Link>
@@ -292,12 +290,12 @@ export default function PreferencesPage() {
       </section>
 
       {/* Status Section */}
-      <section className="py-6 px-4 bg-white border-b border-gray-200">
+      <section className="py-6 px-4 bg-white/5 border-b border-white/10 relative z-10">
         <div className="container-custom">
           <div className="flex items-center justify-end space-x-4">
             {saving && (
-              <div className="flex items-center text-brand-600">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500 mr-2"></div>
+              <div className="flex items-center text-purple-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500 mr-2"></div>
                 <span className="text-sm">Saving...</span>
               </div>
             )}
@@ -308,10 +306,10 @@ export default function PreferencesPage() {
             <div
               className={`p-4 rounded-lg mb-4 ${
                 message.type === 'success'
-                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  ? 'bg-green-900/200/10 text-green-400 border border-green-500/30'
                   : message.type === 'error'
-                  ? 'bg-red-50 text-red-700 border border-red-200'
-                  : 'bg-blue-50 text-blue-700 border border-blue-200'
+                  ? 'bg-red-900/200/10 text-red-400 border border-red-500/30'
+                  : 'bg-blue-900/200/10 text-blue-400 border border-blue-500/30'
               }`}
             >
               {message.text}
@@ -321,14 +319,14 @@ export default function PreferencesPage() {
       </section>
 
       {/* Preferences Content */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-16 px-4 relative z-10">
         <div className="container-custom max-w-4xl">
           <div className="space-y-8">
             {/* Appearance Settings */}
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+            <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
               <div className="flex items-center mb-6">
-                <PaintBrushIcon className="w-6 h-6 text-brand-500 mr-3" />
-                <h3 className="text-xl font-semibold text-neural-900">
+                <PaintBrushIcon className="w-6 h-6 text-purple-400 mr-3" />
+                <h3 className="text-xl font-semibold text-white">
                   Appearance
                 </h3>
               </div>
@@ -336,7 +334,7 @@ export default function PreferencesPage() {
               <div className="space-y-6">
                 {/* Theme Mode */}
                 <div>
-                  <h4 className="font-medium text-neural-900 mb-3">
+                  <h4 className="font-medium text-white mb-3">
                     Theme Mode
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -346,19 +344,19 @@ export default function PreferencesPage() {
                         onClick={() => updatePreference('theme', theme.id)}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                           preferences.theme === theme.id
-                            ? 'border-brand-500 bg-brand-50'
-                            : 'border-neural-200 hover:border-neural-300'
+                            ? 'border-purple-500 bg-purple-900/200/10'
+                            : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
                         }`}
                       >
                         <div className="flex items-center mb-2">
                           {theme.icon && (
-                            <theme.icon className="w-5 h-5 mr-2" />
+                            <theme.icon className="w-5 h-5 mr-2 text-purple-400" />
                           )}
-                          <h5 className="font-medium text-neural-900">
+                          <h5 className="font-medium text-white">
                             {theme.name}
                           </h5>
                         </div>
-                        <p className="text-sm text-neural-600">
+                        <p className="text-sm text-gray-400">
                           {theme.description}
                         </p>
                       </div>
@@ -368,16 +366,16 @@ export default function PreferencesPage() {
 
                 {/* Language Selection */}
                 <div>
-                  <h4 className="font-medium text-neural-900 mb-3">Language</h4>
+                  <h4 className="font-medium text-white mb-3">Language</h4>
                   <select
                     value={(preferences.language as any)?.primary || 'en'}
                     onChange={(e) =>
                       updatePreference('language.primary', e.target.value)
                     }
-                    className="w-full px-3 py-2 border border-neural-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
                   >
                     {languages.map((lang) => (
-                      <option key={lang.code} value={lang.code}>
+                      <option key={lang.code} value={lang.code} className="bg-[#13131a]">
                         {lang.native} ({lang.name})
                       </option>
                     ))}
@@ -386,20 +384,20 @@ export default function PreferencesPage() {
 
                 {/* Timezone */}
                 <div>
-                  <h4 className="font-medium text-neural-900 mb-3">Timezone</h4>
+                  <h4 className="font-medium text-white mb-3">Timezone</h4>
                   <select
                     value={preferences.timezone || 'UTC'}
                     onChange={(e) =>
                       updatePreference('timezone', e.target.value)
                     }
-                    className="w-full px-3 py-2 border border-neural-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
                   >
-                    <option value="UTC">UTC</option>
-                    <option value="America/New_York">Eastern Time</option>
-                    <option value="America/Chicago">Central Time</option>
-                    <option value="America/Denver">Mountain Time</option>
-                    <option value="America/Los_Angeles">Pacific Time</option>
-                    <option value="Europe/London">London</option>
+                    <option value="UTC" className="bg-[#13131a]">UTC</option>
+                    <option value="America/New_York" className="bg-[#13131a]">Eastern Time</option>
+                    <option value="America/Chicago" className="bg-[#13131a]">Central Time</option>
+                    <option value="America/Denver" className="bg-[#13131a]">Mountain Time</option>
+                    <option value="America/Los_Angeles" className="bg-[#13131a]">Pacific Time</option>
+                    <option value="Europe/London" className="bg-[#13131a]">London</option>
                     <option value="Europe/Paris">Paris</option>
                     <option value="Asia/Tokyo">Tokyo</option>
                   </select>
@@ -408,23 +406,23 @@ export default function PreferencesPage() {
             </div>
 
             {/* Notification Settings */}
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+            <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
               <div className="flex items-center mb-6">
-                <BellIcon className="w-6 h-6 text-brand-500 mr-3" />
-                <h3 className="text-xl font-semibold text-neural-900">
+                <BellIcon className="w-6 h-6 text-purple-400 mr-3" />
+                <h3 className="text-xl font-semibold text-white">
                   Notifications
                 </h3>
               </div>
 
               <div className="space-y-6">
                 {/* Email Notifications */}
-                <div className="border border-neural-100 rounded-lg p-6">
+                <div className="border border-white/10 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h4 className="font-medium text-neural-900">
+                      <h4 className="font-medium text-white">
                         Email Notifications
                       </h4>
-                      <p className="text-sm text-neural-600">
+                      <p className="text-sm text-gray-400">
                         Receive updates and alerts via email
                       </p>
                     </div>
@@ -440,14 +438,14 @@ export default function PreferencesPage() {
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                      <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                   </div>
 
                   {preferences.notifications.email.enabled && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-neural-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
                           Frequency
                         </label>
                         <select
@@ -458,7 +456,7 @@ export default function PreferencesPage() {
                               e.target.value
                             )
                           }
-                          className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                          className="w-full p-3 border border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
                           <option value="immediate">Immediate</option>
                           <option value="daily">Daily Digest</option>
@@ -467,7 +465,7 @@ export default function PreferencesPage() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-neural-700 mb-3">
+                        <label className="block text-sm font-medium text-gray-300 mb-3">
                           Notification Types
                         </label>
                         <div className="space-y-3">
@@ -478,7 +476,7 @@ export default function PreferencesPage() {
                               key={type}
                               className="flex items-center justify-between"
                             >
-                              <span className="text-sm text-neural-700 capitalize">
+                              <span className="text-sm text-gray-300 capitalize">
                                 {type === 'system' && 'System Updates'}
                                 {type === 'security' && 'Security Alerts'}
                                 {type === 'updates' && 'Product Updates'}
@@ -498,7 +496,7 @@ export default function PreferencesPage() {
                                   }
                                   className="sr-only peer"
                                 />
-                                <div className="w-9 h-5 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                                <div className="w-9 h-5 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
                               </label>
                             </div>
                           ))}
@@ -509,13 +507,13 @@ export default function PreferencesPage() {
                 </div>
 
                 {/* Push Notifications */}
-                <div className="border border-neural-100 rounded-lg p-6">
+                <div className="border border-white/10 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h4 className="font-medium text-neural-900">
+                      <h4 className="font-medium text-white">
                         Push Notifications
                       </h4>
-                      <p className="text-sm text-neural-600">
+                      <p className="text-sm text-gray-400">
                         Receive instant notifications on your device
                       </p>
                     </div>
@@ -531,7 +529,7 @@ export default function PreferencesPage() {
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                      <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                   </div>
 
@@ -539,10 +537,10 @@ export default function PreferencesPage() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h5 className="font-medium text-neural-900">
+                          <h5 className="font-medium text-white">
                             Quiet Hours
                           </h5>
-                          <p className="text-sm text-neural-600">
+                          <p className="text-sm text-gray-400">
                             Disable notifications during specified hours
                           </p>
                         </div>
@@ -560,14 +558,14 @@ export default function PreferencesPage() {
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-9 h-5 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                          <div className="w-9 h-5 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
                         </label>
                       </div>
 
                       {preferences.notifications.push.quiet.enabled && (
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-neural-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                               From
                             </label>
                             <input
@@ -579,11 +577,11 @@ export default function PreferencesPage() {
                                   e.target.value
                                 )
                               }
-                              className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                              className="w-full p-3 border border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-neural-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                               To
                             </label>
                             <input
@@ -595,7 +593,7 @@ export default function PreferencesPage() {
                                   e.target.value
                                 )
                               }
-                              className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                              className="w-full p-3 border border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -607,17 +605,17 @@ export default function PreferencesPage() {
             </div>
 
             {/* Language & Region */}
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+            <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
               <div className="flex items-center mb-6">
-                <GlobeAltIcon className="w-6 h-6 text-brand-500 mr-3" />
-                <h3 className="text-xl font-semibold text-neural-900">
+                <GlobeAltIcon className="w-6 h-6 text-purple-400 mr-3" />
+                <h3 className="text-xl font-semibold text-white">
                   Language & Region
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-neural-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Primary Language
                   </label>
                   <select
@@ -625,7 +623,7 @@ export default function PreferencesPage() {
                     onChange={(e) =>
                       updatePreference('language.primary', e.target.value)
                     }
-                    className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="w-full p-3 border border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
                     {languages.map((lang) => (
                       <option key={lang.code} value={lang.code}>
@@ -636,7 +634,7 @@ export default function PreferencesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neural-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Secondary Language
                   </label>
                   <select
@@ -644,7 +642,7 @@ export default function PreferencesPage() {
                     onChange={(e) =>
                       updatePreference('language.secondary', e.target.value)
                     }
-                    className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="w-full p-3 border border-white/10 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
                     <option value="">None</option>
                     {languages.map((lang) => (
@@ -659,10 +657,10 @@ export default function PreferencesPage() {
               <div className="mt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium text-neural-900">
+                    <h4 className="font-medium text-white">
                       Auto-detect Language
                     </h4>
-                    <p className="text-sm text-neural-600">
+                    <p className="text-sm text-gray-400">
                       Automatically detect content language
                     </p>
                   </div>
@@ -678,17 +676,17 @@ export default function PreferencesPage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                    <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                   </label>
                 </div>
               </div>
             </div>
 
             {/* Accessibility */}
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+            <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
               <div className="flex items-center mb-6">
-                <EyeIcon className="w-6 h-6 text-brand-500 mr-3" />
-                <h3 className="text-xl font-semibold text-neural-900">
+                <EyeIcon className="w-6 h-6 text-purple-400 mr-3" />
+                <h3 className="text-xl font-semibold text-white">
                   Accessibility
                 </h3>
               </div>
@@ -715,8 +713,8 @@ export default function PreferencesPage() {
                 }).map(([key, { title, description }]) => (
                   <div key={key} className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-neural-900">{title}</h4>
-                      <p className="text-sm text-neural-600">{description}</p>
+                      <h4 className="font-medium text-white">{title}</h4>
+                      <p className="text-sm text-gray-400">{description}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -730,7 +728,7 @@ export default function PreferencesPage() {
                         }
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                      <div className="w-11 h-6 bg-[#13131a]200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white/5 after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                   </div>
                 ))}

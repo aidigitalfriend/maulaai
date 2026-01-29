@@ -1,166 +1,266 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
+import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+
+// Register GSAP plugins
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger, SplitText, ScrambleTextPlugin);
+}
 
 interface Stat {
-  number: string
-  label: string
-  icon: string
-  color: string
+  number: string;
+  label: string;
+  icon: string;
+  color: string;
 }
 
 interface CommunityStatsProps {
-  stats?: Stat[]
+  stats?: Stat[];
 }
 
 const defaultStats: Stat[] = [
   { number: "10K+", label: "Active Members", icon: "👥", color: "from-blue-500 to-cyan-500" },
   { number: "5K+", label: "GitHub Stars", icon: "⭐", color: "from-purple-500 to-pink-500" },
   { number: "500+", label: "Contributions", icon: "🤝", color: "from-green-500 to-emerald-500" }
-]
+];
 
 export default function CommunityStats({ stats = defaultStats }: CommunityStatsProps) {
-  const [isVisible, setIsVisible] = useState(false)
-  const [counts, setCounts] = useState<Record<number, number>>({})
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const [counts, setCounts] = useState<Record<number, number>>({});
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true)
-  }, [])
+    if (typeof window === 'undefined') return;
 
-  // Counter animation effect
-  useEffect(() => {
-    if (!isVisible) return
+    const ctx = gsap.context(() => {
+      // Title animation with SplitText
+      if (titleRef.current) {
+        gsap.set(titleRef.current, { opacity: 1 });
+        
+        const split = new SplitText(titleRef.current, { type: 'chars,words' });
+        
+        gsap.fromTo(split.chars,
+          { opacity: 0, y: 40, rotateY: -60 },
+          {
+            opacity: 1,
+            y: 0,
+            rotateY: 0,
+            duration: 0.5,
+            stagger: 0.025,
+            ease: 'back.out(1.5)',
+            scrollTrigger: {
+              trigger: titleRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
 
+      // Subtitle scramble text
+      if (subtitleRef.current) {
+        const originalText = subtitleRef.current.textContent || '';
+        
+        gsap.fromTo(subtitleRef.current,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: 0.3,
+            scrollTrigger: {
+              trigger: subtitleRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none reverse',
+              onEnter: () => {
+                gsap.to(subtitleRef.current, {
+                  duration: 1.2,
+                  scrambleText: {
+                    text: originalText,
+                    chars: 'lowerCase',
+                    revealDelay: 0.3,
+                    speed: 0.5,
+                  },
+                });
+              },
+            },
+          }
+        );
+      }
+
+      // Cards 3D entrance
+      if (cardsRef.current) {
+        const cards = cardsRef.current.querySelectorAll('.stat-card');
+        
+        cards.forEach((card, index) => {
+          // Card entrance
+          gsap.fromTo(card,
+            { 
+              opacity: 0, 
+              y: 60,
+              rotateX: -30,
+              scale: 0.8,
+            },
+            {
+              opacity: 1,
+              y: 0,
+              rotateX: 0,
+              scale: 1,
+              duration: 0.8,
+              delay: index * 0.15,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: card,
+                start: 'top 85%',
+                toggleActions: 'play none none reverse',
+                onEnter: () => {
+                  if (!hasAnimated) {
+                    setHasAnimated(true);
+                    startCountAnimation();
+                  }
+                },
+              },
+            }
+          );
+
+          // Icon bounce animation
+          const icon = card.querySelector('.stat-icon');
+          if (icon) {
+            gsap.fromTo(icon,
+              { opacity: 0, scale: 0, rotate: -180 },
+              {
+                opacity: 1,
+                scale: 1,
+                rotate: 0,
+                duration: 0.6,
+                delay: index * 0.15 + 0.3,
+                ease: 'back.out(2)',
+                scrollTrigger: {
+                  trigger: card,
+                  start: 'top 85%',
+                  toggleActions: 'play none none reverse',
+                },
+              }
+            );
+          }
+        });
+      }
+
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [hasAnimated]);
+
+  // Counter animation function
+  const startCountAnimation = () => {
     stats.forEach((stat, index) => {
-      const finalNumber = parseInt(stat.number.replace(/\D/g, ''))
-      const duration = 2000
-      const steps = 60
-      const stepValue = finalNumber / steps
+      const finalNumber = parseInt(stat.number.replace(/\D/g, ''));
+      const duration = 2000;
+      const steps = 60;
+      const stepValue = finalNumber / steps;
 
-      let currentStep = 0
+      let currentStep = 0;
       const interval = setInterval(() => {
         if (currentStep <= steps) {
           setCounts(prev => ({
             ...prev,
             [index]: Math.floor(stepValue * currentStep)
-          }))
-          currentStep++
+          }));
+          currentStep++;
         } else {
-          clearInterval(interval)
+          clearInterval(interval);
         }
-      }, duration / steps)
-
-      return () => clearInterval(interval)
-    })
-  }, [isVisible, stats])
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.2
-      }
-    }
-  }
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
-    },
-    hover: {
-      y: -12,
-      scale: 1.05,
-      transition: { duration: 0.3 }
-    }
-  }
+      }, duration / steps);
+    });
+  };
 
   return (
-    <section className="relative py-20 overflow-hidden">
-      {/* Enhanced Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-slate-900 to-neutral-950 -z-10" />
+    <section 
+      ref={sectionRef}
+      className="relative py-20 md:py-32 overflow-hidden"
+    >
+      {/* Dark Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a10] via-[#0a0c12] to-[#0a0a10] -z-10" />
 
-      {/* Animated background elements */}
-      <div className="absolute inset-0 -z-5">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+      {/* Background Effects */}
+      <div className="absolute inset-0 pointer-events-none -z-5">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full filter blur-[150px]"></div>
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full filter blur-[150px]"></div>
+        <div className="absolute bottom-0 left-1/2 w-[400px] h-[400px] bg-cyan-500/10 rounded-full filter blur-[150px]"></div>
+      </div>
+
+      {/* Floating particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(10)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 rounded-full bg-blue-400/40"
+            style={{
+              left: `${10 + (i * 8) % 80}%`,
+              top: `${15 + (i * 9) % 70}%`,
+              animation: `floatStats ${3 + (i % 3)}s ease-in-out infinite`,
+              animationDelay: `${i * 0.3}s`,
+            }}
+          />
+        ))}
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-100 via-blue-200 to-cyan-200 bg-clip-text text-transparent mb-4">
+        <div className="text-center mb-16">
+          <h2 
+            ref={titleRef}
+            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-100 via-blue-200 to-cyan-200 bg-clip-text text-transparent mb-4"
+            style={{ opacity: 1 }}
+          >
             Community Stats
           </h2>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+          <p 
+            ref={subtitleRef}
+            className="text-lg text-gray-400 max-w-2xl mx-auto"
+          >
             Join thousands of developers, researchers, and AI enthusiasts
           </p>
-        </motion.div>
+        </div>
 
         {/* Stats Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+        <div
+          ref={cardsRef}
           className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-6"
+          style={{ perspective: '1000px' }}
         >
           {stats.map((stat, index) => (
-            <motion.div
+            <div
               key={index}
-              variants={cardVariants}
-              whileHover="hover"
-              className="group relative"
+              className="stat-card group relative"
+              style={{ transformStyle: 'preserve-3d' }}
             >
               {/* Gradient background glow */}
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-20 rounded-2xl blur-xl transition-opacity duration-300 -z-1`} />
 
               {/* Main Card */}
-              <div className={`relative bg-gradient-to-br from-slate-800/50 via-slate-800/30 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-slate-700/30 group-hover:border-blue-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl h-full`}>
+              <div className="relative bg-gradient-to-br from-[#1a1a24]/80 via-[#16161f]/60 to-[#12121a]/80 backdrop-blur-xl rounded-2xl p-8 border border-white/10 group-hover:border-blue-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl h-full hover:-translate-y-2">
                 
                 {/* Icon */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 + 0.3 }}
-                  viewport={{ once: true }}
-                  className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300"
-                >
+                <div className="stat-icon text-5xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   {stat.icon}
-                </motion.div>
+                </div>
 
                 {/* Number with counter animation */}
                 <div className="mb-3">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 + 0.2 }}
-                    viewport={{ once: true }}
-                    className={`text-5xl md:text-6xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}
-                  >
+                  <div className={`text-5xl md:text-6xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
                     {counts[index] || 0}
                     <span className="text-3xl">+</span>
-                  </motion.div>
+                  </div>
                 </div>
 
                 {/* Label */}
-                <p className="text-slate-400 font-medium text-lg">
+                <p className="text-gray-400 font-medium text-lg">
                   {stat.label}
                 </p>
 
@@ -170,19 +270,21 @@ export default function CommunityStats({ stats = defaultStats }: CommunityStatsP
                 {/* Corner accent */}
                 <div className={`absolute top-4 right-4 w-2 h-2 rounded-full bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Bottom accent line */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mt-16"
-        />
+        <div className="h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mt-16" />
       </div>
+
+      {/* CSS for float animation */}
+      <style jsx>{`
+        @keyframes floatStats {
+          0%, 100% { transform: translateY(0px); opacity: 0.4; }
+          50% { transform: translateY(-10px); opacity: 0.7; }
+        }
+      `}</style>
     </section>
-  )
+  );
 }

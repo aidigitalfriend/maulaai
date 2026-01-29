@@ -1,8 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
+import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+
+// Register GSAP plugins
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger, SplitText, ScrambleTextPlugin);
+}
 
 interface ShowcaseImage {
   src: string;
@@ -80,6 +89,15 @@ export default function AIShowcaseSection() {
     showcaseImages.map((img) => img.src)
   );
 
+  // Refs for GSAP animations
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setIsAnimating(true);
@@ -90,6 +108,157 @@ export default function AIShowcaseSection() {
     }, 4000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // GSAP Animations
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const ctx = gsap.context(() => {
+      // Title animation with SplitText
+      if (titleRef.current) {
+        const split = new SplitText(titleRef.current, { type: 'chars,words' });
+        
+        gsap.fromTo(split.chars,
+          { opacity: 0, y: 30, rotateX: -45 },
+          {
+            opacity: 1,
+            y: 0,
+            rotateX: 0,
+            duration: 0.6,
+            stagger: 0.02,
+            ease: 'back.out(1.7)',
+            scrollTrigger: {
+              trigger: titleRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
+
+      // Badge animation
+      if (badgeRef.current) {
+        gsap.fromTo(badgeRef.current,
+          { opacity: 0, scale: 0.8 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.5,
+            scrollTrigger: {
+              trigger: badgeRef.current,
+              start: 'top 90%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
+
+      // Subtitle scramble text
+      if (subtitleRef.current) {
+        const originalText = subtitleRef.current.textContent || '';
+        
+        gsap.fromTo(subtitleRef.current,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: 0.3,
+            scrollTrigger: {
+              trigger: subtitleRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none reverse',
+              onEnter: () => {
+                gsap.to(subtitleRef.current, {
+                  duration: 1.5,
+                  scrambleText: {
+                    text: originalText,
+                    chars: 'lowerCase',
+                    revealDelay: 0.3,
+                    speed: 0.5,
+                  },
+                });
+              },
+            },
+          }
+        );
+      }
+
+      // Image container 3D entrance
+      if (imageContainerRef.current) {
+        gsap.fromTo(imageContainerRef.current,
+          { 
+            opacity: 0, 
+            rotateY: -15, 
+            rotateX: 10,
+            x: -100,
+            scale: 0.9,
+          },
+          {
+            opacity: 1,
+            rotateY: 0,
+            rotateX: 0,
+            x: 0,
+            scale: 1,
+            duration: 1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: imageContainerRef.current,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
+
+      // Feature cards staggered entrance with 3D flip
+      if (featuresRef.current) {
+        const cards = featuresRef.current.querySelectorAll('.feature-card');
+        
+        gsap.fromTo(cards,
+          { 
+            opacity: 0, 
+            rotateY: 90, 
+            scale: 0.8,
+            transformOrigin: 'left center',
+          },
+          {
+            opacity: 1,
+            rotateY: 0,
+            scale: 1,
+            duration: 0.8,
+            stagger: 0.15,
+            ease: 'back.out(1.4)',
+            scrollTrigger: {
+              trigger: featuresRef.current,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
+
+      // CTA buttons entrance
+      if (ctaRef.current) {
+        gsap.fromTo(ctaRef.current.children,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.2,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: ctaRef.current,
+              start: 'top 90%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
+
+    }, sectionRef);
+
+    return () => ctx.revert();
   }, []);
 
   const handleImageError = (index: number) => {
@@ -104,40 +273,72 @@ export default function AIShowcaseSection() {
   const currentSrc = imageSources[currentIndex];
 
   return (
-    <section className="section-padding bg-gradient-to-br from-neural-900 via-purple-900 to-neural-800 text-white overflow-hidden relative">
+    <section 
+      ref={sectionRef}
+      className="py-20 md:py-32 bg-gradient-to-b from-[#0a0a10] via-[#0f0f1a] to-[#0a0a10] text-white overflow-hidden relative"
+    >
       {/* Background Effects */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500 rounded-full filter blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500 rounded-full filter blur-3xl"></div>
-        <div className="absolute top-1/2 right-0 w-64 h-64 bg-brand-500 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full filter blur-[150px]"></div>
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full filter blur-[150px]"></div>
+        <div className="absolute top-1/2 right-0 w-[300px] h-[300px] bg-fuchsia-500/10 rounded-full filter blur-[120px]"></div>
+      </div>
+
+      {/* Floating particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 rounded-full bg-purple-400/50"
+            style={{
+              left: `${10 + (i * 6) % 80}%`,
+              top: `${15 + (i * 7) % 70}%`,
+              animation: `floatParticle ${3 + (i % 3)}s ease-in-out infinite`,
+              animationDelay: `${i * 0.2}s`,
+            }}
+          />
+        ))}
       </div>
 
       <div className="container-custom relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 rounded-full text-purple-300 text-sm font-medium mb-6 border border-purple-500/30">
+          <span 
+            ref={badgeRef}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 rounded-full text-purple-300 text-sm font-medium mb-6 border border-purple-500/30"
+          >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
             </span>
             Experience AI Like Never Before
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+          <h2 
+            ref={titleRef}
+            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight"
+          >
             Powerful AI Tools at Your
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-brand-400 bg-clip-text text-transparent"> Fingertips</span>
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent"> Fingertips</span>
           </h2>
-          <p className="text-lg text-neural-300 max-w-3xl mx-auto">
+          <p 
+            ref={subtitleRef}
+            className="text-lg text-gray-400 max-w-3xl mx-auto"
+          >
             From intelligent chat companions to code generation, One Last AI provides everything you need to supercharge your productivity.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left - Animated Image Showcase */}
-          <div className="relative">
+          <div 
+            ref={imageContainerRef}
+            className="relative"
+            style={{ perspective: '1000px' }}
+          >
             {/* Main Image Container */}
-            <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden bg-neural-800/50 backdrop-blur-sm">
+            <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden bg-[#12121a] backdrop-blur-sm">
               {/* Browser Chrome */}
-              <div className="flex items-center gap-2 px-4 py-3 bg-neural-900/80 border-b border-white/5">
+              <div className="flex items-center gap-2 px-4 py-3 bg-[#0a0a12] border-b border-white/5">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-400"></div>
                   <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
@@ -165,13 +366,13 @@ export default function AIShowcaseSection() {
                 </div>
                 
                 {/* Image Info Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-neural-900 via-neural-900/80 to-transparent p-6">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a0a10] via-[#0a0a10]/80 to-transparent p-6">
                   <h3 className={`text-xl font-bold text-white mb-1 transition-all duration-500 ${
                     isAnimating ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
                   }`}>
                     {currentImage.title}
                   </h3>
-                  <p className={`text-sm text-neural-300 transition-all duration-500 delay-100 ${
+                  <p className={`text-sm text-gray-400 transition-all duration-500 delay-100 ${
                     isAnimating ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
                   }`}>
                     {currentImage.description}
@@ -211,17 +412,21 @@ export default function AIShowcaseSection() {
 
           {/* Right - Content */}
           <div>
-            <div className="grid grid-cols-2 gap-4 mb-8">
+            <div 
+              ref={featuresRef}
+              className="grid grid-cols-2 gap-4 mb-8"
+            >
               {features.map((feature, idx) => (
                 <div
                   key={idx}
-                  className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 hover:border-purple-500/30 transition-all duration-300 group"
+                  className="feature-card bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 hover:border-purple-500/30 transition-all duration-300 group"
+                  style={{ transformStyle: 'preserve-3d' }}
                 >
                   <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
                   <h3 className="font-semibold text-white mb-1">{feature.title}</h3>
-                  <p className="text-sm text-neural-400">{feature.description}</p>
+                  <p className="text-sm text-gray-400">{feature.description}</p>
                 </div>
               ))}
             </div>
@@ -232,21 +437,21 @@ export default function AIShowcaseSection() {
                   {['🧠', '💚', '🎮', '👔', '🧙‍♂️'].map((emoji, idx) => (
                     <div
                       key={idx}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center border-2 border-neural-800 text-lg"
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center border-2 border-[#0a0a10] text-lg"
                     >
                       {emoji}
                     </div>
                   ))}
                 </div>
-                <span className="text-neural-300">18 AI Agents Available</span>
+                <span className="text-gray-300">18 AI Agents Available</span>
               </div>
               
-              <p className="text-neural-300 leading-relaxed">
+              <p className="text-gray-400 leading-relaxed">
                 Whether you need Einstein for scientific discussions, Tech Wizard for coding help, or Julie for friendly conversations - we have the perfect AI companion for you.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            <div ref={ctaRef} className="flex flex-wrap gap-4">
               <Link
                 href="/agents"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-purple-500/30 group"
@@ -277,6 +482,14 @@ export default function AIShowcaseSection() {
           </div>
         </div>
       </div>
+
+      {/* CSS for float animation */}
+      <style jsx>{`
+        @keyframes floatParticle {
+          0%, 100% { transform: translateY(0px); opacity: 0.5; }
+          50% { transform: translateY(-15px); opacity: 0.8; }
+        }
+      `}</style>
     </section>
   );
 }

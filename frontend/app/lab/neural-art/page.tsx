@@ -1,306 +1,328 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useState } from 'react'
-import Link from 'next/link'
-import { Palette, Upload, Download, Wand2, RefreshCw, Sparkles } from 'lucide-react'
-import Image from 'next/image'
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
+
+
+interface ArtistStyle {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  color: string;
+}
+
+interface GeneratedArt {
+  url: string;
+  style: string;
+  timestamp: Date;
+}
 
 export default function NeuralArtPage() {
-  const [selectedStyle, setSelectedStyle] = useState('van-gogh')
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
-  const [resultImage, setResultImage] = useState<string | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<string>('vangogh');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedArt, setGeneratedArt] = useState<GeneratedArt[]>([]);
 
-  const styles = [
-    { 
-      id: 'van-gogh', 
-      name: 'Van Gogh', 
-      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/300px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg',
-      description: 'Swirling brushstrokes'
-    },
-    { 
-      id: 'picasso', 
-      name: 'Picasso', 
-      preview: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1c/Pablo_Picasso%2C_1910%2C_Girl_with_a_Mandolin_%28Fanny_Tellier%29%2C_oil_on_canvas%2C_100.3_x_73.6_cm%2C_Museum_of_Modern_Art_New_York..jpg/220px-Pablo_Picasso%2C_1910%2C_Girl_with_a_Mandolin_%28Fanny_Tellier%29%2C_oil_on_canvas%2C_100.3_x_73.6_cm%2C_Museum_of_Modern_Art_New_York..jpg',
-      description: 'Cubist geometric'
-    },
-    { 
-      id: 'monet', 
-      name: 'Monet', 
-      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Claude_Monet_-_Water_Lilies_-_1906%2C_Ryerson.jpg/300px-Claude_Monet_-_Water_Lilies_-_1906%2C_Ryerson.jpg',
-      description: 'Soft impressionism'
-    },
-    { 
-      id: 'kandinsky', 
-      name: 'Kandinsky', 
-      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Vassily_Kandinsky%2C_1913_-_Composition_7.jpg/300px-Vassily_Kandinsky%2C_1913_-_Composition_7.jpg',
-      description: 'Bold abstract'
-    },
-    { 
-      id: 'dali', 
-      name: 'Dalí', 
-      preview: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/dd/The_Persistence_of_Memory.jpg/300px-The_Persistence_of_Memory.jpg',
-      description: 'Surreal dreamlike'
-    },
-    { 
-      id: 'warhol', 
-      name: 'Warhol', 
-      preview: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=200&h=200&fit=crop',
-      description: 'Pop art bold'
-    },
-    { 
-      id: 'abstract', 
-      name: 'Abstract', 
-      preview: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=200&h=200&fit=crop',
-      description: 'Modern shapes'
-    },
-    { 
-      id: 'watercolor', 
-      name: 'Watercolor', 
-      preview: 'https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?w=200&h=200&fit=crop',
-      description: 'Soft flowing'
-    }
-  ]
+  const artistStyles: ArtistStyle[] = [
+    { id: 'vangogh', name: 'Van Gogh', icon: '🌻', description: 'Swirling brushstrokes and vibrant colors', color: 'from-yellow-500 to-orange-500' },
+    { id: 'picasso', name: 'Picasso', icon: '🎭', description: 'Cubist fragmentation and bold forms', color: 'from-blue-500 to-purple-500' },
+    { id: 'monet', name: 'Monet', icon: '🌸', description: 'Impressionist light and water lilies', color: 'from-pink-500 to-rose-500' },
+    { id: 'dali', name: 'Dalí', icon: '🕰️', description: 'Surrealist dreamscapes and melting forms', color: 'from-amber-500 to-red-500' },
+    { id: 'hokusai', name: 'Hokusai', icon: '🌊', description: 'Japanese woodblock waves', color: 'from-cyan-500 to-blue-500' },
+    { id: 'klimt', name: 'Klimt', icon: '✨', description: 'Golden patterns and ornate designs', color: 'from-yellow-500 to-amber-500' },
+    { id: 'warhol', name: 'Warhol', icon: '🎨', description: 'Pop art colors and repetition', color: 'from-pink-500 to-cyan-500' },
+    { id: 'munch', name: 'Munch', icon: '😱', description: 'Expressionist emotion and distortion', color: 'from-red-500 to-orange-500' },
+  ];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string)
-        setResultImage(null) // Clear previous result
-      }
-      reader.readAsDataURL(file)
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setUploadedImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
-  const handleTransform = async () => {
-    if (!uploadedImage) {
-      alert('Please upload an image first!')
-      return
-    }
-
-    setIsProcessing(true)
+  const handleGenerate = async () => {
+    if (!uploadedImage) return;
+    setIsGenerating(true);
     try {
       const response = await fetch('/api/lab/neural-art', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageUrl: uploadedImage,
-          style: selectedStyle
-        })
-      })
-
-      const data = await response.json()
-      
-      if (data.success) {
-        setResultImage(data.image)
-      } else {
-        alert('Failed to transform image. Please try again.')
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: uploadedImage, style: selectedStyle })
+      });
+      const data = await response.json();
+      if (data.success && data.artUrl) {
+        setGeneratedArt(prev => [{
+          url: data.artUrl,
+          style: selectedStyle,
+          timestamp: new Date()
+        }, ...prev]);
       }
-    } catch (error) {
-      console.error('Error:', error)
-      alert('An error occurred. Please try again.')
+    } catch (err) {
+      console.error('Neural art error:', err);
     } finally {
-      setIsProcessing(false)
+      setIsGenerating(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      gsap.set(heroTitle.chars, { y: 80, opacity: 0, rotateX: -60 });
+      gsap.set('.hero-badge', { scale: 0.5, opacity: 0 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.8)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, duration: 0.55, stagger: 0.022 }, '-=0.3');
+
+      // 2. ScrambleText on artist names
+      gsap.utils.toArray<HTMLElement>('.artist-name').forEach((el, i) => {
+        const originalText = el.textContent || '';
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 95%',
+          onEnter: () => {
+            gsap.to(el, { duration: 0.6, scrambleText: { text: originalText, chars: 'ARTGOLDEN', speed: 0.5 }, delay: i * 0.05 });
+          }
+        });
+      });
+
+      // 3. ScrollTrigger for style cards
+      gsap.set('.style-card', { y: 40, opacity: 0, rotateY: -15 });
+      ScrollTrigger.batch('.style-card', {
+        start: 'top 90%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, rotateY: 0, duration: 0.5, stagger: 0.07, ease: 'back.out(1.3)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 40, opacity: 0, duration: 0.3 })
+      });
+
+      // 4. Flip for gallery
+      gsap.set('.art-piece', { opacity: 0, scale: 0.85 });
+
+      // 5. Observer parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.14, rotation: scrollY * 0.01, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.1, rotation: scrollY * -0.008, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting palette
+      gsap.to('.orbit-palette', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 65, y: -35 }, { x: 130, y: 0 }, { x: 65, y: 35 }, { x: 0, y: 0 }],
+          curviness: 1.8,
+        },
+        duration: 16,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on transform button
+      gsap.utils.toArray<HTMLElement>('.transform-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { scale: 1.06, rotation: 3, duration: 0.5, ease: 'artWiggle' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { scale: 1, rotation: 0, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for frame decoration
+      gsap.set('.art-frame', { drawSVG: '0%' });
+      gsap.to('.art-frame', { drawSVG: '100%', duration: 1.5, delay: 0.6, ease: 'power2.inOut' });
+
+      // 9. Draggable style cards
+      if (window.innerWidth > 768) {
+        Draggable.create('.draggable-style', {
+          type: 'x,y',
+          bounds: containerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
+      }
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.art-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-50, 50)`,
+          y: `random(-45, 45)`,
+          rotation: `random(-45, 45)`,
+          duration: `random(6, 10)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.12
+        });
+      });
+
+      // 11. Style icon hover
+      gsap.utils.toArray<HTMLElement>('.style-icon').forEach((icon) => {
+        gsap.to(icon, {
+          scale: 1.2,
+          rotation: 10,
+          duration: 1,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power1.inOut'
+        });
+      });
+
+      // 12. Upload zone pulse
+      gsap.to('.upload-zone', {
+        boxShadow: '0 0 30px rgba(249, 115, 22, 0.2)',
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (generatedArt.length > 0) {
+      gsap.to('.art-piece', { opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.3)' });
+    }
+  }, [generatedArt.length]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-brand-600 to-accent-600 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
-        </div>
-        <div className="container mx-auto px-4 py-16 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
-              <span>←</span> Back to AI Lab
-            </Link>
-            
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
-                <Palette className="w-12 h-12 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold text-white">
-                  Neural Art Studio
-                </h1>
-                <p className="text-xl text-blue-100 mt-2">
-                  Transform photos into masterpieces with AI style transfer
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6 mt-6">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-blue-100">256 users active</span>
-              </div>
-              <div className="text-sm text-blue-200">•</div>
-              <div className="text-sm text-blue-100">9,840 artworks created</div>
-            </div>
-          </motion.div>
-        </div>
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/5 w-[520px] h-[520px] bg-orange-500/15 rounded-full blur-[140px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[460px] h-[460px] bg-amber-500/12 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 opacity-8" style={{ backgroundImage: 'linear-gradient(rgba(249, 115, 22, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(249, 115, 22, 0.08) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="art-particle absolute w-2 h-2 bg-orange-400/25 rounded-full" style={{ left: `${8 + i * 9}%`, top: `${12 + (i % 5) * 16}%` }} />
+        ))}
+        <div className="orbit-palette absolute top-32 right-1/4 w-4 h-4 bg-amber-400/50 rounded-full" />
+        <svg className="absolute top-20 right-1/3 w-32 h-32 opacity-20">
+          <rect className="art-frame" x="5" y="5" width="110" height="110" fill="none" stroke="url(#artGrad)" strokeWidth="3" />
+          <defs>
+            <linearGradient id="artGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#f97316" />
+              <stop offset="50%" stopColor="#fbbf24" />
+              <stop offset="100%" stopColor="#f59e0b" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Upload & Original */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
-          >
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-900">
-              <Upload className="w-6 h-6 text-orange-500" />
-              Original Image
-            </h2>
-
-            {uploadedImage ? (
-              <div className="aspect-square rounded-xl overflow-hidden mb-6">
-                <Image src={uploadedImage} alt="Uploaded" fill className="object-cover" />
-              </div>
-            ) : (
-              <label className="aspect-square rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 mb-6 cursor-pointer hover:border-orange-300 hover:bg-orange-50 transition-all">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-                <Upload className="w-16 h-16 mb-4 opacity-50" />
-                <p className="text-center px-4">Click to upload or drag & drop</p>
-                <p className="text-sm mt-2">PNG, JPG up to 10MB</p>
-              </label>
-            )}
-
-            {uploadedImage && (
-              <button
-                onClick={() => setUploadedImage(null)}
-                className="w-full py-3 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all text-gray-700 border border-gray-200"
-              >
-                Upload Different Image
-              </button>
-            )}
-          </motion.div>
-
-          {/* Result */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
-          >
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-900">
-              <Sparkles className="w-6 h-6 text-amber-500" />
-              Stylized Result
-            </h2>
-
-            {isProcessing ? (
-              <div className="aspect-square rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center">
-                <RefreshCw className="w-16 h-16 text-orange-500 animate-spin mb-4" />
-                <p className="text-lg font-semibold text-gray-900">Applying neural style...</p>
-                <p className="text-sm text-gray-500 mt-2">This may take a moment</p>
-              </div>
-            ) : resultImage ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="space-y-4"
-              >
-                <div className="aspect-square rounded-xl overflow-hidden">
-                  <Image src={resultImage} alt="Stylized result" fill className="object-cover" />
-                </div>
-                <a
-                  href={resultImage}
-                  download="neural-art.png"
-                  className="block w-full py-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center gap-2 transition-all text-gray-700"
-                >
-                  <Download className="w-5 h-5" />
-                  Download Artwork
-                </a>
-              </motion.div>
-            ) : (
-              <div className="aspect-square rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
-                <Palette className="w-16 h-16 mb-4 opacity-50" />
-                <p className="text-center px-4">Your stylized artwork will appear here</p>
-              </div>
-            )}
-          </motion.div>
+      {/* Hero */}
+      <section className="relative z-10 pt-24 pb-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <Link href="/lab" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+            ← Back to AI Lab
+          </Link>
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-500/20 to-amber-500/20 backdrop-blur-sm rounded-full border border-orange-500/30 mb-4">
+            <span className="text-xl">🖼️</span>
+            <span className="font-medium text-orange-300">AI Style Transfer</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            <span className="hero-title bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 bg-clip-text text-transparent">Neural Art</span>
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Transform your photos into masterpieces in the style of famous artists
+          </p>
         </div>
+      </section>
 
-        {/* Style Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg mb-8"
-        >
-          <label className="text-2xl font-bold mb-6 block flex items-center gap-2 text-gray-900">
-            <Wand2 className="w-6 h-6 text-purple-500" />
-            Choose Art Style
+      {/* Upload Section */}
+      <section className="relative z-10 py-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          <label className="upload-zone block cursor-pointer">
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+            <div className={`p-8 rounded-3xl border-2 border-dashed transition-all text-center ${uploadedImage ? 'border-orange-500/50 bg-orange-500/10' : 'border-gray-700/50 bg-gray-800/30 hover:border-orange-500/30'}`}>
+              {uploadedImage ? (
+                <div className="relative">
+                  <img src={uploadedImage} alt="Uploaded" className="max-h-64 mx-auto rounded-xl" />
+                  <p className="text-gray-400 text-sm mt-3">Click to change image</p>
+                </div>
+              ) : (
+                <>
+                  <div className="text-5xl mb-4">📤</div>
+                  <p className="text-white font-semibold mb-2">Upload an image</p>
+                  <p className="text-gray-400 text-sm">Click or drag and drop your photo here</p>
+                </>
+              )}
+            </div>
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            {styles.map((style) => (
+        </div>
+      </section>
+
+      {/* Artist Styles */}
+      <section className="relative z-10 py-8 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-lg font-semibold text-center text-gray-400 mb-6">Choose an Artist Style</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {artistStyles.map((style) => (
               <button
                 key={style.id}
                 onClick={() => setSelectedStyle(style.id)}
-                className={`p-3 rounded-xl border-2 transition-all group ${
-                  selectedStyle === style.id
-                    ? 'border-orange-500 bg-orange-50 scale-105 shadow-lg shadow-orange-500/30'
-                    : 'border-gray-200 hover:border-gray-300 bg-gray-50 hover:bg-gray-100'
-                }`}
+                className={`style-card draggable-style p-4 rounded-2xl text-left transition-all ${selectedStyle === style.id ? `bg-gradient-to-br ${style.color} shadow-lg` : 'bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 hover:border-orange-500/30'}`}
               >
-                <div className="w-full aspect-square rounded-lg overflow-hidden mb-2 relative">
-                  <Image 
-                    src={style.preview} 
-                    alt={style.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  {selectedStyle === style.id && (
-                    <div className="absolute inset-0 bg-orange-500/20 flex items-center justify-center">
-                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm">✓</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="text-sm font-semibold text-center text-gray-900">{style.name}</div>
-                <div className="text-xs text-gray-500 text-center mt-1">{style.description}</div>
+                <span className="style-icon text-3xl block mb-2">{style.icon}</span>
+                <span className="artist-name font-bold text-white block">{style.name}</span>
+                <span className="text-xs text-gray-300 opacity-80">{style.description}</span>
               </button>
             ))}
           </div>
+        </div>
+      </section>
 
+      {/* Generate Button */}
+      <section className="relative z-10 py-6 px-4">
+        <div className="max-w-md mx-auto">
           <button
-            onClick={handleTransform}
-            disabled={isProcessing || !uploadedImage}
-            className="w-full mt-6 py-4 bg-gradient-to-r from-orange-600 to-amber-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            onClick={handleGenerate}
+            disabled={!uploadedImage || isGenerating}
+            className="transform-btn w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-orange-500/25 transition-all"
           >
-            {isProcessing ? (
-              <>
-                <RefreshCw className="w-5 h-5 animate-spin" />
-                Transforming...
-              </>
-            ) : (
-              <>
-                <Wand2 className="w-5 h-5" />
-                Apply Style Transfer
-              </>
-            )}
+            {isGenerating ? '🎨 Transforming...' : '✨ Create Art'}
           </button>
-        </motion.div>
-      </div>
+        </div>
+      </section>
+
+      {/* Gallery */}
+      {generatedArt.length > 0 && (
+        <section className="relative z-10 py-8 px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-xl font-bold text-orange-400 mb-6">Your Creations</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {generatedArt.map((art, idx) => (
+                <div key={idx} className="art-piece rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50">
+                  <div className="aspect-square bg-gray-800 relative">
+                    <img src={art.url} alt="Generated art" className="w-full h-full object-cover" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs bg-gradient-to-r ${artistStyles.find(s => s.id === art.style)?.color || 'from-gray-500 to-gray-600'}`}>
+                        {artistStyles.find(s => s.id === art.style)?.icon} {artistStyles.find(s => s.id === art.style)?.name}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
-  )
+  );
 }

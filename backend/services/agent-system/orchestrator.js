@@ -23,8 +23,23 @@ import DocumentationAgent from './agents/documentation-agent.js';
 // Import AI Core services
 import ragEngine from '../ai-core/rag-engine.js';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Lazy initialization to ensure dotenv has loaded
+let openai = null;
+let anthropic = null;
+
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openai;
+}
+
+function getAnthropic() {
+  if (!anthropic) {
+    anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return anthropic;
+}
 
 /**
  * Agent Registry - All available specialized agents
@@ -125,7 +140,7 @@ Rules:
 4. Be specific in task breakdown`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -340,7 +355,7 @@ Combine these results into a single, well-organized response that addresses the 
 Include all relevant code, explanations, and recommendations from each agent.`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await getAnthropic().messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [

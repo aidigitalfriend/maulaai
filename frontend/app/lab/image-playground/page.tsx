@@ -1,374 +1,300 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useState } from 'react'
-import Link from 'next/link'
-import { Sparkles, Wand2, Image as ImageIcon, Palette, Download, Share2, RefreshCw } from 'lucide-react'
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
+
+
+interface GeneratedImage {
+  url: string;
+  prompt: string;
+  style: string;
+  timestamp: Date;
+}
 
 export default function ImagePlaygroundPage() {
-  const [prompt, setPrompt] = useState('')
-  const [selectedStyle, setSelectedStyle] = useState('realistic')
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [prompt, setPrompt] = useState('');
+  const [selectedStyle, setSelectedStyle] = useState('realistic');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
 
   const styles = [
-    { 
-      id: 'realistic', 
-      name: 'Realistic', 
-      preview: 'bg-gradient-to-br from-sky-400 via-blue-300 to-green-400',
-      icon: '📷'
-    },
-    { 
-      id: 'artistic', 
-      name: 'Artistic', 
-      preview: 'bg-gradient-to-br from-purple-500 via-pink-400 to-yellow-300',
-      icon: '🎨'
-    },
-    { 
-      id: 'anime', 
-      name: 'Anime', 
-      preview: 'bg-gradient-to-br from-pink-400 via-purple-400 to-cyan-300',
-      icon: '✨'
-    },
-    { 
-      id: 'oil-painting', 
-      name: 'Oil Painting', 
-      preview: 'bg-gradient-to-br from-amber-600 via-orange-400 to-yellow-500',
-      icon: '🖼️'
-    },
-    { 
-      id: 'watercolor', 
-      name: 'Watercolor', 
-      preview: 'bg-gradient-to-br from-cyan-300 via-blue-200 to-pink-200',
-      icon: '💧'
-    },
-    { 
-      id: 'digital-art', 
-      name: 'Digital Art', 
-      preview: 'bg-gradient-to-br from-violet-600 via-fuchsia-500 to-cyan-400',
-      icon: '💻'
-    },
-    { 
-      id: '3d-render', 
-      name: '3D Render', 
-      preview: 'bg-gradient-to-br from-slate-600 via-indigo-500 to-blue-400',
-      icon: '🎮'
-    },
-    { 
-      id: 'pixel-art', 
-      name: 'Pixel Art', 
-      preview: 'bg-gradient-to-br from-green-500 via-lime-400 to-emerald-400',
-      icon: '👾'
-    }
-  ]
-
-  const examples = [
-    'A majestic dragon soaring through a starlit galaxy',
-    'Futuristic city with flying cars at sunset',
-    'Enchanted forest with glowing mushrooms',
-    'Cyberpunk street market with neon lights',
-    'Serene mountain landscape with crystal clear lake',
-    'Abstract representation of human consciousness'
-  ]
+    { id: 'realistic', name: 'Realistic', icon: '📷', color: 'from-gray-500 to-slate-500' },
+    { id: 'artistic', name: 'Artistic', icon: '🎨', color: 'from-pink-500 to-rose-500' },
+    { id: 'anime', name: 'Anime', icon: '🌸', color: 'from-purple-500 to-fuchsia-500' },
+    { id: 'cyberpunk', name: 'Cyberpunk', icon: '🌆', color: 'from-cyan-500 to-blue-500' },
+    { id: 'fantasy', name: 'Fantasy', icon: '🧙', color: 'from-emerald-500 to-teal-500' },
+    { id: 'vintage', name: 'Vintage', icon: '📻', color: 'from-amber-500 to-orange-500' },
+    { id: '3d', name: '3D Render', icon: '💎', color: 'from-blue-500 to-indigo-500' },
+    { id: 'watercolor', name: 'Watercolor', icon: '🎭', color: 'from-sky-500 to-cyan-500' },
+  ];
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return
-    
-    setIsGenerating(true)
-    
+    if (!prompt.trim()) return;
+    setIsGenerating(true);
     try {
       const response = await fetch('/api/lab/image-generation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify({ prompt, style: selectedStyle })
+      });
+      const data = await response.json();
+      if (data.success && data.imageUrl) {
+        setGeneratedImages(prev => [{
+          url: data.imageUrl,
           prompt,
           style: selectedStyle,
-          width: 1024,
-          height: 1024
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Image generation failed')
+          timestamp: new Date()
+        }, ...prev]);
       }
-
-      const data = await response.json()
-      setGeneratedImage(data.image)
-    } catch (error) {
-      console.error('Generation error:', error)
-      alert('Image generation failed. Please try again.')
+    } catch (err) {
+      console.error('Image generation error:', err);
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
+  };
 
-  const handleDownload = async () => {
-    if (!generatedImage) return
-    
-    try {
-      let blob: Blob
-      
-      // Check if it's a data URL (base64)
-      if (generatedImage.startsWith('data:')) {
-        // Convert base64 data URL to blob directly (no fetch needed)
-        const [header, base64Data] = generatedImage.split(',')
-        const mimeMatch = header.match(/data:([^;]+)/)
-        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png'
-        
-        const byteCharacters = atob(base64Data)
-        const byteNumbers = new Array(byteCharacters.length)
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i)
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      gsap.set(heroTitle.chars, { y: 70, opacity: 0, rotateZ: -15, scale: 0.85 });
+      gsap.set('.hero-badge', { scale: 0.6, opacity: 0 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateZ: 0, scale: 1, duration: 0.5, stagger: 0.02 }, '-=0.2');
+
+      // 2. ScrambleText on generation count
+      gsap.utils.toArray<HTMLElement>('.gen-count').forEach((el) => {
+        const originalText = el.textContent || '';
+        gsap.to(el, { duration: 1, scrambleText: { text: originalText, chars: '0123456789', speed: 0.5 }, delay: 0.5 });
+      });
+
+      // 3. ScrollTrigger for style cards
+      gsap.set('.style-card', { y: 30, opacity: 0, scale: 0.9 });
+      ScrollTrigger.batch('.style-card', {
+        start: 'top 92%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'back.out(1.4)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 30, opacity: 0, duration: 0.3 })
+      });
+
+      // 4. Flip for gallery images
+      gsap.set('.gallery-image', { opacity: 0, scale: 0.85 });
+
+      // 5. Observer parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.14, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.1, duration: 0.4, ease: 'none' });
         }
-        const byteArray = new Uint8Array(byteNumbers)
-        blob = new Blob([byteArray], { type: mimeType })
-      } else {
-        // Regular URL - fetch as blob
-        const response = await fetch(generatedImage)
-        blob = await response.blob()
-      }
-      
-      // Create object URL
-      const url = window.URL.createObjectURL(blob)
-      
-      // Create temporary link and trigger download
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `ai-generated-${Date.now()}.png`
-      document.body.appendChild(link)
-      link.click()
-      
-      // Cleanup
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Download failed:', error)
-      alert('Download failed. Please try right-clicking the image and selecting "Save image as..."')
-    }
-  }
+      });
 
-  const handleShare = async () => {
-    if (!generatedImage) return
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'AI Generated Image',
-          text: `Check out this image I created with AI: "${prompt}"`,
-          url: generatedImage
-        })
-      } catch (error) {
-        console.log('Share cancelled')
+      // 6. MotionPath for orbiting paintbrush
+      gsap.to('.orbit-brush', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 60, y: -35 }, { x: 120, y: 0 }, { x: 60, y: 35 }, { x: 0, y: 0 }],
+          curviness: 1.8,
+        },
+        duration: 14,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on generate button
+      gsap.utils.toArray<HTMLElement>('.generate-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { scale: 1.06, rotation: 2, duration: 0.5, ease: 'imageWiggle' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { scale: 1, rotation: 0, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for frame decoration
+      gsap.set('.frame-line', { drawSVG: '0%' });
+      gsap.to('.frame-line', { drawSVG: '100%', duration: 1.2, delay: 0.6, ease: 'power2.inOut' });
+
+      // 9. Draggable style cards
+      if (window.innerWidth > 768) {
+        Draggable.create('.draggable-style', {
+          type: 'x,y',
+          bounds: containerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
       }
-    } else {
-      // Fallback: Copy to clipboard
-      navigator.clipboard.writeText(generatedImage)
-      alert('Image URL copied to clipboard!')
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.image-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-50, 50)`,
+          y: `random(-40, 40)`,
+          rotation: `random(-30, 30)`,
+          duration: `random(5, 9)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.12
+        });
+      });
+
+      // 11. Style icon animations
+      gsap.utils.toArray<HTMLElement>('.style-icon').forEach((icon, i) => {
+        gsap.to(icon, {
+          scale: 1.2,
+          rotation: 15,
+          duration: 0.8,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power1.inOut',
+          delay: i * 0.15
+        });
+      });
+
+      // 12. Loading spinner
+      gsap.to('.loading-spinner', {
+        rotation: 360,
+        duration: 1.5,
+        repeat: -1,
+        ease: 'none'
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (generatedImages.length > 0) {
+      gsap.to('.gallery-image', { opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.3)' });
     }
-  }
+  }, [generatedImages.length]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-brand-600 to-accent-600 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
-        </div>
-        <div className="container mx-auto px-4 py-16 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
-              <span>←</span> Back to AI Lab
-            </Link>
-            
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg shadow-pink-500/25">
-                <Sparkles className="w-12 h-12 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold text-white">
-                  AI Image Playground
-                </h1>
-                <p className="text-xl text-blue-100 mt-2">
-                  Generate stunning images from text descriptions with AI
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6 mt-6">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-blue-100">342 users active</span>
-              </div>
-              <div className="text-sm text-blue-200">•</div>
-              <div className="text-sm text-blue-100">12,450 images generated</div>
-            </div>
-          </motion.div>
-        </div>
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/5 w-[520px] h-[520px] bg-pink-500/15 rounded-full blur-[140px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[480px] h-[480px] bg-rose-500/12 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 opacity-8" style={{ backgroundImage: 'linear-gradient(rgba(236, 72, 153, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(236, 72, 153, 0.08) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="image-particle absolute w-2 h-2 bg-pink-400/25 rounded-full" style={{ left: `${8 + i * 9}%`, top: `${12 + (i % 5) * 16}%` }} />
+        ))}
+        <div className="orbit-brush absolute top-32 right-1/4 w-3 h-3 bg-rose-400/50 rounded-full" />
+        <svg className="absolute top-20 right-1/3 w-40 h-40 opacity-20">
+          <rect className="frame-line" x="10" y="10" width="120" height="120" fill="none" stroke="url(#imageGrad)" strokeWidth="2" />
+          <defs>
+            <linearGradient id="imageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ec4899" />
+              <stop offset="100%" stopColor="#f43f5e" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
+      {/* Hero */}
+      <section className="relative z-10 pt-24 pb-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <Link href="/lab" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+            ← Back to AI Lab
+          </Link>
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-pink-500/20 to-rose-500/20 backdrop-blur-sm rounded-full border border-pink-500/30 mb-4">
+            <span className="text-xl">🎨</span>
+            <span className="font-medium text-pink-300">AI Image Generation</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            <span className="hero-title bg-gradient-to-r from-pink-400 via-rose-400 to-fuchsia-400 bg-clip-text text-transparent">Image Playground</span>
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Create stunning AI-generated images in any style
+          </p>
+        </div>
+      </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Panel - Controls */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            {/* Prompt Input */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg mb-6">
-              <label className="flex items-center gap-2 text-lg font-semibold mb-4 text-gray-900">
-                <Wand2 className="w-5 h-5 text-purple-500" />
-                Your Prompt
-              </label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Describe the image you want to create..."
-                className="w-full h-32 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors resize-none"
-              />
-              
-              {/* Example Prompts */}
-              <div className="mt-4">
-                <div className="text-sm text-gray-500 mb-2">Try these examples:</div>
-                <div className="flex flex-wrap gap-2">
-                  {examples.map((example, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setPrompt(example)}
-                      className="text-xs px-3 py-1.5 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200 hover:border-purple-300 transition-all text-gray-700"
-                    >
-                      {example}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+      {/* Style Selection */}
+      <section className="relative z-10 py-6 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-lg font-semibold mb-4 text-center text-gray-400">Choose a Style</h2>
+          <div className="flex flex-wrap justify-center gap-3">
+            {styles.map((style) => (
+              <button
+                key={style.id}
+                onClick={() => setSelectedStyle(style.id)}
+                className={`style-card draggable-style px-5 py-3 rounded-xl flex items-center gap-2 transition-all ${selectedStyle === style.id ? `bg-gradient-to-r ${style.color} text-white shadow-lg` : 'bg-gray-800/50 border border-gray-700/50 text-gray-400 hover:bg-gray-700/50'}`}
+              >
+                <span className="style-icon text-lg">{style.icon}</span>
+                <span className="font-medium">{style.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* Style Selection */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg mb-6">
-              <label className="flex items-center gap-2 text-lg font-semibold mb-4 text-gray-900">
-                <Palette className="w-5 h-5 text-pink-500" />
-                Art Style
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {styles.map((style) => (
-                  <button
-                    key={style.id}
-                    onClick={() => setSelectedStyle(style.id)}
-                    className={`p-3 rounded-xl border-2 transition-all ${
-                      selectedStyle === style.id
-                        ? 'border-purple-500 bg-purple-50 shadow-lg shadow-purple-500/20'
-                        : 'border-gray-200 hover:border-gray-300 bg-gray-50'
-                    }`}
-                  >
-                    <div className={`w-full h-14 rounded-lg ${style.preview} mb-2 flex items-center justify-center text-2xl shadow-inner`}>
-                      {style.icon}
-                    </div>
-                    <div className="text-sm font-medium text-center text-gray-900">{style.name}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Generate Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+      {/* Prompt Input */}
+      <section className="relative z-10 py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="p-8 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-pink-500/30 backdrop-blur-sm">
+            <label className="text-lg font-semibold mb-4 block">Describe your image</label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="A serene mountain lake at sunset with purple clouds reflecting on crystal clear water..."
+              className="w-full h-32 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50 transition-colors resize-none mb-4"
+            />
+            <button
               onClick={handleGenerate}
               disabled={!prompt.trim() || isGenerating}
-              className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              className="generate-btn w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-pink-500/25 transition-all flex items-center justify-center gap-3"
             >
               {isGenerating ? (
                 <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  Generating Magic...
+                  <span className="loading-spinner inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                  Generating...
                 </>
               ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  Generate Image
-                </>
+                '✨ Generate Image'
               )}
-            </motion.button>
-          </motion.div>
-
-          {/* Right Panel - Preview */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
-          >
-            <label className="flex items-center gap-2 text-lg font-semibold mb-4 text-gray-900">
-              <ImageIcon className="w-5 h-5 text-cyan-500" />
-              Generated Image
-            </label>
-
-            {/* Preview Area */}
-            <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-200 mb-4">
-              {isGenerating ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <RefreshCw className="w-16 h-16 text-purple-500 animate-spin mb-4" />
-                  <div className="text-lg font-semibold text-gray-900">Creating your masterpiece...</div>
-                  <div className="text-sm text-gray-500 mt-2">This may take a few seconds</div>
-                </div>
-              ) : generatedImage ? (
-                <motion.img
-                  key={generatedImage}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                  src={generatedImage}
-                  alt="Generated"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                  <ImageIcon className="w-16 h-16 mb-4 opacity-50" />
-                  <div className="text-lg">Your generated image will appear here</div>
-                  <div className="text-sm mt-2">Enter a prompt and click Generate</div>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            {generatedImage && !isGenerating && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="grid grid-cols-2 gap-3"
-              >
-                <button 
-                  onClick={handleDownload}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all text-gray-700"
-                >
-                  <Download className="w-5 h-5" />
-                  Download
-                </button>
-                <button 
-                  onClick={handleShare}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all text-gray-700"
-                >
-                  <Share2 className="w-5 h-5" />
-                  Share
-                </button>
-              </motion.div>
-            )}
-
-            {/* Info */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <div className="text-sm text-blue-700">
-                <strong>💡 Pro Tip:</strong> Be specific in your prompts! Include details about lighting, mood, colors, and composition for better results.
-              </div>
-            </div>
-          </motion.div>
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Gallery */}
+      {generatedImages.length > 0 && (
+        <section className="relative z-10 py-8 px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-pink-400">Generated Images</h2>
+              <span className="gen-count text-gray-400">{generatedImages.length} images</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {generatedImages.map((img, idx) => (
+                <div key={idx} className="gallery-image rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50">
+                  <div className="aspect-square bg-gray-800 relative">
+                    <img src={img.url} alt={img.prompt} className="w-full h-full object-cover" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                      <span className={`inline-block px-2 py-1 rounded-full text-xs bg-gradient-to-r ${styles.find(s => s.id === img.style)?.color || 'from-gray-500 to-gray-600'} mb-1`}>
+                        {styles.find(s => s.id === img.style)?.name}
+                      </span>
+                      <p className="text-white text-xs truncate">{img.prompt}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
-  )
+  );
 }

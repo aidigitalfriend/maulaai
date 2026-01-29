@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 
 interface Agent {
   id: string;
@@ -121,213 +121,153 @@ const agents: Agent[] = [
     emoji: '🎮',
     hoverBadge: 'Pro Gamer',
   },
-  {
-    id: '13',
-    name: 'Ben Sega',
-    specialty: 'Retro Gaming',
-    description: 'Classic games & nostalgia',
-    color: 'from-blue-600 to-purple-600',
-    emoji: '🕹️',
-    hoverBadge: 'Retro Expert',
-  },
-  {
-    id: '14',
-    name: 'Bishop Burger',
-    specialty: 'Chess Strategy',
-    description: 'Master chess tactics & moves',
-    color: 'from-amber-600 to-yellow-500',
-    emoji: '♟️',
-    hoverBadge: 'Grandmaster',
-  },
-  {
-    id: '15',
-    name: 'Chess Player',
-    specialty: 'Strategic Thinking',
-    description: 'Think several moves ahead',
-    color: 'from-gray-600 to-slate-700',
-    emoji: '♚',
-    hoverBadge: 'Tactician',
-  },
-  {
-    id: '16',
-    name: 'Knight Logic',
-    specialty: 'Problem Solving',
-    description: 'Logical reasoning expert',
-    color: 'from-emerald-600 to-teal-600',
-    emoji: '🐴',
-    hoverBadge: 'Logic Pro',
-  },
-  {
-    id: '17',
-    name: 'Lazy Pawn',
-    specialty: 'Relaxation',
-    description: 'Take it easy, one step at a time',
-    color: 'from-slate-500 to-gray-600',
-    emoji: '😴',
-    hoverBadge: 'Chill Mode',
-  },
-  {
-    id: '18',
-    name: 'Rook Jokey',
-    specialty: 'Humor & Wit',
-    description: 'Jokes and fun for everyone',
-    color: 'from-orange-500 to-red-500',
-    emoji: '🃏',
-    hoverBadge: 'Joker',
-  },
 ];
 
-// Duplicate agents for infinite scroll effect
-const duplicatedAgents = [...agents, ...agents];
+const N = agents.length;
 
 export default function AgentCardsMarquee() {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
-
-    let animationId: number;
-    let scrollPosition = 0;
-    const scrollSpeed = 0.5; // pixels per frame
-
-    const animate = () => {
-      scrollPosition += scrollSpeed;
-      
-      // Reset when we've scrolled past the first set of cards
-      if (scrollPosition >= scrollContainer.scrollWidth / 2) {
-        scrollPosition = 0;
-      }
-      
-      scrollContainer.scrollLeft = scrollPosition;
-      animationId = requestAnimationFrame(animate);
-    };
-
-    // Start animation after a short delay
-    const timer = setTimeout(() => {
-      animationId = requestAnimationFrame(animate);
-    }, 500);
-
-    // Pause on hover
-    const handleMouseEnter = () => {
-      cancelAnimationFrame(animationId);
-    };
-
-    const handleMouseLeave = () => {
-      animationId = requestAnimationFrame(animate);
-    };
-
-    scrollContainer.addEventListener('mouseenter', handleMouseEnter);
-    scrollContainer.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      clearTimeout(timer);
-      cancelAnimationFrame(animationId);
-      scrollContainer.removeEventListener('mouseenter', handleMouseEnter);
-      scrollContainer.removeEventListener('mouseleave', handleMouseLeave);
-    };
+  // Calculate the radius based on card width and number of cards
+  const cardWidth = 120; // Small card width
+  const cardHeight = 150; // Small card height
+  const baseAngle = 360 / N;
+  // Calculate radius: R = (cardWidth + gap) / (2 * tan(baseAngle/2))
+  const radius = useMemo(() => {
+    const gap = 25; // Gap between cards
+    const angleRad = (baseAngle / 2) * (Math.PI / 180);
+    return (cardWidth + gap) / (2 * Math.tan(angleRad));
   }, []);
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-br from-neural-950 via-neural-900 to-neural-950 overflow-hidden relative">
+    <section className="py-20 md:py-32 bg-gradient-to-b from-[#0a0a10] via-[#0c0c18] to-[#0a0a10] overflow-hidden relative">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-brand-500/10 rounded-full filter blur-[100px]"></div>
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-accent-500/10 rounded-full filter blur-[100px]"></div>
+        <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full filter blur-[150px]"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-[600px] h-[600px] bg-cyan-500/10 rounded-full filter blur-[150px]"></div>
       </div>
 
       {/* Header */}
-      <div className="container-custom relative z-10 mb-12">
+      <div className="container-custom relative z-10 mb-16 md:mb-20">
         <div className="text-center max-w-3xl mx-auto">
-          <span className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500/20 rounded-full text-brand-300 text-sm font-medium mb-4 border border-brand-500/30">
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 rounded-full text-purple-300 text-sm font-medium mb-4 border border-purple-500/30">
             <span className="text-lg">🤖</span>
             Meet Our AI Agents
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-            18+ Unique AI
-            <span className="bg-gradient-to-r from-brand-400 via-accent-400 to-brand-500 bg-clip-text text-transparent"> Personalities</span>
+            12 Unique AI
+            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent"> Personalities</span>
           </h2>
-          <p className="text-lg text-neural-400">
+          <p className="text-lg text-gray-400">
             Each agent brings specialized expertise and a unique personality. Find your perfect AI companion.
           </p>
         </div>
       </div>
 
-      {/* Scrolling Cards Container */}
+      {/* 3D Carousel Scene - Large section, small cards */}
       <div 
-        ref={scrollRef}
-        className="flex gap-6 overflow-x-auto scrollbar-hide px-4 md:px-8"
-        style={{ scrollBehavior: 'auto' }}
+        className="scene relative"
+        style={{ 
+          perspective: '1000px',
+          height: '400px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          maskImage: 'linear-gradient(90deg, transparent, black 5%, black 95%, transparent)',
+          WebkitMaskImage: 'linear-gradient(90deg, transparent, black 5%, black 95%, transparent)',
+        }}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
       >
-        {duplicatedAgents.map((agent, index) => (
-          <div
-            key={`${agent.id}-${index}`}
-            className="group flex-shrink-0 w-[280px] md:w-[320px] cursor-default"
-            onMouseEnter={() => setHoveredId(`${agent.id}-${index}`)}
-            onMouseLeave={() => setHoveredId(null)}
-          >
-            <div className="relative h-[380px] md:h-[420px] rounded-2xl overflow-hidden bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 backdrop-blur-sm transition-all duration-500 hover:scale-[1.02] hover:border-white/20 hover:shadow-2xl hover:shadow-brand-500/20">
-              {/* Gradient Overlay */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${agent.color} opacity-0 group-hover:opacity-15 transition-opacity duration-500`}></div>
-              
-              {/* Top Badge - Changes on hover */}
-              <div className="absolute top-4 left-4 z-10">
-                <span className={`px-3 py-1.5 backdrop-blur-md rounded-full text-xs font-medium border transition-all duration-300 ${
-                  hoveredId === `${agent.id}-${index}` 
-                    ? `bg-gradient-to-r ${agent.color} text-white border-white/40 shadow-lg` 
-                    : 'bg-white/10 text-white border-white/20'
-                }`}>
-                  {hoveredId === `${agent.id}-${index}` ? `✨ ${agent.hoverBadge}` : `${agent.emoji} ${agent.specialty}`}
-                </span>
-              </div>
-
-              {/* Avatar Area */}
-              <div className="relative h-[200px] md:h-[220px] overflow-hidden">
-                <div className={`absolute inset-0 bg-gradient-to-br ${agent.color} opacity-20 group-hover:opacity-40 transition-opacity duration-500`}></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className={`relative w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-white/20 to-white/5 border-2 flex items-center justify-center shadow-xl transition-all duration-500 ${
-                    hoveredId === `${agent.id}-${index}` 
-                      ? 'scale-110 border-white/50 shadow-2xl' 
+        {/* 3D Rotating Container */}
+        <div 
+          ref={carouselRef}
+          className="a3d"
+          style={{
+            transformStyle: 'preserve-3d',
+            animation: isPaused ? 'none' : 'carouselSpin 40s linear infinite',
+            width: `${cardWidth}px`,
+            height: `${cardHeight}px`,
+          }}
+        >
+          {agents.map((agent, index) => (
+            <div
+              key={agent.id}
+              className="card-3d group cursor-pointer"
+              style={{
+                position: 'absolute',
+                width: `${cardWidth}px`,
+                height: `${cardHeight}px`,
+                backfaceVisibility: 'hidden',
+                transform: `rotateY(${index * baseAngle}deg) translateZ(${radius}px)`,
+              }}
+              onMouseEnter={() => setHoveredId(agent.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              <div className={`relative w-full h-full rounded-lg overflow-hidden bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/20 backdrop-blur-sm transition-all duration-500 ${
+                hoveredId === agent.id ? 'scale-110 border-white/40 shadow-2xl' : ''
+              }`}>
+                {/* Gradient Overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${agent.color} opacity-10 group-hover:opacity-25 transition-opacity duration-500`}></div>
+                
+                {/* Avatar Area */}
+                <div className="relative h-[60px] overflow-hidden flex items-center justify-center">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${agent.color} opacity-20 group-hover:opacity-40 transition-opacity duration-500`}></div>
+                  <div className={`relative w-9 h-9 rounded-full bg-gradient-to-br from-white/20 to-white/5 border flex items-center justify-center transition-all duration-500 ${
+                    hoveredId === agent.id 
+                      ? 'scale-110 border-white/50' 
                       : 'border-white/30'
                   }`}>
-                    <span className={`text-5xl md:text-6xl transition-transform duration-300 ${
-                      hoveredId === `${agent.id}-${index}` ? 'scale-110' : ''
-                    }`}>{agent.emoji}</span>
+                    <span className="text-base">{agent.emoji}</span>
                   </div>
                 </div>
-                {/* Decorative Elements */}
-                <div className="absolute top-4 right-4 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:bg-white/10 transition-all"></div>
-                <div className="absolute bottom-4 left-4 w-12 h-12 bg-white/5 rounded-full blur-lg group-hover:bg-white/10 transition-all"></div>
-              </div>
 
-              {/* Content */}
-              <div className="p-5 md:p-6">
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-2 group-hover:text-brand-300 transition-colors">
-                  {agent.name}
-                </h3>
-                <p className="text-sm text-neural-400 mb-4 line-clamp-2 group-hover:text-neural-300 transition-colors">
-                  {agent.description}
-                </p>
-                
-                {/* Specialty Tag */}
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${agent.color} animate-pulse`}></div>
-                  <span className="text-xs text-neural-500 group-hover:text-neural-400 transition-colors">{agent.specialty}</span>
+                {/* Content */}
+                <div className="p-2">
+                  <h3 className="text-[11px] font-bold text-white mb-0.5 group-hover:text-cyan-300 transition-colors truncate">
+                    {agent.name}
+                  </h3>
+                  <p className="text-[8px] text-gray-400 mb-1 line-clamp-2 group-hover:text-gray-300 transition-colors leading-tight">
+                    {agent.description}
+                  </p>
+                  
+                  {/* Specialty Tag */}
+                  <div className="flex items-center gap-1">
+                    <div className={`w-1 h-1 rounded-full bg-gradient-to-r ${agent.color}`}></div>
+                    <span className="text-[7px] text-gray-500 truncate">{agent.specialty}</span>
+                  </div>
+                </div>
+
+                {/* Hover Glow Effect */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}>
+                  <div className={`absolute -inset-1 bg-gradient-to-r ${agent.color} opacity-20 blur-xl`}></div>
                 </div>
               </div>
-
-              {/* Hover Glow Effect */}
-              <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}>
-                <div className={`absolute -inset-1 bg-gradient-to-r ${agent.color} opacity-20 blur-xl`}></div>
-              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-neural-950 to-transparent pointer-events-none"></div>
+      {/* Floor Reflection */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a10] via-[#0a0a10]/80 to-transparent pointer-events-none"></div>
+
+      {/* CSS Animation */}
+      <style jsx>{`
+        @keyframes carouselSpin {
+          0% {
+            transform: rotateY(0deg);
+          }
+          100% {
+            transform: rotateY(-360deg);
+          }
+        }
+        
+        .card-3d {
+          transition: transform 0.3s ease-out;
+        }
+      `}</style>
     </section>
   );
 }

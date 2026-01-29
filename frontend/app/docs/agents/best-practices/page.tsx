@@ -1,383 +1,356 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Lightbulb, TrendingUp, Award, Target } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
 
-export default function BestPracticesPage() {
+
+export default function DocsAgentsBestPracticesPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const practices = [
+    {
+      category: 'Design',
+      icon: '🎨',
+      items: [
+        { title: 'Define Clear Objectives', description: 'Start with a specific purpose and target audience for your agent' },
+        { title: 'Keep Prompts Focused', description: 'Use concise, clear instructions in your system prompts' },
+        { title: 'Design for Edge Cases', description: 'Plan how your agent handles unexpected or off-topic queries' }
+      ]
+    },
+    {
+      category: 'Performance',
+      icon: '⚡',
+      items: [
+        { title: 'Optimize Context Window', description: 'Balance conversation history with response quality' },
+        { title: 'Use Streaming Responses', description: 'Improve perceived speed with streamed output' },
+        { title: 'Implement Caching', description: 'Cache common queries to reduce latency and costs' }
+      ]
+    },
+    {
+      category: 'Security',
+      icon: '🔒',
+      items: [
+        { title: 'Validate All Inputs', description: 'Sanitize user input to prevent prompt injection' },
+        { title: 'Limit Scope of Actions', description: 'Only enable the tools your agent actually needs' },
+        { title: 'Rotate API Keys', description: 'Regularly rotate credentials and use environment variables' }
+      ]
+    },
+    {
+      category: 'User Experience',
+      icon: '💫',
+      items: [
+        { title: 'Provide Clear Feedback', description: 'Show loading states and handle errors gracefully' },
+        { title: 'Set Expectations', description: 'Let users know what your agent can and cannot do' },
+        { title: 'Enable Corrections', description: 'Allow users to correct misunderstandings easily' }
+      ]
+    }
+  ];
+
+  const dosDonts = {
+    dos: [
+      'Test with real user scenarios',
+      'Monitor conversations regularly',
+      'Iterate based on feedback',
+      'Document your agent\'s capabilities',
+      'Use appropriate response lengths'
+    ],
+    donts: [
+      'Overcomplicate initial prompts',
+      'Ignore edge cases',
+      'Skip error handling',
+      'Expose sensitive data',
+      'Forget about rate limits'
+    ]
+  };
+
+  const metrics = [
+    { name: 'Response Time', target: '< 2s', description: 'Average time to first response' },
+    { name: 'Success Rate', target: '> 95%', description: 'Conversations that achieve user goal' },
+    { name: 'User Satisfaction', target: '> 4.5/5', description: 'Average rating from users' },
+    { name: 'Fallback Rate', target: '< 5%', description: 'Percentage of failed responses' }
+  ];
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. SplitText Hero Animation
+      const heroTitle = new SplitText('.hero-title', { type: 'chars,words' });
+      const heroSub = new SplitText('.hero-subtitle', { type: 'words' });
+      gsap.set(heroTitle.chars, { y: 100, opacity: 0, rotateX: -90 });
+      gsap.set(heroSub.words, { y: 40, opacity: 0 });
+      gsap.set('.hero-badge', { y: 30, opacity: 0, scale: 0.8 });
+
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl
+        .to('.hero-badge', { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' })
+        .to(heroTitle.chars, { y: 0, opacity: 1, rotateX: 0, duration: 0.7, stagger: 0.02 }, '-=0.3')
+        .to(heroSub.words, { y: 0, opacity: 1, duration: 0.5, stagger: 0.02 }, '-=0.3');
+
+      // 2. ScrambleText on practice titles
+      gsap.utils.toArray<HTMLElement>('.practice-title').forEach((el, i) => {
+        const originalText = el.textContent || '';
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 90%',
+          onEnter: () => {
+            gsap.to(el, { duration: 0.8, scrambleText: { text: originalText, chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', speed: 0.4 }, delay: i * 0.05 });
+          }
+        });
+      });
+
+      // 3. ScrollTrigger for practice cards
+      gsap.set('.practice-card', { y: 50, opacity: 0, scale: 0.95 });
+      ScrollTrigger.batch('.practice-card', {
+        start: 'top 88%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.08, ease: 'back.out(1.4)' }),
+        onLeaveBack: (batch) => gsap.to(batch, { y: 50, opacity: 0, scale: 0.95, duration: 0.3 })
+      });
+
+      // 4. Flip for metric cards
+      gsap.set('.metric-card', { opacity: 0, y: 30 });
+      ScrollTrigger.create({
+        trigger: '.metrics-grid',
+        start: 'top 80%',
+        onEnter: () => {
+          gsap.utils.toArray<HTMLElement>('.metric-card').forEach((el, i) => {
+            const state = Flip.getState(el);
+            gsap.set(el, { opacity: 1, y: 0 });
+            Flip.from(state, { duration: 0.5, delay: i * 0.1, ease: 'power2.out' });
+          });
+        }
+      });
+
+      // 5. Observer for parallax
+      Observer.create({
+        target: window,
+        type: 'scroll',
+        onChangeY: (self) => {
+          const scrollY = self.scrollY;
+          gsap.to('.parallax-orb-1', { y: scrollY * 0.15, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-2', { y: scrollY * -0.1, duration: 0.4, ease: 'none' });
+          gsap.to('.parallax-orb-3', { y: scrollY * 0.08, duration: 0.4, ease: 'none' });
+        }
+      });
+
+      // 6. MotionPath for orbiting element
+      gsap.to('.orbit-element', {
+        motionPath: {
+          path: [{ x: 0, y: 0 }, { x: 50, y: -25 }, { x: 100, y: 0 }, { x: 50, y: 25 }, { x: 0, y: 0 }],
+          curviness: 2,
+        },
+        duration: 12,
+        repeat: -1,
+        ease: 'none'
+      });
+
+      // 7. CustomWiggle on action buttons
+      gsap.utils.toArray<HTMLElement>('.action-btn').forEach((btn) => {
+        btn.addEventListener('mouseenter', () => {
+          gsap.to(btn, { scale: 1.05, duration: 0.4, ease: 'bestPracticesWiggle' });
+        });
+        btn.addEventListener('mouseleave', () => {
+          gsap.to(btn, { scale: 1, duration: 0.3 });
+        });
+      });
+
+      // 8. DrawSVG for decorative lines
+      gsap.set('.draw-line', { drawSVG: '0%' });
+      ScrollTrigger.create({
+        trigger: '.practices-section',
+        start: 'top 80%',
+        onEnter: () => gsap.to('.draw-line', { drawSVG: '100%', duration: 1.2, ease: 'power2.inOut' })
+      });
+
+      // 9. Draggable cards
+      if (window.innerWidth > 768) {
+        Draggable.create('.draggable-card', {
+          type: 'x,y',
+          bounds: containerRef.current,
+          inertia: true,
+          onDragEnd: function() {
+            gsap.to(this.target, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
+          }
+        });
+      }
+
+      // 10. Floating particles
+      gsap.utils.toArray<HTMLElement>('.float-particle').forEach((p, i) => {
+        gsap.to(p, {
+          x: `random(-50, 50)`,
+          y: `random(-40, 40)`,
+          rotation: `random(-90, 90)`,
+          duration: `random(5, 8)`,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.15
+        });
+      });
+
+      // 11. Do's and Don'ts list items
+      gsap.set('.list-item', { x: -20, opacity: 0 });
+      ScrollTrigger.batch('.list-item', {
+        start: 'top 90%',
+        onEnter: (batch) => gsap.to(batch, { x: 0, opacity: 1, duration: 0.4, stagger: 0.05, ease: 'power2.out' })
+      });
+
+      // 12. Practice item stagger
+      gsap.set('.practice-item', { y: 15, opacity: 0 });
+      ScrollTrigger.batch('.practice-item', {
+        start: 'top 90%',
+        onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, duration: 0.4, stagger: 0.04, ease: 'power2.out' })
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="parallax-orb-1 absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-sky-500/15 rounded-full blur-[150px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-blue-500/15 rounded-full blur-[120px]" />
+        <div className="parallax-orb-3 absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(14, 165, 233, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="float-particle absolute w-1.5 h-1.5 bg-sky-400/30 rounded-full" style={{ left: `${10 + i * 8}%`, top: `${15 + (i % 4) * 18}%` }} />
+        ))}
+        <div className="orbit-element absolute top-32 left-1/3 w-2 h-2 bg-blue-400/60 rounded-full" />
+      </div>
+
       {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Best Practices</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto">
-            Expert tips and strategies for maximizing the value and effectiveness of your agents.
+      <section className="relative z-10 pt-20 pb-12 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-sky-500/20 to-blue-500/20 backdrop-blur-sm rounded-full border border-sky-500/30 mb-6">
+            <span className="text-xl">⭐</span>
+            <span className="font-medium">Expert Guidelines</span>
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <span className="hero-title bg-gradient-to-r from-sky-400 via-blue-400 to-sky-400 bg-clip-text text-transparent">Best Practices</span>
+          </h1>
+          <p className="hero-subtitle text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-8">
+            Learn from successful implementations and avoid common pitfalls
           </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#practices" className="action-btn px-8 py-4 bg-gradient-to-r from-sky-500 to-blue-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-sky-500/25 transition-all">
+              View Guidelines
+            </a>
+            <Link href="/docs/agents" className="action-btn px-8 py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl font-semibold hover:bg-gray-700/50 transition-all">
+              ← Back to Agents Docs
+            </Link>
+          </div>
         </div>
       </section>
 
-      <div className="container-custom section-padding">
-        {/* Back Button */}
-        <Link href="/docs/agents" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Documentation
-        </Link>
-
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Effective Communication */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-yellow-100 rounded-xl p-2"><Lightbulb className="w-6 h-6 text-yellow-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Effective Communication</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Be Specific and Clear</h3>
-                <p className="text-neural-600 mb-3">Vague questions lead to vague answers. Instead of asking general questions, provide specific details about your situation.</p>
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
-                  <p className="text-red-700 text-sm">❌ <strong>Avoid:</strong> "How do I code?"</p>
+      {/* Best Practices Grid */}
+      <section id="practices" className="practices-section relative z-10 py-12 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* SVG Decorative Line */}
+          <svg className="absolute left-1/2 -translate-x-1/2 -top-4 h-1 w-1/3 opacity-30" preserveAspectRatio="none">
+            <line className="draw-line" x1="0" y1="0" x2="100%" y2="0" stroke="url(#bpGrad)" strokeWidth="2" />
+            <defs>
+              <linearGradient id="bpGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#0ea5e9" />
+                <stop offset="100%" stopColor="#3b82f6" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <h2 className="text-3xl font-bold text-center mb-8">Key Practices</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {practices.map((practice, idx) => (
+              <div key={idx} className="practice-card draggable-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm hover:border-sky-500/50 transition-colors">
+                <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-sky-500/30 rounded-tr-lg" />
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-3xl">{practice.icon}</span>
+                  <h3 className="practice-title text-lg font-bold text-sky-400">{practice.category}</h3>
                 </div>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-green-700 text-sm">✓ <strong>Try:</strong> "How do I create a REST API in Python using Flask? I need endpoints for CRUD operations."</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Provide Context</h3>
-                <p className="text-neural-600 mb-3">Give agents relevant background information. This helps them understand your situation and provide more appropriate responses.</p>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-green-700 text-sm">✓ "I'm developing an ecommerce platform for fashion items. We expect 10,000 daily users. What database should I choose?"</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Ask Follow-Up Questions</h3>
-                <p className="text-neural-600 mb-3">
-                  If a response isn't quite right, ask the agent to clarify, expand, or approach the topic differently. The conversation context helps refine answers.
-                </p>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-green-700 text-sm">✓ "That's helpful! Can you explain that more simply for a beginner?" or "Can you provide code examples?"</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Use Precise Language</h3>
-                <p className="text-neural-600 mb-3">
-                  While agents understand casual language, using precise terminology helps get better results. Use domain-specific terms when appropriate.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Optimizing Configuration */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-purple-100 rounded-xl p-2"><Target className="w-6 h-6 text-purple-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Optimizing Configuration</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Match Tone to Your Use Case</h3>
-                <p className="text-neural-600 mb-3">Select response tone based on your needs:</p>
-                <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                  <li><strong>Professional</strong> - Business communications, formal documentation</li>
-                  <li><strong>Casual</strong> - Learning, exploration, creative tasks</li>
-                  <li><strong>Technical</strong> - Deep technical discussions, specifications</li>
-                  <li><strong>Balanced</strong> - General purpose, most situations</li>
+                <ul className="space-y-3">
+                  {practice.items.map((item, i) => (
+                    <li key={i} className="practice-item">
+                      <h4 className="text-white font-medium text-sm">{item.title}</h4>
+                      <p className="text-gray-400 text-xs">{item.description}</p>
+                    </li>
+                  ))}
                 </ul>
               </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Adjust Response Length Strategically</h3>
-                <p className="text-neural-600 mb-3">
-                  Use brief responses for quick facts, standard for most situations, and detailed/comprehensive for learning or complex topics.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Experiment with Creativity Level</h3>
-                <p className="text-neural-600 mb-3">
-                  For brainstorming and ideation, increase creativity. For factual accuracy, use conservative. Start conservative and increase as needed.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Save Preset Configurations</h3>
-                <p className="text-neural-600 mb-3">
-                  If you frequently use the same settings, create named presets. Access them quickly without reconfiguring each time.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Leveraging Specialization */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-blue-100 rounded-xl p-2"><Award className="w-6 h-6 text-blue-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Leveraging Agent Specialization</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Choose the Right Agent</h3>
-                <p className="text-neural-600 mb-3">Match agents to their specialization:</p>
-                <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                  <li><strong>Einstein</strong> for science, math, research questions</li>
-                  <li><strong>Tech Wizard</strong> for programming, tech support, debugging</li>
-                  <li><strong>Travel Buddy</strong> for travel planning, destination research</li>
-                  <li><strong>Chef Biew</strong> for recipes, cooking techniques, meal planning</li>
-                  <li><strong>Fitness Guru</strong> for workouts, nutrition, fitness advice</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Combine Multiple Agents</h3>
-                <p className="text-neural-600 mb-3">
-                  Don't limit yourself to one agent. For complex projects, consult multiple agents for different aspects. 
-                  For example, ask Tech Wizard about architecture, then Einstein about the mathematics involved.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Use Agent Domain Focus</h3>
-                <p className="text-neural-600 mb-3">
-                  Set domain focus within specialized agents to narrow expertise. For Tech Wizard, focus on your programming language. 
-                  For Travel Buddy, focus on your destination region.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Conversation Management */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Conversation Management</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Start Fresh When Needed</h3>
-                <p className="text-neural-600 mb-3">
-                  If your conversation topic shifts significantly, consider starting a new conversation. This keeps context clean and improves response quality.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Save Important Responses</h3>
-                <p className="text-neural-600 mb-3">
-                  Bookmark or copy important responses for future reference. Create a knowledge base of useful agent responses.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Review and Validate</h3>
-                <p className="text-neural-600 mb-3">
-                  While agents are highly capable, always review responses critically, especially for important decisions. 
-                  Cross-reference facts and test code suggestions before using in production.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Provide Feedback</h3>
-                <p className="text-neural-600 mb-3">
-                  Use the feedback system to rate responses. This helps improve overall agent quality and personalization for your needs.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Advanced Techniques */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-green-100 rounded-xl p-2"><TrendingUp className="w-6 h-6 text-green-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Advanced Techniques</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Iterative Refinement</h3>
-                <p className="text-neural-600 mb-3">
-                  Get an initial response, then iteratively refine by asking follow-ups: "Make it more concise," 
-                  "Add more examples," "Explain for a child," etc. This builds exactly what you need.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Role-Based Prompting</h3>
-                <p className="text-neural-600 mb-3">
-                  Ask agents to adopt a specific role: "As a senior architect, how would you design this system?" 
-                  This often produces more targeted, expert-level responses.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Structured Requests</h3>
-                <p className="text-neural-600 mb-3">
-                  Break complex requests into structured steps. Example: "First, explain the concepts. Then provide a concrete example. Finally, list best practices."
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Comparison Prompts</h3>
-                <p className="text-neural-600 mb-3">
-                  Ask agents to compare options: "Compare these three approaches in terms of performance, maintainability, and learning curve." 
-                  This produces comprehensive analysis.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Scenario-Based Queries</h3>
-                <p className="text-neural-600 mb-3">
-                  Present specific scenarios for tailored advice. Example: "I have 3 hours to learn React basics before a job interview. What should I focus on?"
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Common Mistakes to Avoid */}
-          <section className="bg-red-50 border border-red-200 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Common Mistakes to Avoid</h2>
-
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Asking too general or vague questions</p>
-                  <p className="text-neural-600 text-sm">Specific questions get specific answers. Vague questions get vague responses.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Ignoring context and conversation flow</p>
-                  <p className="text-neural-600 text-sm">Agents work best with context. Provide relevant background in your questions.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Using wrong agent for the task</p>
-                  <p className="text-neural-600 text-sm">Choose agents based on their specialization. Tech Wizard won't help with recipes.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Not reviewing responses critically</p>
-                  <p className="text-neural-600 text-sm">Always verify important information, especially for decisions or production code.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Never adjusting configuration</p>
-                  <p className="text-neural-600 text-sm">Experiment with settings to find what works best for your use case.</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Use Case Examples */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Use Case Examples</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">📚 Learning & Education</h3>
-                <p className="text-neural-600">
-                  Set to detailed response length and balanced tone. Ask questions progressively, building knowledge. 
-                  Request examples frequently. Save responses for review.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">💼 Professional Work</h3>
-                <p className="text-neural-600">
-                  Use professional tone with standard response length. Set citations on. Combine multiple agents for complex projects. 
-                  Archive important conversations.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">🚀 Brainstorming & Ideation</h3>
-                <p className="text-neural-600">
-                  Set creativity to high. Use casual tone. Ask comparison questions and role-based prompts. 
-                  Iterate on ideas to refine them.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">🔧 Problem-Solving</h3>
-                <p className="text-neural-600">
-                  Provide detailed context about the problem. Ask step-by-step solutions. Use the Troubleshooting guide for technical issues. 
-                  Test recommendations before implementation.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Key Takeaways */}
-          <section className="bg-green-50 border border-green-200 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Key Takeaways</h2>
-            <div className="space-y-3 text-neural-700">
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Be specific and provide context for better responses</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Choose the right agent for your task's domain</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Configure agents for your specific use case</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Use iterative refinement to get exactly what you need</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Always review and validate important responses</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Combine multiple agents for complex projects</span>
-              </div>
-            </div>
-          </section>
-
-          {/* Related Links */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            <Link 
-              href="/docs/agents/getting-started"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">← Getting Started</h3>
-              <p className="text-neural-600 text-sm">Learn the basics</p>
-            </Link>
-            <Link 
-              href="/docs/agents/configuration"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">← Configuration</h3>
-              <p className="text-neural-600 text-sm">Configure agents</p>
-            </Link>
-            <Link 
-              href="/docs/agents/troubleshooting"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">Troubleshooting →</h3>
-              <p className="text-neural-600 text-sm">Solve issues</p>
-            </Link>
-          </section>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Do's and Don'ts */}
+      <section className="relative z-10 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">Do's and Don'ts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Do's */}
+            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/20 backdrop-blur-sm">
+              <h3 className="text-lg font-bold text-green-400 mb-4 flex items-center gap-2">
+                <span>✅</span> Do's
+              </h3>
+              <ul className="space-y-2">
+                {dosDonts.dos.map((item, idx) => (
+                  <li key={idx} className="list-item flex items-center gap-2 text-gray-300 text-sm">
+                    <span className="text-green-400">→</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Don'ts */}
+            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-red-900/30 to-rose-900/30 border border-red-500/20 backdrop-blur-sm">
+              <h3 className="text-lg font-bold text-red-400 mb-4 flex items-center gap-2">
+                <span>❌</span> Don'ts
+              </h3>
+              <ul className="space-y-2">
+                {dosDonts.donts.map((item, idx) => (
+                  <li key={idx} className="list-item flex items-center gap-2 text-gray-300 text-sm">
+                    <span className="text-red-400">→</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Key Metrics */}
+      <section className="relative z-10 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">Key Metrics to Track</h2>
+          <div className="metrics-grid grid grid-cols-2 md:grid-cols-4 gap-4">
+            {metrics.map((metric, idx) => (
+              <div key={idx} className="metric-card relative p-5 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center">
+                <h3 className="text-sm font-bold text-white mb-1">{metric.name}</h3>
+                <p className="text-xl font-bold text-sky-400 mb-2">{metric.target}</p>
+                <p className="text-gray-400 text-xs">{metric.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="relative z-10 py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="relative p-10 rounded-3xl bg-gradient-to-br from-sky-900/30 to-blue-900/30 border border-sky-500/20 backdrop-blur-sm overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-blue-500/5" />
+            <div className="relative z-10">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">Having Issues?</h2>
+              <p className="text-gray-400 mb-6">Check out our troubleshooting guide for common problems and solutions.</p>
+              <Link href="/docs/agents/troubleshooting" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-sky-500 to-blue-500 rounded-xl font-semibold hover:shadow-lg hover:shadow-sky-500/25 transition-all">
+                🔧 Troubleshooting Guide
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

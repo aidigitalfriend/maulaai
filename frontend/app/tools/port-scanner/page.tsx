@@ -1,278 +1,385 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Scan, Search, Loader2, XCircle, ArrowLeft, CheckCircle, Lock, Unlock } from 'lucide-react'
-import Link from 'next/link'
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Scan, ArrowLeft, Play, Loader2, Copy, Check, Globe, Shield, Lock, Unlock, Server } from 'lucide-react';
+import { gsap, ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, SplitText, TextPlugin, CustomWiggle, CustomEase);
 
 interface PortResult {
-  port: number
-  status: 'open' | 'closed' | 'filtered'
-  service?: string
+  port: number;
+  status: 'open' | 'closed' | 'filtered';
+  service: string;
+  banner?: string;
 }
 
 interface ScanResult {
-  host: string
-  ports: PortResult[]
-  scanTime: number
+  host: string;
+  ip: string;
+  scanTime: number;
+  ports: PortResult[];
+  summary: {
+    open: number;
+    closed: number;
+    filtered: number;
+  };
 }
 
+const commonPorts = [
+  { port: 21, name: 'FTP' },
+  { port: 22, name: 'SSH' },
+  { port: 23, name: 'Telnet' },
+  { port: 25, name: 'SMTP' },
+  { port: 53, name: 'DNS' },
+  { port: 80, name: 'HTTP' },
+  { port: 110, name: 'POP3' },
+  { port: 143, name: 'IMAP' },
+  { port: 443, name: 'HTTPS' },
+  { port: 993, name: 'IMAPS' },
+  { port: 995, name: 'POP3S' },
+  { port: 3306, name: 'MySQL' },
+  { port: 5432, name: 'PostgreSQL' },
+  { port: 6379, name: 'Redis' },
+  { port: 8080, name: 'HTTP Alt' },
+];
+
 export default function PortScannerPage() {
-  const [host, setHost] = useState('')
-  const [portRange, setPortRange] = useState('21-443')
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<ScanResult | null>(null)
-  const [error, setError] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [host, setHost] = useState('');
+  const [portRange, setPortRange] = useState('common');
+  const [customPorts, setCustomPorts] = useState('80,443,22,21');
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<ScanResult | null>(null);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      CustomWiggle.create('scanWiggle', { wiggles: 6, type: 'easeOut' });
+
+      gsap.to('.scan-gradient-orb', {
+        x: 'random(-60, 60)',
+        y: 'random(-30, 30)',
+        scale: 'random(0.85, 1.15)',
+        duration: 6,
+        ease: 'sine.inOut',
+        stagger: { each: 0.8, repeat: -1, yoyo: true },
+      });
+
+      if (titleRef.current) {
+        const split = new SplitText(titleRef.current, { type: 'chars' });
+        gsap.from(split.chars, {
+          opacity: 0,
+          y: 50,
+          rotationX: -90,
+          stagger: 0.03,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          delay: 0.2,
+        });
+      }
+
+      gsap.to('.hero-scan-icon', {
+        boxShadow: '0 0 50px rgba(239, 68, 68, 0.5)',
+        scale: 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+      });
+
+      gsap.from('.scan-form', {
+        opacity: 0,
+        y: 30,
+        duration: 0.6,
+        delay: 0.5,
+        ease: 'power3.out',
+      });
+
+      gsap.from('.port-chip', {
+        opacity: 0,
+        scale: 0.8,
+        stagger: 0.03,
+        duration: 0.4,
+        delay: 0.7,
+        ease: 'back.out(1.7)',
+      });
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const handleScan = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!host.trim()) return
+    e.preventDefault();
+    if (!host.trim()) return;
 
-    setLoading(true)
-    setError('')
-    setResult(null)
+    const btn = document.querySelector('.scan-btn');
+    if (btn) {
+      gsap.to(btn, {
+        scale: 0.95,
+        duration: 0.1,
+        onComplete: () => gsap.to(btn, { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.3)' }),
+      });
+    }
+
+    setLoading(true);
+    setError('');
+    setData(null);
+
+    const ports = portRange === 'common' 
+      ? commonPorts.map(p => p.port)
+      : customPorts.split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
 
     try {
-      const response = await fetch('/api/tools/port-scanner', {
+      const response = await fetch('/api/tools/port-scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          host: host.trim(),
-          portRange: portRange.trim()
-        })
-      })
+        body: JSON.stringify({ host: host.trim(), ports }),
+      });
 
-      const data = await response.json()
+      const result = await response.json();
 
-      if (data.success) {
-        setResult(data.data)
+      if (result.success) {
+        setData(result.data);
+        setTimeout(() => {
+          gsap.from('.port-result-row', {
+            opacity: 0,
+            x: -20,
+            stagger: 0.05,
+            duration: 0.4,
+            ease: 'power2.out',
+          });
+        }, 50);
       } else {
-        setError(data.error || 'Failed to scan ports')
+        setError(result.error || 'Port scan failed');
       }
     } catch (err) {
-      setError('Failed to connect to the server')
+      setError('Failed to connect to the server');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const commonPorts = [
-    { label: 'Common Ports', value: '21,22,23,25,53,80,110,143,443,445,3306,3389,5432,8080,8443' },
-    { label: 'Web Ports', value: '80,443,8000,8080,8443,8888' },
-    { label: 'All Standard', value: '1-1024' },
-    { label: 'Custom Range', value: portRange }
-  ]
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'open':
+        return <Unlock className="w-4 h-4 text-green-400" />;
+      case 'closed':
+        return <Lock className="w-4 h-4 text-red-400" />;
+      default:
+        return <Shield className="w-4 h-4 text-yellow-400" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'open':
+        return 'text-green-400 bg-green-500/20 border-green-500/30';
+      case 'closed':
+        return 'text-red-400 bg-red-500/20 border-red-500/30';
+      default:
+        return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
+    }
+  };
+
+  const copyResults = async () => {
+    if (!data) return;
+    const openPorts = data.ports.filter(p => p.status === 'open');
+    const text = openPorts.map(p => `${p.port} - ${p.service}`).join('\n') || 'No open ports found';
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-brand-600 to-accent-600">
-        <div className="container-custom py-8">
-          <Link 
-            href="/tools"
-            className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Network Tools
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="scan-gradient-orb absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-red-600/20 to-orange-600/20 blur-[100px]" />
+        <div className="scan-gradient-orb absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-rose-600/15 to-pink-600/15 blur-[80px]" />
+      </div>
+
+      <section className="relative py-12 border-b border-white/10">
+        <div className="container mx-auto px-4">
+          <Link href="/tools" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Tools
           </Link>
 
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                <Scan className="w-10 h-10 text-white" />
-              </div>
+          <div className="flex items-center gap-6 mb-8">
+            <div className="hero-scan-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600/30 to-orange-600/30 border border-red-500/30 flex items-center justify-center">
+              <Scan className="w-8 h-8 text-red-400" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
-              Port <span className="text-green-200">Scanner</span>
-            </h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Scan network ports to identify open services
-            </p>
+            <div>
+              <h1 ref={titleRef} className="text-3xl md:text-4xl font-bold text-white mb-1">
+                Port Scanner
+              </h1>
+              <p className="text-gray-400">
+                Scan for open ports and services on any host
+              </p>
+            </div>
           </div>
-        </div>
-      </header>
 
-      <main className="container-custom py-12">
+          <form onSubmit={handleScan} className="scan-form max-w-3xl space-y-4">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4">
+              <div className="relative">
+                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input
+                  type="text"
+                  value={host}
+                  onChange={(e) => setHost(e.target.value)}
+                  placeholder="Enter hostname or IP address"
+                  className="w-full pl-12 pr-4 py-4 bg-[#0d0d12] rounded-xl text-white placeholder-gray-500 outline-none border border-white/10 focus:border-red-500/50"
+                  disabled={loading}
+                />
+              </div>
 
-        {/* Scan Form */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <form onSubmit={handleScan} className="space-y-4">
-            <div className="relative">
-              <input
-                type="text"
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-                placeholder="Enter hostname or IP address"
-                className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all outline-none shadow-lg"
-                disabled={loading}
-              />
-            </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPortRange('common')}
+                  className={`flex-1 py-3 rounded-xl border transition-all ${
+                    portRange === 'common'
+                      ? 'bg-red-500/20 border-red-500/50 text-red-400'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'
+                  }`}
+                >
+                  Common Ports
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPortRange('custom')}
+                  className={`flex-1 py-3 rounded-xl border transition-all ${
+                    portRange === 'custom'
+                      ? 'bg-red-500/20 border-red-500/50 text-red-400'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'
+                  }`}
+                >
+                  Custom Ports
+                </button>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <select
-                value={portRange}
-                onChange={(e) => setPortRange(e.target.value)}
-                className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all outline-none shadow-lg"
-                disabled={loading}
-              >
-                {commonPorts.map((preset) => (
-                  <option key={preset.label} value={preset.value}>
-                    {preset.label}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                type="text"
-                value={portRange}
-                onChange={(e) => setPortRange(e.target.value)}
-                placeholder="e.g., 80,443 or 1-1024"
-                className="w-full px-4 py-4 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all outline-none shadow-lg"
-                disabled={loading}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !host.trim()}
-              className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-gray-300 disabled:to-gray-300 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:cursor-not-allowed shadow-lg shadow-green-500/25"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Scanning ports...
-                </>
-              ) : (
-                <>
-                  <Search className="w-5 h-5" />
-                  Start Scan
-                </>
+              {portRange === 'common' && (
+                <div className="flex flex-wrap gap-2">
+                  {commonPorts.map((p) => (
+                    <span key={p.port} className="port-chip px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-sm text-gray-300">
+                      {p.port} <span className="text-gray-500">({p.name})</span>
+                    </span>
+                  ))}
+                </div>
               )}
-            </button>
-          </form>
 
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700">{error}</p>
+              {portRange === 'custom' && (
+                <div className="relative">
+                  <Server className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                  <input
+                    type="text"
+                    value={customPorts}
+                    onChange={(e) => setCustomPorts(e.target.value)}
+                    placeholder="Enter ports (comma-separated, e.g., 80,443,22)"
+                    className="w-full pl-12 pr-4 py-4 bg-[#0d0d12] rounded-xl text-white font-mono placeholder-gray-500 outline-none border border-white/10 focus:border-red-500/50"
+                    disabled={loading}
+                  />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !host.trim()}
+                className="scan-btn w-full py-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold rounded-xl shadow-lg shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Scan className="w-5 h-5" />}
+                {loading ? 'Scanning...' : 'Start Scan'}
+              </button>
             </div>
-          )}
+          </form>
         </div>
+      </section>
 
-        {/* Results */}
-        {result && (
-          <div className="max-w-5xl mx-auto space-y-6">
-            {/* Summary Card */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+      <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="max-w-3xl mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3">
+            <Shield className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <p className="text-red-400">{error}</p>
+          </div>
+        )}
+
+        {data && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-red-600/10 to-orange-600/10 border border-red-500/30 rounded-2xl p-6">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Scan Results</h2>
-                  <p className="text-2xl font-mono text-gray-900">{result.host}</p>
+                  <p className="text-sm text-gray-400 mb-1">Target Host</p>
+                  <h2 className="text-2xl font-bold text-white">{data.host}</h2>
+                  {data.ip && <p className="text-gray-400 font-mono text-sm mt-1">{data.ip}</p>}
                 </div>
-                <div className="flex gap-4">
-                  <div className="text-center px-6 py-3 bg-green-100 rounded-xl">
-                    <p className="text-sm text-gray-600 mb-1">Open Ports</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {result.ports.filter(p => p.status === 'open').length}
-                    </p>
+                <div className="flex items-center gap-4">
+                  <div className="text-center px-4 py-2 bg-white/5 rounded-xl">
+                    <p className="text-2xl font-bold text-green-400">{data.summary.open}</p>
+                    <p className="text-xs text-gray-400">Open</p>
                   </div>
-                  <div className="text-center px-6 py-3 bg-gray-100 rounded-xl">
-                    <p className="text-sm text-gray-600 mb-1">Scan Time</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {result.scanTime.toFixed(2)}s
-                    </p>
+                  <div className="text-center px-4 py-2 bg-white/5 rounded-xl">
+                    <p className="text-2xl font-bold text-red-400">{data.summary.closed}</p>
+                    <p className="text-xs text-gray-400">Closed</p>
                   </div>
+                  <div className="text-center px-4 py-2 bg-white/5 rounded-xl">
+                    <p className="text-2xl font-bold text-yellow-400">{data.summary.filtered}</p>
+                    <p className="text-xs text-gray-400">Filtered</p>
+                  </div>
+                  <button
+                    onClick={copyResults}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Open Ports */}
-            {result.ports.filter(p => p.status === 'open').length > 0 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Unlock className="w-5 h-5 text-green-600" />
-                  Open Ports
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {result.ports
-                    .filter(p => p.status === 'open')
-                    .map((port, idx) => (
-                      <div key={idx} className="bg-green-50 rounded-lg p-4 border border-green-200">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xl font-bold text-green-600">{port.port}</p>
-                            {port.service && (
-                              <p className="text-sm text-gray-600 mt-1">{port.service}</p>
-                            )}
-                          </div>
-                          <CheckCircle className="w-5 h-5 text-green-400" />
-                        </div>
-                      </div>
-                    ))}
-                </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <h3 className="font-semibold text-white">Scan Results</h3>
+                <span className="text-sm text-gray-400">Scan time: {data.scanTime}ms</span>
               </div>
-            )}
-
-            {/* Closed/Filtered Ports */}
-            {result.ports.filter(p => p.status !== 'open').length > 0 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-gray-500" />
-                  Closed/Filtered Ports
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {result.ports
-                    .filter(p => p.status !== 'open')
-                    .slice(0, 12)
-                    .map((port, idx) => (
-                      <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-lg font-semibold text-gray-600">{port.port}</p>
-                            {port.service && (
-                              <p className="text-xs text-gray-400 mt-1">{port.service}</p>
-                            )}
-                          </div>
-                          <span className="text-xs px-2 py-1 bg-gray-200 rounded text-gray-500">
-                            {port.status}
-                          </span>
-                        </div>
+              <div className="divide-y divide-white/5">
+                {data.ports.map((port, idx) => (
+                  <div key={idx} className="port-result-row flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <span className="w-16 text-center py-2 rounded-lg bg-white/10 font-mono text-white font-bold">
+                        {port.port}
+                      </span>
+                      <div>
+                        <p className="text-white font-medium">{port.service}</p>
+                        {port.banner && <p className="text-gray-500 text-sm truncate max-w-md">{port.banner}</p>}
                       </div>
-                    ))}
-                </div>
-                {result.ports.filter(p => p.status !== 'open').length > 12 && (
-                  <p className="text-sm text-gray-500 mt-4 text-center">
-                    + {result.ports.filter(p => p.status !== 'open').length - 12} more closed/filtered ports
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Info Section */}
-        {!result && !loading && (
-          <div className="max-w-3xl mx-auto mt-12">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">About Port Scanner</h3>
-              <div className="space-y-3 text-gray-600">
-                <p>A port scanner checks which network ports are open on a target system. This tool helps you:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Identify running services on a host</li>
-                  <li>Check firewall configuration</li>
-                  <li>Verify network security</li>
-                  <li>Troubleshoot connectivity issues</li>
-                  <li>Audit exposed services</li>
-                </ul>
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-700">
-                    <strong>Note:</strong> Only scan systems you own or have permission to scan. Unauthorized port scanning may be illegal.
-                  </p>
-                </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(port.status)}
+                      <span className={`px-3 py-1 rounded-lg border text-sm capitalize ${getStatusColor(port.status)}`}>
+                        {port.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
-      </main>
+
+        {!loading && !error && !data && (
+          <div className="max-w-lg mx-auto text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <Scan className="w-10 h-10 text-gray-500" />
+            </div>
+            <h3 className="text-xl font-medium text-gray-400 mb-2">Port Scanner</h3>
+            <p className="text-gray-500">
+              Enter a hostname to scan for open ports and detect running services. Only scan hosts you own or have permission to test.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

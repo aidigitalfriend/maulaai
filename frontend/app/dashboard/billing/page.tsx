@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { CreditCard, CheckCircle, XCircle, Clock, ArrowRight, RefreshCw, AlertTriangle } from 'lucide-react';
+import { gsap, ScrollTrigger, CustomWiggle, Observer } from '@/lib/gsap';
+
+gsap.registerPlugin(ScrollTrigger, CustomWiggle, Observer);
 
 export const dynamic = 'force-dynamic';
 
@@ -130,29 +133,29 @@ export default function BillingPage() {
   const getPlanColor = (plan: string) => {
     switch (plan) {
       case 'daily':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-500/20 text-blue-400';
       case 'weekly':
-        return 'bg-purple-100 text-purple-700';
+        return 'bg-purple-500/20 text-purple-400';
       case 'monthly':
-        return 'bg-green-100 text-green-700';
+        return 'bg-green-500/20 text-green-400';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-white/5 text-gray-300';
     }
   };
 
   if (!state.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center bg-white rounded-2xl p-12 shadow-sm border border-gray-100">
-          <div className="w-16 h-16 bg-brand-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <CreditCard className="w-8 h-8 text-brand-600" />
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+        <div className="text-center bg-white/5 rounded-2xl p-12 border border-white/10">
+          <div className="w-16 h-16 bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <CreditCard className="w-8 h-8 text-purple-500" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl font-bold text-white mb-4">
             Please log in to view billing
           </h1>
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-colors"
           >
             Log In
             <ArrowRight className="w-4 h-4" />
@@ -164,37 +167,37 @@ export default function BillingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your subscriptions...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading your subscriptions...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
       {/* Cancel Confirmation Modal */}
       {showCancelModal && selectedSub && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl border border-gray-100">
+          <div className="bg-white/5 rounded-2xl p-8 max-w-md w-full shadow-xl border border-white/5">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Cancel Access?</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold text-white mb-2">Cancel Access?</h3>
+              <p className="text-gray-400">
                 Are you sure you want to cancel access to{' '}
-                <span className="text-gray-900 font-semibold">
+                <span className="text-white font-semibold">
                   {selectedSub.agentName || selectedSub.agentId}
                 </span>
                 ?
               </p>
             </div>
 
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-              <p className="text-red-700 text-sm">
+            <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-6">
+              <p className="text-red-400 text-sm">
                 ⚠️ This will <strong>immediately</strong> revoke your access.
                 You won&apos;t be able to chat with this agent until you purchase again.
               </p>
@@ -206,7 +209,7 @@ export default function BillingPage() {
                   setShowCancelModal(false);
                   setSelectedSub(null);
                 }}
-                className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/200 text-gray-300 font-medium rounded-xl transition-colors"
               >
                 Keep Access
               </button>
@@ -222,7 +225,7 @@ export default function BillingPage() {
       )}
 
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
         {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -235,16 +238,16 @@ export default function BillingPage() {
           </svg>
         </div>
         <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
             <CreditCard className="w-10 h-10" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Billing & Subscriptions</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
             Manage your agent subscriptions and billing history
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+            className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
           >
             Back to Dashboard
           </Link>
@@ -252,32 +255,32 @@ export default function BillingPage() {
       </section>
 
       {/* Billing Content */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
 
         {/* Stats Cards */}
         <div className="container-custom max-w-4xl">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
+          <div className="bg-white/5 rounded-2xl p-6 border border-white/10 mb-8">
             <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-green-50 rounded-xl">
+              <div className="text-center p-4 bg-green-900/20 rounded-xl">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="text-3xl font-bold text-green-600">{activeSubscriptions.length}</div>
-                <div className="text-sm text-gray-600">Active Agents</div>
+                <div className="text-sm text-gray-400">Active Agents</div>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-xl">
+              <div className="text-center p-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] rounded-xl">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Clock className="w-5 h-5 text-gray-500" />
                 </div>
-                <div className="text-3xl font-bold text-gray-600">{inactiveSubscriptions.length}</div>
-                <div className="text-sm text-gray-600">Inactive</div>
+                <div className="text-3xl font-bold text-gray-400">{inactiveSubscriptions.length}</div>
+                <div className="text-sm text-gray-400">Inactive</div>
               </div>
-              <div className="text-center p-4 bg-brand-50 rounded-xl">
+              <div className="text-center p-4 bg-purple-900/20 rounded-xl">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <CreditCard className="w-5 h-5 text-brand-600" />
+                  <CreditCard className="w-5 h-5 text-purple-500" />
                 </div>
-                <div className="text-3xl font-bold text-brand-600">${totalSpent.toFixed(2)}</div>
-                <div className="text-sm text-gray-600">Total Spent</div>
+                <div className="text-3xl font-bold text-purple-500">${totalSpent.toFixed(2)}</div>
+                <div className="text-sm text-gray-400">Total Spent</div>
               </div>
             </div>
           </div>
@@ -285,14 +288,14 @@ export default function BillingPage() {
 
         {/* Pricing Reminder */}
         <div className="max-w-4xl mx-auto mb-8">
-          <div className="bg-gradient-to-r from-brand-50 to-accent-50 border border-brand-200 rounded-2xl p-6">
+          <div className="bg-gradient-to-r from-brand-50 to-accent-50 border border-purple-200 rounded-2xl p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
+              <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center shadow-sm">
                 <span className="text-2xl">💡</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-900">Simple One-Time Pricing</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-semibold text-white">Simple One-Time Pricing</p>
+                <p className="text-sm text-gray-400">
                   <span className="text-blue-600 font-medium">$1/day</span>
                   <span className="mx-2">•</span>
                   <span className="text-purple-600 font-medium">$5/week</span>
@@ -309,14 +312,14 @@ export default function BillingPage() {
         {/* Active Subscriptions */}
         {activeSubscriptions.length > 0 && (
           <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                  <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+            <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+              <div className="p-6 border-b border-white/5">
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                  <span className="w-3 h-3 bg-green-900/200 rounded-full"></span>
                   Active Subscriptions ({activeSubscriptions.length})
                 </h2>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-white/10">
                 {activeSubscriptions.map((sub) => {
                   const daysRemaining = getDaysRemaining(sub.expiryDate);
                   const isExpiringSoon = daysRemaining <= 3;
@@ -325,12 +328,12 @@ export default function BillingPage() {
                   return (
                     <div
                       key={sub._id}
-                      className={`p-6 ${isExpiringSoon ? 'bg-orange-50' : ''}`}
+                      className={`p-6 ${isExpiringSoon ? 'bg-orange-900/20' : ''}`}
                     >
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-bold text-lg text-gray-900">
+                            <h3 className="font-bold text-lg text-white">
                               {sub.agentName || sub.agentId}
                             </h3>
                             <span
@@ -339,7 +342,7 @@ export default function BillingPage() {
                               {getPlanLabel(sub.plan)}
                             </span>
                             {isExpiringSoon && (
-                              <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-medium">
+                              <span className="text-xs bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-medium">
                                 ⚠️ Expiring Soon
                               </span>
                             )}
@@ -357,13 +360,13 @@ export default function BillingPage() {
                           <button
                             onClick={() => handleCancelClick(sub)}
                             disabled={isCancelling}
-                            className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-xl transition-colors border border-red-200 disabled:opacity-50"
+                            className="px-4 py-2 bg-red-900/20 hover:bg-red-900/30 text-red-600 text-sm font-medium rounded-xl transition-colors border border-red-500/30 disabled:opacity-50"
                           >
                             {isCancelling ? 'Cancelling...' : 'Cancel'}
                           </button>
                           <Link
                             href={`/agents/${sub.agentId}`}
-                            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors"
+                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl transition-colors"
                           >
                             Chat Now
                           </Link>
@@ -380,30 +383,30 @@ export default function BillingPage() {
         {/* Inactive Subscriptions */}
         {inactiveSubscriptions.length > 0 && (
           <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
+            <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+              <div className="p-6 border-b border-white/5">
                 <h2 className="text-xl font-bold text-gray-500 flex items-center gap-3">
                   <span className="w-3 h-3 bg-gray-400 rounded-full"></span>
                   Inactive Subscriptions ({inactiveSubscriptions.length})
                 </h2>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-white/10">
                 {inactiveSubscriptions.map((sub) => (
-                  <div key={sub._id} className="p-6 bg-gray-50/50">
+                  <div key={sub._id} className="p-6 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]/50">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-bold text-lg text-gray-600">
+                          <h3 className="font-bold text-lg text-gray-400">
                             {sub.agentName || sub.agentId}
                           </h3>
-                          <span className="text-xs font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-500">
+                          <span className="text-xs font-medium px-3 py-1 rounded-full bg-white/5 text-gray-500">
                             {getPlanLabel(sub.plan)}
                           </span>
                           <span
                             className={`text-xs font-medium px-3 py-1 rounded-full ${
                               sub.status === 'cancelled'
-                                ? 'bg-red-100 text-red-600'
-                                : 'bg-gray-100 text-gray-600'
+                                ? 'bg-red-900/30 text-red-600'
+                                : 'bg-white/5 text-gray-400'
                             }`}
                           >
                             {sub.status === 'cancelled' ? 'Cancelled' : 'Expired'}
@@ -417,7 +420,7 @@ export default function BillingPage() {
 
                       <Link
                         href={`/subscribe?agent=${encodeURIComponent(sub.agentName || sub.agentId)}&slug=${sub.agentId}`}
-                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl transition-colors"
                       >
                         <RefreshCw className="w-4 h-4" />
                         Purchase Again
@@ -433,19 +436,19 @@ export default function BillingPage() {
         {/* No Subscriptions */}
         {subscriptions.length === 0 && !error && (
           <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-white rounded-2xl p-12 shadow-sm border border-gray-100 text-center">
-              <div className="w-20 h-20 bg-brand-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="bg-white/5 rounded-2xl p-12 border border-white/10 text-center">
+              <div className="w-20 h-20 bg-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">🤖</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              <h3 className="text-2xl font-bold text-white mb-3">
                 No Agent Subscriptions Yet
               </h3>
-              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              <p className="text-gray-400 mb-8 max-w-md mx-auto">
                 Purchase access to any of our AI agents to get started with intelligent conversations
               </p>
               <Link
                 href="/agents"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors"
               >
                 Browse Agents
                 <ArrowRight className="w-4 h-4" />
@@ -457,9 +460,9 @@ export default function BillingPage() {
         {/* Error State */}
         {error && (
           <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+            <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-8 text-center">
               <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <p className="text-red-700 mb-4">{error}</p>
+              <p className="text-red-400 mb-4">{error}</p>
               <button
                 onClick={fetchSubscriptions}
                 className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
@@ -472,36 +475,36 @@ export default function BillingPage() {
 
         {/* Quick Links */}
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Links</h3>
+          <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+            <h3 className="text-lg font-bold text-white mb-4">Quick Links</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link
                 href="/agents"
-                className="flex items-center gap-3 p-4 bg-brand-50 rounded-xl hover:bg-brand-100 transition-colors group"
+                className="flex items-center gap-3 p-4 bg-purple-900/20 rounded-xl hover:bg-purple-900/30 transition-colors group"
               >
                 <span className="text-2xl">🤖</span>
                 <div>
-                  <p className="font-medium text-gray-900 group-hover:text-brand-600 transition-colors">Browse Agents</p>
+                  <p className="font-medium text-white group-hover:text-purple-500 transition-colors">Browse Agents</p>
                   <p className="text-sm text-gray-500">Explore AI agents</p>
                 </div>
               </Link>
               <Link
                 href="/pricing"
-                className="flex items-center gap-3 p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors group"
+                className="flex items-center gap-3 p-4 bg-green-900/20 rounded-xl hover:bg-green-900/30 transition-colors group"
               >
                 <span className="text-2xl">💰</span>
                 <div>
-                  <p className="font-medium text-gray-900 group-hover:text-green-600 transition-colors">View Pricing</p>
+                  <p className="font-medium text-white group-hover:text-green-600 transition-colors">View Pricing</p>
                   <p className="text-sm text-gray-500">See all plans</p>
                 </div>
               </Link>
               <Link
                 href="/dashboard"
-                className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group"
+                className="flex items-center gap-3 p-4 bg-purple-900/20 rounded-xl hover:bg-purple-900/30 transition-colors group"
               >
                 <span className="text-2xl">📊</span>
                 <div>
-                  <p className="font-medium text-gray-900 group-hover:text-purple-600 transition-colors">Dashboard</p>
+                  <p className="font-medium text-white group-hover:text-purple-600 transition-colors">Dashboard</p>
                   <p className="text-sm text-gray-500">Back to overview</p>
                 </div>
               </Link>

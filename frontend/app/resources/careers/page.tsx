@@ -1,401 +1,383 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { Briefcase, Users, Code, TrendingUp, MapPin, Clock } from 'lucide-react'
+import Link from 'next/link';
+import { useEffect, useRef } from 'react';
+import { gsap, ScrollTrigger, CustomWiggle } from '@/lib/gsap';
+import { Briefcase, Users, Code, TrendingUp, MapPin, Clock, DollarSign, Heart, Zap, Coffee, GraduationCap, ArrowRight, Sparkles, Check, ChevronRight } from 'lucide-react';
 
-interface JobListing {
-  id: string
-  title: string
-  department: string
-  location: string
-  type: 'Full-time' | 'Part-time' | 'Contract'
-  experience: string
-  salary: string
-  description: string
-  requirements: string[]
-  benefits: string[]
-  icon: React.ReactNode
-}
+const jobListings = [
+  {
+    id: 'sales-executive',
+    title: 'Sales Executive',
+    department: 'Business Development',
+    location: 'Remote / Hybrid',
+    type: 'Full-time',
+    experience: '3+ years',
+    salary: '$60,000 - $90,000',
+    color: 'emerald',
+    gradient: 'from-emerald-500 to-cyan-500',
+    icon: TrendingUp,
+  },
+  {
+    id: 'sales-manager',
+    title: 'Sales Manager',
+    department: 'Business Development',
+    location: 'Remote / Hybrid',
+    type: 'Full-time',
+    experience: '5+ years',
+    salary: '$90,000 - $130,000',
+    color: 'purple',
+    gradient: 'from-purple-500 to-pink-500',
+    icon: Briefcase,
+  },
+  {
+    id: 'fullstack-developer',
+    title: 'Full Stack Developer',
+    department: 'Engineering',
+    location: 'Remote',
+    type: 'Full-time',
+    experience: '2+ years',
+    salary: '$70,000 - $110,000',
+    color: 'cyan',
+    gradient: 'from-cyan-500 to-blue-500',
+    icon: Code,
+  },
+  {
+    id: 'ai-engineer',
+    title: 'AI/ML Engineer',
+    department: 'Engineering',
+    location: 'Remote',
+    type: 'Full-time',
+    experience: '3+ years',
+    salary: '$100,000 - $150,000',
+    color: 'amber',
+    gradient: 'from-amber-500 to-orange-500',
+    icon: Zap,
+  },
+  {
+    id: 'product-designer',
+    title: 'Product Designer',
+    department: 'Design',
+    location: 'Remote',
+    type: 'Full-time',
+    experience: '2+ years',
+    salary: '$65,000 - $95,000',
+    color: 'pink',
+    gradient: 'from-pink-500 to-rose-500',
+    icon: Sparkles,
+  },
+  {
+    id: 'devops-engineer',
+    title: 'DevOps Engineer',
+    department: 'Engineering',
+    location: 'Remote',
+    type: 'Full-time',
+    experience: '3+ years',
+    salary: '$85,000 - $125,000',
+    color: 'indigo',
+    gradient: 'from-indigo-500 to-purple-500',
+    icon: Code,
+  },
+];
+
+const benefits = [
+  { icon: DollarSign, title: 'Competitive Salary', desc: 'Top-of-market compensation with equity options' },
+  { icon: Heart, title: 'Health Benefits', desc: 'Comprehensive health, dental, and vision coverage' },
+  { icon: Coffee, title: 'Remote First', desc: 'Work from anywhere with flexible hours' },
+  { icon: GraduationCap, title: 'Learning Budget', desc: '$2,000/year for courses and conferences' },
+  { icon: Users, title: 'Great Team', desc: 'Collaborative culture with talented people' },
+  { icon: Zap, title: 'Fast Growth', desc: 'Rapid career advancement opportunities' },
+];
+
+const values = [
+  { title: 'Innovation', desc: 'We push boundaries and embrace new ideas' },
+  { title: 'Transparency', desc: 'Open communication and honest feedback' },
+  { title: 'Impact', desc: 'Every contribution matters and makes a difference' },
+  { title: 'Growth', desc: 'Continuous learning and personal development' },
+];
 
 export default function CareersPage() {
-  const jobListings: JobListing[] = [
-    {
-      id: 'sales-executive',
-      title: 'Sales Executive',
-      department: 'Business Development',
-      location: 'Remote / Hybrid',
-      type: 'Full-time',
-      experience: '3+ years',
-      salary: '$60,000 - $90,000',
-      description: 'Join our growing sales team and help drive One Last AI adoption across enterprises. You\'ll manage client relationships, identify opportunities, and close deals with mid-market and enterprise clients.',
-      requirements: [
-        'Proven sales track record in B2B SaaS',
-        'Strong communication and negotiation skills',
-        'Experience with CRM systems (Salesforce preferred)',
-        'Ability to understand technical concepts',
-        'Self-motivated and goal-oriented',
-        'Bachelor\'s degree in Business or related field'
-      ],
-      benefits: [
-        'Competitive base salary + commission',
-        'Health, dental, and vision insurance',
-        'Professional development budget',
-        '401(k) matching',
-        'Flexible work arrangements',
-        'Annual performance bonus'
-      ],
-      icon: <TrendingUp className="w-6 h-6" />
-    },
-    {
-      id: 'sales-manager',
-      title: 'Sales Manager',
-      department: 'Business Development',
-      location: 'Remote / Hybrid',
-      type: 'Full-time',
-      experience: '5+ years',
-      salary: '$90,000 - $130,000',
-      description: 'Lead and mentor our sales team to achieve aggressive growth targets. You\'ll develop sales strategies, manage team performance, and build relationships with key accounts.',
-      requirements: [
-        'Proven sales leadership experience',
-        'Track record of building and scaling high-performing teams',
-        'Experience in SaaS or technology sales',
-        'Strategic planning and forecasting skills',
-        'Strong analytical and reporting capabilities',
-        'MBA or equivalent experience preferred'
-      ],
-      benefits: [
-        'Competitive base salary + performance bonus',
-        'Comprehensive health benefits',
-        'Stock options for senior roles',
-        '401(k) matching',
-        'Executive coaching and development',
-        'Generous time-off policy'
-      ],
-      icon: <Briefcase className="w-6 h-6" />
-    },
-    {
-      id: 'fullstack-developer',
-      title: 'Full Stack Developer',
-      department: 'Engineering',
-      location: 'Remote',
-      type: 'Full-time',
-      experience: '2+ years',
-      salary: '$70,000 - $110,000',
-      description: 'Build and scale One Last AI with modern technologies. You\'ll work on both frontend and backend, contributing to our Next.js and Node.js stack while collaborating with a talented engineering team.',
-      requirements: [
-        'Strong JavaScript/TypeScript skills',
-        'Experience with React and Next.js',
-        'Node.js and backend development experience',
-        'Proficiency with PostgreSQL and Prisma ORM',
-        'Git and version control',
-        'Understanding of REST APIs and GraphQL'
-      ],
-      benefits: [
-        'Competitive salary',
-        'Comprehensive health coverage',
-        'Professional development budget',
-        '401(k) matching',
-        'Work from anywhere',
-        'Collaborative and innovative team environment'
-      ],
-      icon: <Code className="w-6 h-6" />
-    },
-    {
-      id: 'senior-developer',
-      title: 'Senior Full Stack Developer',
-      department: 'Engineering',
-      location: 'Remote',
-      type: 'Full-time',
-      experience: '5+ years',
-      salary: '$110,000 - $160,000',
-      description: 'Lead technical initiatives and mentor junior developers. You\'ll architect scalable solutions, review code, and drive best practices across our engineering team.',
-      requirements: [
-        'Expert-level JavaScript/TypeScript proficiency',
-        'Deep experience with React, Next.js, and modern web technologies',
-        'Strong backend architecture skills',
-        'Experience with microservices and cloud platforms',
-        'Leadership and mentoring experience',
-        'System design and scalability expertise'
-      ],
-      benefits: [
-        'Competitive salary with performance bonus',
-        'Stock options',
-        'Comprehensive health benefits',
-        'Unlimited professional development',
-        '401(k) matching',
-        'Leadership opportunities'
-      ],
-      icon: <Code className="w-6 h-6" />
-    },
-    {
-      id: 'ai-ml-engineer',
-      title: 'AI/ML Engineer',
-      department: 'AI Research & Development',
-      location: 'Remote / Hybrid',
-      type: 'Full-time',
-      experience: '3+ years',
-      salary: '$80,000 - $130,000',
-      description: 'Develop and optimize AI models for One Last AI. You\'ll work on LLM integration, model fine-tuning, and building intelligent features that power our agents.',
-      requirements: [
-        'Strong Python programming skills',
-        'Experience with machine learning frameworks (PyTorch, TensorFlow)',
-        'LLM and transformer architecture knowledge',
-        'Data preprocessing and feature engineering expertise',
-        'Familiarity with cloud ML platforms',
-        'Published papers or portfolio projects preferred'
-      ],
-      benefits: [
-        'Competitive salary',
-        'GPU compute resources for research',
-        'Conference attendance budget',
-        'Publication support',
-        'Collaborative research environment',
-        'Flexible work arrangements'
-      ],
-      icon: <TrendingUp className="w-6 h-6" />
-    },
-    {
-      id: 'product-manager',
-      title: 'Product Manager',
-      department: 'Product',
-      location: 'Remote / Hybrid',
-      type: 'Full-time',
-      experience: '4+ years',
-      salary: '$85,000 - $125,000',
-      description: 'Shape the future of One Last AI by defining product strategy and roadmap. You\'ll work with engineering, design, and stakeholders to build features users love.',
-      requirements: [
-        'Proven product management experience in SaaS',
-        'Strong data analysis and metrics literacy',
-        'Experience with agile development practices',
-        'User research and user interview skills',
-        'Strategic thinking and roadmap planning',
-        'Technical literacy (no coding required)'
-      ],
-      benefits: [
-        'Competitive salary',
-        'Performance-based bonus',
-        'Professional development budget',
-        '401(k) matching',
-        'Flexible work environment',
-        'Opportunity to shape product strategy'
-      ],
-      icon: <Briefcase className="w-6 h-6" />
-    },
-    {
-      id: 'marketing-specialist',
-      title: 'Marketing Specialist',
-      department: 'Marketing',
-      location: 'Remote',
-      type: 'Full-time',
-      experience: '2+ years',
-      salary: '$55,000 - $85,000',
-      description: 'Drive awareness and engagement for One Last AI. You\'ll create compelling content, manage campaigns, and help build our brand in the AI ecosystem.',
-      requirements: [
-        'Experience with digital marketing',
-        'Strong writing and content creation skills',
-        'Social media management experience',
-        'Basic knowledge of marketing analytics',
-        'Experience with marketing automation tools',
-        'Creative and strategic thinking'
-      ],
-      benefits: [
-        'Competitive salary',
-        'Marketing budget for experiments',
-        'Professional development',
-        'Flexible hours',
-        'Collaborative marketing team',
-        'Growth opportunities'
-      ],
-      icon: <TrendingUp className="w-6 h-6" />
-    },
-    {
-      id: 'customer-success',
-      title: 'Customer Success Manager',
-      department: 'Support & Success',
-      location: 'Remote / Hybrid',
-      type: 'Full-time',
-      experience: '2+ years',
-      salary: '$50,000 - $80,000',
-      description: 'Be the trusted advisor for our customers. You\'ll help ensure they achieve their goals with One Last AI and identify upsell opportunities.',
-      requirements: [
-        'Customer success or account management experience',
-        'Strong communication and interpersonal skills',
-        'Problem-solving mindset',
-        'CRM platform experience (Salesforce, HubSpot)',
-        'Ability to work with technical stakeholders',
-        'Proactive and customer-focused'
-      ],
-      benefits: [
-        'Competitive base salary + bonus',
-        'Health, dental, and vision coverage',
-        'Professional development',
-        '401(k) matching',
-        'Remote work flexibility',
-        'Team building events'
-      ],
-      icon: <Users className="w-6 h-6" />
-    }
-  ]
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const timer = setTimeout(() => {
+      const ctx = gsap.context(() => {
+        CustomWiggle.create('careerWiggle', { wiggles: 5, type: 'uniform' });
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Floating elements
+        gsap.fromTo('.floating-icon',
+          { y: 30, opacity: 0, scale: 0 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(2)' }
+        );
+
+        gsap.fromTo('.gradient-orb',
+          { scale: 0.5, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 1.5, stagger: 0.2, ease: 'expo.out' }
+        );
+
+        // ScrollTrigger for job cards
+        ScrollTrigger.batch('.job-card', {
+          onEnter: (elements) => {
+            gsap.fromTo(elements,
+              { y: 60, opacity: 0, scale: 0.95 },
+              { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(1.5)' }
+            );
+          },
+          start: 'top 90%',
+          once: true
+        });
+
+        // ScrollTrigger for benefits
+        ScrollTrigger.batch('.benefit-card', {
+          onEnter: (elements) => {
+            gsap.fromTo(elements,
+              { y: 40, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power3.out' }
+            );
+          },
+          start: 'top 90%',
+          once: true
+        });
+
+        // ScrollTrigger for values
+        ScrollTrigger.batch('.value-card', {
+          onEnter: (elements) => {
+            gsap.fromTo(elements,
+              { x: -30, opacity: 0 },
+              { x: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power3.out' }
+            );
+          },
+          start: 'top 90%',
+          once: true
+        });
+
+        // Floating icons animation
+        document.querySelectorAll('.floating-icon').forEach((icon, i) => {
+          gsap.to(icon, {
+            y: `random(-15, 15)`,
+            x: `random(-10, 10)`,
+            rotation: `random(-10, 10)`,
+            duration: `random(3, 5)`,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+            delay: i * 0.2
+          });
+        });
+
+        // Gradient orbs animation
+        gsap.to('.gradient-orb-1', { x: 80, y: -60, duration: 15, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+        gsap.to('.gradient-orb-2', { x: -70, y: 80, duration: 18, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+
+        // Card hover effects
+        const cards = document.querySelectorAll('.job-card');
+        cards.forEach(card => {
+          const glow = card.querySelector('.card-glow');
+          card.addEventListener('mouseenter', () => {
+            gsap.to(card, { scale: 1.02, y: -5, duration: 0.3, ease: 'back.out(2)' });
+            if (glow) gsap.to(glow, { opacity: 1, duration: 0.3 });
+          });
+          card.addEventListener('mouseleave', () => {
+            gsap.to(card, { scale: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+            if (glow) gsap.to(glow, { opacity: 0, duration: 0.3 });
+          });
+        });
+
+        ScrollTrigger.refresh();
+      }, containerRef);
+
+      return () => ctx.revert();
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Join Our Team</h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto">
-            We're building the future of AI agents. Come help us create technology that changes the world.
-          </p>
+    <div ref={containerRef} className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Background gradient orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="gradient-orb gradient-orb-1 absolute top-20 left-1/4 w-[700px] h-[700px] bg-violet-500/15 rounded-full blur-3xl" />
+        <div className="gradient-orb gradient-orb-2 absolute bottom-40 right-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-3xl" />
+      </div>
+
+      {/* Floating icons */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="floating-icon absolute top-24 left-[10%]">
+          <div className="w-12 h-12 rounded-xl bg-violet-500/10 backdrop-blur-sm flex items-center justify-center border border-violet-500/20">
+            <Briefcase className="w-6 h-6 text-violet-400" />
+          </div>
         </div>
-      </section>
+        <div className="floating-icon absolute top-40 right-[12%]">
+          <div className="w-10 h-10 rounded-lg bg-cyan-500/10 backdrop-blur-sm flex items-center justify-center border border-cyan-500/20">
+            <Users className="w-5 h-5 text-cyan-400" />
+          </div>
+        </div>
+        <div className="floating-icon absolute bottom-48 left-[12%]">
+          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 backdrop-blur-sm flex items-center justify-center border border-emerald-500/20">
+            <Sparkles className="w-5 h-5 text-emerald-400" />
+          </div>
+        </div>
+      </div>
 
-      {/* Culture Section */}
-      <section className="section-padding">
-        <div className="container-custom max-w-4xl">
-          <div className="mb-16">
-            <h2 className="text-4xl font-bold text-center mb-8 text-neural-800">Why Work With Us?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 hover:shadow-md transition-all">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Users className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-neural-800">Collaborative Culture</h3>
-                </div>
-                <p className="text-neural-600">
-                  Work with a talented team that values innovation, transparency, and mutual support.
-                </p>
-              </div>
+      <div className="relative">
+        {/* Hero Section */}
+        <section className="pt-32 pb-16 px-6">
+          <div className="max-w-5xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/30 mb-8">
+              <Briefcase className="w-4 h-4 text-violet-400" />
+              <span className="text-sm font-medium text-violet-300">Join Our Team</span>
+            </div>
 
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 hover:shadow-md transition-all">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-neural-800">Growth Opportunities</h3>
-                </div>
-                <p className="text-neural-600">
-                  Fast-growing company with clear career paths and continuous learning opportunities.
-                </p>
-              </div>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-white">
+              Build the Future
+            </h1>
 
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 hover:shadow-md transition-all">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Briefcase className="w-6 h-6 text-purple-600" />
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto">
+              Join Maula AI and help shape the future of
+              <span className="text-violet-400"> conversational AI.</span>
+            </p>
+          </div>
+        </section>
+
+        {/* Open Positions */}
+        <section className="py-16 px-6">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl font-bold text-white text-center mb-12">Open Positions</h2>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {jobListings.map((job) => (
+                <Link
+                  key={job.id}
+                  href={`/resources/apply-job?position=${encodeURIComponent(job.title)}&id=${job.id}`}
+                  className="job-card group relative block"
+                >
+                  <div className={`card-glow absolute inset-0 bg-gradient-to-r ${job.gradient} rounded-2xl opacity-0 blur-xl transition-opacity`} />
+                  
+                  <div className="relative h-full p-6 rounded-2xl bg-gradient-to-br from-gray-900/95 to-gray-950 border border-gray-800 overflow-hidden">
+                    {/* Corner accents */}
+                    <div className={`absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-${job.color}-500/30 rounded-tr-lg opacity-0 group-hover:opacity-100 transition-opacity`} />
+                    <div className={`absolute bottom-3 left-3 w-5 h-5 border-b-2 border-l-2 border-${job.color}-500/30 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity`} />
+                    
+                    <div className={`w-12 h-12 rounded-xl bg-${job.color}-500/20 border border-${job.color}-500/30 flex items-center justify-center mb-4`}>
+                      <job.icon className={`w-6 h-6 text-${job.color}-400`} />
+                    </div>
+                    
+                    <h3 className="text-lg font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors">
+                      {job.title}
+                    </h3>
+                    
+                    <p className="text-gray-500 text-sm mb-4">{job.department}</p>
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <MapPin className="w-4 h-4" />
+                        {job.location}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <Clock className="w-4 h-4" />
+                        {job.type} • {job.experience}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-emerald-400">
+                        <DollarSign className="w-4 h-4" />
+                        {job.salary}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center text-cyan-400 text-sm font-medium group-hover:gap-2 gap-1 transition-all">
+                      Apply Now
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-neural-800">Flexible Work</h3>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Benefits */}
+        <section className="py-20 px-6">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl font-bold text-white text-center mb-4">Why Join Us?</h2>
+            <p className="text-gray-400 text-center mb-12 max-w-2xl mx-auto">
+              We offer competitive benefits and a culture that values your growth.
+            </p>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {benefits.map((benefit, i) => (
+                <div key={i} className="benefit-card group relative p-6 rounded-xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 overflow-hidden">
+                  {/* Corner accents */}
+                  <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                  <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-violet-500/30 rounded-bl-lg" />
+                  
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mb-4">
+                    <benefit.icon className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">{benefit.title}</h3>
+                  <p className="text-gray-400 text-sm">{benefit.desc}</p>
                 </div>
-                <p className="text-neural-600">
-                  Remote and hybrid options with flexible schedules to support work-life balance.
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Values */}
+        <section className="py-20 px-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-white text-center mb-12">Our Values</h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {values.map((value, i) => (
+                <div key={i} className="value-card group relative flex items-start gap-4 p-6 rounded-xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 overflow-hidden">
+                  {/* Corner accents */}
+                  <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-violet-500/30 rounded-tr-lg" />
+                  <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
+                  
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-1">{value.title}</h3>
+                    <p className="text-gray-400 text-sm">{value.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 px-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative p-8 md:p-12 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 text-center overflow-hidden">
+              {/* Glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10" />
+              
+              {/* Corner accents */}
+              <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-violet-500/40 rounded-tr-lg" />
+              <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/40 rounded-bl-lg" />
+              
+              <div className="relative z-10">
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                  Don't See Your Role?
+                </h2>
+                <p className="text-gray-400 mb-8">
+                  We're always looking for talented people. Send us your resume and we'll reach out if there's a fit.
                 </p>
+                <Link
+                  href="/resources/apply-job?position=General Application&id=general"
+                  className="inline-flex items-center px-8 py-4 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-500 text-white font-bold text-lg hover:shadow-2xl hover:shadow-violet-500/25 transition-all hover:scale-105"
+                >
+                  Submit General Application
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Job Listings */}
-      <section className="section-padding">
-        <div className="container-custom max-w-5xl">
-          <h2 className="text-4xl font-bold text-center mb-12 text-neural-800">Open Positions</h2>
-          <div className="space-y-6">
-            {jobListings.map((job) => (
-              <div
-                key={job.id}
-                className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 hover:shadow-lg hover:border-blue-200 transition-all"
-              >
-                <div className="flex items-start justify-between gap-6 mb-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="text-brand-600">
-                        {job.icon}
-                      </div>
-                      <h3 className="text-2xl font-bold text-neural-800">{job.title}</h3>
-                    </div>
-                    <p className="text-neural-600 font-semibold mb-3">{job.department}</p>
-                    <div className="flex flex-wrap gap-4 text-sm text-neural-600 mb-4">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4 text-brand-600" />
-                        {job.location}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4 text-brand-600" />
-                        {job.type}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Briefcase className="w-4 h-4 text-brand-600" />
-                        {job.experience}
-                      </div>
-                    </div>
-                  </div>
-                  <Link
-                    href={`/resources/apply-job?position=${encodeURIComponent(job.title)}&id=${job.id}`}
-                    className="px-6 py-3 bg-gradient-to-r from-brand-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-all transform hover:scale-105 whitespace-nowrap"
-                  >
-                    Apply Now
-                  </Link>
-                </div>
-
-                <p className="text-neural-700 mb-6 leading-relaxed">{job.description}</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6 pb-6 border-b border-neural-200">
-                  <div>
-                    <h4 className="font-bold text-neural-800 mb-3">Requirements</h4>
-                    <ul className="space-y-2">
-                      {job.requirements.map((req, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-neural-700">
-                          <span className="text-brand-600 font-bold mt-0.5">▸</span>
-                          <span>{req}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-neural-800 mb-3">Benefits</h4>
-                    <ul className="space-y-2">
-                      {job.benefits.map((benefit, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-neural-700">
-                          <span className="text-green-600 font-bold mt-0.5">✓</span>
-                          <span>{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <Link
-                    href={`/resources/apply-job?position=${encodeURIComponent(job.title)}&id=${job.id}`}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-brand-600 to-accent-600 text-white font-bold rounded-lg hover:shadow-lg transition-all text-center"
-                  >
-                    Apply Now
-                  </Link>
-                  <button className="px-6 py-3 border-2 border-neural-300 text-neural-800 font-bold rounded-lg hover:border-brand-600 hover:text-brand-600 transition-all">
-                    Save Job
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom max-w-2xl text-center">
-          <h2 className="text-3xl font-bold mb-4">Don't see your role?</h2>
-          <p className="text-lg opacity-90 mb-8">
-            We're always looking for talented people. Send us your resume and let's talk!
-          </p>
-          <Link
-            href="/support/contact-us"
-            className="inline-flex items-center px-8 py-4 bg-white text-brand-600 font-bold rounded-lg hover:shadow-lg transition-all transform hover:scale-105"
-          >
-            Get In Touch
-          </Link>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
-  )
+  );
 }
