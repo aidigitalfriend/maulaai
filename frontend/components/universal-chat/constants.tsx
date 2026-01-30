@@ -9,38 +9,39 @@ import { SettingsState, NavItem } from './types';
  */
 export const PROVIDER_CONFIG = [
   {
-    id: 'anthropic',
-    name: 'Anthropic',
-    icon: '🅰️',
-    models: ['claude-sonnet-4-20250514', 'claude-3-opus', 'claude-3-haiku'],
-    status: 'active'
-  },
-  {
-    id: 'mistral',
-    name: 'Mistral',
-    icon: '🌀',
-    models: ['mistral-large-2411', 'mistral-medium', 'mixtral-8x7b'],
-    status: 'active'
-  },
-  {
-    id: 'xai',
-    name: 'xAI',
-    icon: '✖️',
-    models: ['grok-3', 'grok-2-mini'],
-    status: 'active'
-  },
-  {
     id: 'cerebras',
     name: 'Cerebras',
     icon: '🧠',
     models: ['llama-3.3-70b'],
+    defaultModel: 'llama-3.3-70b',
+    description: 'Ultra-fast inference (~10ms)',
     status: 'active'
   },
   {
     id: 'groq',
     name: 'Groq',
     icon: '⚡',
-    models: ['llama-3.3-70b-specdec', 'mixtral-8x7b', 'gemma-7b'],
+    models: ['llama-3.3-70b-specdec', 'mixtral-8x7b-32768', 'gemma-7b-it'],
+    defaultModel: 'llama-3.3-70b-specdec',
+    description: 'Lightning fast LPU inference',
+    status: 'active'
+  },
+  {
+    id: 'xai',
+    name: 'xAI (Grok)',
+    icon: '✖️',
+    models: ['grok-3', 'grok-2-mini'],
+    defaultModel: 'grok-3',
+    description: 'Grok AI by xAI',
+    status: 'active'
+  },
+  {
+    id: 'anthropic',
+    name: 'Anthropic',
+    icon: '🅰️',
+    models: ['claude-sonnet-4-20250514', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'],
+    defaultModel: 'claude-sonnet-4-20250514',
+    description: 'Claude AI - Safe & helpful',
     status: 'active'
   },
   {
@@ -48,13 +49,26 @@ export const PROVIDER_CONFIG = [
     name: 'OpenAI',
     icon: '🤖',
     models: ['gpt-4.1', 'gpt-4-turbo', 'gpt-3.5-turbo'],
+    defaultModel: 'gpt-4.1',
+    description: 'GPT-4 and beyond',
+    status: 'active'
+  },
+  {
+    id: 'mistral',
+    name: 'Mistral',
+    icon: '🌀',
+    models: ['mistral-large-2411', 'mistral-medium-latest', 'mixtral-8x7b-instruct'],
+    defaultModel: 'mistral-large-2411',
+    description: 'European AI excellence',
     status: 'active'
   },
   {
     id: 'gemini',
     name: 'Gemini',
     icon: '💎',
-    models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-ultra'],
+    models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+    defaultModel: 'gemini-2.0-flash',
+    description: 'Google DeepMind',
     status: 'active'
   }
 ];
@@ -64,8 +78,8 @@ export const DEFAULT_SETTINGS: SettingsState = {
   agentName: "Neural Companion",
   temperature: 0.7,
   maxTokens: 2048,
-  provider: 'anthropic',  // Default to Anthropic (Claude) - reliable and fast
-  model: "claude-sonnet-4-20250514",
+  provider: 'cerebras',  // Default to Cerebras - fastest inference
+  model: "llama-3.3-70b",
   activeTool: 'none',
   workspaceMode: 'CHAT',
   portalUrl: 'https://www.google.com/search?igu=1',

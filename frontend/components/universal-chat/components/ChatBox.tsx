@@ -24,9 +24,11 @@ import {
   RefreshCw,
   Share2,
   Volume2,
-  Pencil
+  Pencil,
+  ChevronDown
 } from 'lucide-react';
 import { Message, SettingsState, WorkspaceMode } from '../types';
+import { PROVIDER_CONFIG } from '../constants';
 
 interface ChatBoxProps {
   messages: Message[];
@@ -64,8 +66,37 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set());
   const [dislikedMessages, setDislikedMessages] = useState<Set<string>>(new Set());
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [showProviderDropdown, setShowProviderDropdown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const providerDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get current provider info
+  const currentProvider = PROVIDER_CONFIG.find(p => p.id === agentSettings.provider) || PROVIDER_CONFIG[0];
+
+  // Handle provider change
+  const handleProviderChange = (providerId: string, model?: string) => {
+    const provider = PROVIDER_CONFIG.find(p => p.id === providerId);
+    if (provider) {
+      onUpdateSettings({
+        ...agentSettings,
+        provider: providerId,
+        model: model || provider.defaultModel
+      });
+      setShowProviderDropdown(false);
+    }
+  };
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (providerDropdownRef.current && !providerDropdownRef.current.contains(event.target as Node)) {
+        setShowProviderDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current && agentSettings.workspaceMode === 'CHAT') {
@@ -417,6 +448,73 @@ const ChatBox: React.FC<ChatBoxProps> = ({
           onChange={onFileChange} 
           className="hidden" 
         />
+        
+        {/* Provider/Model Dropdown */}
+        <div className="relative" ref={providerDropdownRef}>
+          <button
+            onClick={() => setShowProviderDropdown(!showProviderDropdown)}
+            className="flex items-center gap-2 px-3 py-2.5 bg-black/40 border border-gray-800 rounded hover:border-cyan-500/50 transition-all text-sm"
+            title="Switch AI Provider"
+          >
+            <span className="text-lg">{currentProvider.icon}</span>
+            <span className="hidden sm:inline text-gray-400 text-xs font-mono uppercase tracking-wide max-w-[80px] truncate">
+              {agentSettings.model?.split('-')[0] || currentProvider.id}
+            </span>
+            <ChevronDown size={14} className={`text-gray-500 transition-transform ${showProviderDropdown ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {/* Dropdown Menu */}
+          {showProviderDropdown && (
+            <div className="absolute bottom-full left-0 mb-2 w-72 bg-[#111] border border-gray-800 rounded-lg shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="p-2 border-b border-gray-800">
+                <span className="text-[9px] text-gray-600 uppercase tracking-widest font-mono px-2">Select AI Provider</span>
+              </div>
+              <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                {PROVIDER_CONFIG.map((provider) => (
+                  <div key={provider.id} className="border-b border-gray-800/50 last:border-b-0">
+                    {/* Provider Header */}
+                    <div 
+                      className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-all ${
+                        agentSettings.provider === provider.id 
+                          ? 'bg-cyan-500/10 border-l-2 border-cyan-500' 
+                          : 'hover:bg-gray-800/50 border-l-2 border-transparent'
+                      }`}
+                      onClick={() => handleProviderChange(provider.id)}
+                    >
+                      <span className="text-xl">{provider.icon}</span>
+                      <div className="flex-grow">
+                        <div className="text-sm text-gray-200 font-medium">{provider.name}</div>
+                        <div className="text-[10px] text-gray-500">{provider.description}</div>
+                      </div>
+                      {agentSettings.provider === provider.id && (
+                        <Check size={14} className="text-cyan-400" />
+                      )}
+                    </div>
+                    
+                    {/* Models for this provider */}
+                    {agentSettings.provider === provider.id && provider.models.length > 1 && (
+                      <div className="bg-black/30 px-4 py-2 space-y-1">
+                        {provider.models.map((model) => (
+                          <button
+                            key={model}
+                            onClick={() => handleProviderChange(provider.id, model)}
+                            className={`w-full text-left px-2 py-1.5 rounded text-xs font-mono transition-all ${
+                              agentSettings.model === model 
+                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
+                                : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
+                            }`}
+                          >
+                            {model}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         
         {/* typer / input field container */}
         <div className="flex-grow relative group">
