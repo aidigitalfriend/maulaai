@@ -31,10 +31,10 @@ I'm your personal AI assistant, ready to help with anything you need.
 *What would you like to explore today?*`,
   specialties: ['Coding', 'Writing', 'Research', 'Problem Solving', 'Creative Tasks'],
   aiProvider: {
-    primary: 'mistral',
-    fallbacks: ['openai', 'anthropic', 'xai'],
-    model: 'mistral-large-latest',
-    reasoning: 'Mistral provides fast, high-quality responses for general assistance',
+    primary: 'cerebras',
+    fallbacks: ['groq', 'xai'],
+    model: 'llama-3.3-70b',
+    reasoning: 'Cerebras provides ultra-fast inference with Llama 3.3 70B, with Groq and Grok as fallbacks',
   },
 };
 
