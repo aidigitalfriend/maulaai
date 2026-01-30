@@ -170,14 +170,14 @@ function AgentPerformanceDashboard() {
 
   const statusBadge =
     statusBadgeMap[data?.agent?.status ?? ''] ||
-    'bg-[#13131a]100 text-gray-400 border border-white/10';
+    'bg-gray-800 text-gray-400 border border-gray-700';
 
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+        <div className="min-h-screen bg-black flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Loading agent performance...</p>
           </div>
         </div>
@@ -188,8 +188,11 @@ function AgentPerformanceDashboard() {
   if (!data) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center px-4">
+        <div className="min-h-screen bg-black flex items-center justify-center px-4">
           <div className="max-w-lg text-center">
+            <div className="w-20 h-20 bg-purple-500/20 border border-purple-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Activity className="w-10 h-10 text-purple-400" />
+            </div>
             <h2 className="text-2xl font-semibold text-white mb-3">
               {error || 'Unable to load agent metrics'}
             </h2>
@@ -198,7 +201,7 @@ function AgentPerformanceDashboard() {
             </p>
             <button
               onClick={() => fetchPerformance()}
-              className="btn-primary"
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all"
               disabled={isRefreshing}
             >
               {isRefreshing ? 'Refreshing…' : 'Retry fetch'}
@@ -211,33 +214,55 @@ function AgentPerformanceDashboard() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="min-h-screen bg-black text-white overflow-hidden">
+        {/* Animated Background - Legal Page Theme */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-cyan-500/8 rounded-full blur-3xl" />
+          <div className="absolute bottom-40 right-1/4 w-[400px] h-[400px] bg-purple-500/8 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl" />
+          {/* Floating particles */}
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 3}s`
+              }}
+            />
+          ))}
+        </div>
+
         {/* Hero Section */}
-        <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
-          {/* Decorative Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <defs>
-                <pattern id="agent-perf-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="1" fill="currentColor"/>
-                </pattern>
-              </defs>
-              <rect width="100" height="100" fill="url(#agent-perf-grid)"/>
-            </svg>
-          </div>
+        <section className="relative pt-32 pb-16 md:pt-40 md:pb-20">
           <div className="container-custom text-center relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
-              <Activity className="w-10 h-10" />
+            {/* Hero Badge */}
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium mb-8">
+              <Activity className="w-4 h-4" />
+              <span>Performance Analytics</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              {data?.agent?.name ?? 'AI Agent'}
+
+            {/* Hero Icon */}
+            <div className="inline-flex items-center justify-center w-28 h-28 bg-purple-500/20 border border-purple-500/30 backdrop-blur-sm rounded-3xl mb-8">
+              <Activity className="w-14 h-14 text-purple-400" />
+            </div>
+
+            {/* Title */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-white via-cyan-200 to-purple-200 bg-clip-text text-transparent">
+                {data?.agent?.name ?? 'AI Agent'}
+              </span>
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-2">
+
+            {/* Subtitle */}
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-3">
               Monitoring {data?.agent?.type ?? 'Assistant'} ·{' '}
               {timeRangeOptions.find((t) => t.id === timeRange)?.name}
             </p>
             {lastUpdated && (
-              <p className="text-sm text-white/70 mb-6">
+              <p className="text-sm text-gray-500 mb-8">
                 Last updated{' '}
                 {lastUpdated.toLocaleTimeString([], {
                   hour: 'numeric',
@@ -245,9 +270,13 @@ function AgentPerformanceDashboard() {
                 })}
               </p>
             )}
+
+            {/* Gradient Line */}
+            <div className="w-32 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-emerald-500 rounded-full mx-auto mb-8" />
+
             <Link
               href="/dashboard"
-              className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all"
             >
               Back to Dashboard
             </Link>
@@ -255,7 +284,7 @@ function AgentPerformanceDashboard() {
         </section>
 
         {/* Controls Section */}
-        <section className="py-6 px-4 bg-white/5 border-b border-white/10">
+        <section className="py-6 px-4 bg-gradient-to-r from-gray-900/50 to-gray-950/50 border-y border-gray-800">
           <div className="container-custom">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-4">
@@ -266,7 +295,7 @@ function AgentPerformanceDashboard() {
                   <select
                     value={selectedAgent}
                     onChange={(event) => setSelectedAgent(event.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-700 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                   >
                     {agentOptions.map((agentOption) => (
                       <option key={agentOption.id} value={agentOption.id}>
@@ -282,7 +311,7 @@ function AgentPerformanceDashboard() {
                   <select
                     value={timeRange}
                     onChange={(event) => setTimeRange(event.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-700 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                   >
                     {timeRangeOptions.map((range) => (
                       <option key={range.id} value={range.id}>
@@ -305,7 +334,7 @@ function AgentPerformanceDashboard() {
               </div>
               <button
                 onClick={() => fetchPerformance()}
-                className="btn-primary inline-flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all inline-flex items-center gap-2"
                 disabled={isRefreshing}
               >
                 <RefreshCcw
@@ -318,19 +347,19 @@ function AgentPerformanceDashboard() {
         </section>
 
         {error && (
-          <section className="py-4 px-4 bg-yellow-900/20 border-b border-yellow-200">
+          <section className="py-4 px-4 bg-yellow-500/10 border-b border-yellow-500/30">
             <div className="container-custom">
-              <p className="font-medium text-yellow-800">Real-time fetch warning</p>
-              <p className="text-sm mt-1 text-yellow-400">{error}</p>
+              <p className="font-medium text-yellow-400">Real-time fetch warning</p>
+              <p className="text-sm mt-1 text-yellow-300/70">{error}</p>
             </div>
           </section>
         )}
 
         {/* Performance Content */}
-        <section className="py-12 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+        <section className="py-12 px-4 relative z-10">
           <div className="container-custom">
             {/* Agent Info Card */}
-            <div className="bg-white/5 rounded-3xl border border-white/10 p-6 mb-8">
+            <div className="rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 p-6 mb-8 hover:border-gray-700 transition-all">
               <div className="flex items-center gap-4">
                 <div
                   className="text-5xl"
@@ -365,6 +394,7 @@ function AgentPerformanceDashboard() {
                 change: data?.trends?.conversations?.change ?? '+0%',
                 icon: MessageSquare,
                 trend: data?.trends?.conversations?.trend ?? 'up',
+                color: 'cyan',
               },
               {
                 label: 'Total messages',
@@ -372,6 +402,7 @@ function AgentPerformanceDashboard() {
                 change: data?.trends?.messages?.change ?? '+0%',
                 icon: Zap,
                 trend: data?.trends?.messages?.trend ?? 'up',
+                color: 'purple',
               },
               {
                 label: 'Avg response time',
@@ -381,6 +412,7 @@ function AgentPerformanceDashboard() {
                 change: data?.trends?.responseTime?.change ?? '+0%',
                 icon: Clock,
                 trend: data?.trends?.responseTime?.trend ?? 'up',
+                color: 'emerald',
               },
               {
                 label: 'Satisfaction score',
@@ -390,22 +422,33 @@ function AgentPerformanceDashboard() {
                 change: data?.trends?.satisfaction?.change ?? '+0%',
                 icon: Target,
                 trend: data?.trends?.satisfaction?.trend ?? 'up',
+                color: 'purple',
               },
             ].map((metric) => (
               <div
                 key={metric.label}
-                className="bg-white/5 rounded-2xl border border-white/10 p-6 shadow-sm"
+                className="rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 p-6 hover:border-gray-700 transition-all"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-gray-500">{metric.label}</p>
-                  <metric.icon className="w-5 h-5 text-purple-400" />
+                  <p className="text-sm text-gray-400">{metric.label}</p>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    metric.color === 'cyan' ? 'bg-cyan-500/20 border border-cyan-500/30' :
+                    metric.color === 'emerald' ? 'bg-emerald-500/20 border border-emerald-500/30' :
+                    'bg-purple-500/20 border border-purple-500/30'
+                  }`}>
+                    <metric.icon className={`w-5 h-5 ${
+                      metric.color === 'cyan' ? 'text-cyan-400' :
+                      metric.color === 'emerald' ? 'text-emerald-400' :
+                      'text-purple-400'
+                    }`} />
+                  </div>
                 </div>
                 <p className="text-3xl font-bold text-white">
                   {metric.value}
                 </p>
                 <p
                   className={`text-sm mt-2 flex items-center gap-1 ${
-                    metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                    metric.trend === 'up' ? 'text-emerald-400' : 'text-red-400'
                   }`}
                 >
                   {getTrendIcon(metric.trend)}
@@ -416,57 +459,63 @@ function AgentPerformanceDashboard() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3 mb-8">
-            <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
+            <div className="rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 p-6 hover:border-gray-700 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">Active users</p>
+                  <p className="text-sm text-gray-400">Active users</p>
                   <p className="text-3xl font-bold text-white">
                     {(data?.metrics?.activeUsers ?? 0).toLocaleString()}
                   </p>
                 </div>
-                <Users className="w-6 h-6 text-purple-400" />
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-cyan-400" />
+                </div>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-500">
                 Unique people who interacted with this agent during the selected
                 window.
               </p>
             </div>
 
-            <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
+            <div className="rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 p-6 hover:border-gray-700 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">Uptime</p>
+                  <p className="text-sm text-gray-400">Uptime</p>
                   <p className="text-3xl font-bold text-white">
                     {data?.metrics?.uptime ?? 99.9}%
                   </p>
                 </div>
-                <Activity className="w-6 h-6 text-purple-400" />
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-emerald-400" />
+                </div>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-500">
                 Availability is tracked via health pings from the agent runtime.
               </p>
             </div>
 
-            <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
+            <div className="rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 p-6 hover:border-gray-700 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">Response insights</p>
+                  <p className="text-sm text-gray-400">Response insights</p>
                   <p className="text-3xl font-bold text-white">
                     {(data?.metrics?.averageResponseTime ?? 0).toFixed(1)}s
                   </p>
                 </div>
-                <Clock className="w-6 h-6 text-purple-400" />
+                <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-purple-400" />
+                </div>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-500">
                 Aim to keep response times under 2s for best satisfaction.
               </p>
             </div>
           </div>
 
-          <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
+          <div className="rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 p-6 hover:border-gray-700 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-gray-500">Recent activity</p>
+                <p className="text-sm text-gray-400">Recent activity</p>
                 <h3 className="text-xl font-semibold text-white">
                   Conversation timeline
                 </h3>
@@ -481,9 +530,9 @@ function AgentPerformanceDashboard() {
                 {(data?.recentActivity ?? []).map((activity) => (
                   <li
                     key={`${activity.timestamp}-${activity.user}`}
-                    className="flex items-start gap-4 border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
+                    className="flex items-start gap-4 border-b border-gray-800 pb-4 last:border-b-0 last:pb-0"
                   >
-                    <div className="w-10 h-10 rounded-full bg-purple-900/20 text-purple-400 flex items-center justify-center text-sm font-semibold">
+                    <div className="w-10 h-10 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-400 flex items-center justify-center text-sm font-semibold">
                       {activity.user?.[0]?.toUpperCase() || 'A'}
                     </div>
                     <div className="flex-1">

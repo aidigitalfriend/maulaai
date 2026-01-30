@@ -76,7 +76,7 @@ export async function GET(
         id: 'welcome_bonus',
         type: 'bonus' as const,
         amount: 100,
-        description: 'Welcome bonus for joining One Last AI',
+        description: 'Welcome bonus for joining Maula AI',
         category: 'bonus',
         timestamp: user.createdAt.toISOString(),
         metadata: {},

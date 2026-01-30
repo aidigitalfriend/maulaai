@@ -246,45 +246,75 @@ export default function AgentManagementPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="min-h-screen bg-black text-white overflow-hidden">
+        {/* Animated Background - Legal Page Theme */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-cyan-500/8 rounded-full blur-3xl" />
+          <div className="absolute bottom-40 right-1/4 w-[400px] h-[400px] bg-purple-500/8 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl" />
+          {/* Floating particles */}
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 3}s`
+              }}
+            />
+          ))}
+        </div>
+
         {/* Hero Section */}
-        <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
-          {/* Decorative Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <defs>
-                <pattern id="agent-mgmt-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="1" fill="currentColor"/>
-                </pattern>
-              </defs>
-              <rect width="100" height="100" fill="url(#agent-mgmt-grid)"/>
-            </svg>
-          </div>
+        <section className="relative pt-32 pb-16 md:pt-40 md:pb-20">
           <div className="container-custom text-center relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
-              <ShieldCheck className="w-10 h-10" />
+            {/* Hero Badge */}
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-medium mb-8">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Agent Subscriptions</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Agent Management</h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-4">
+
+            {/* Hero Icon */}
+            <div className="inline-flex items-center justify-center w-28 h-28 bg-emerald-500/20 border border-emerald-500/30 backdrop-blur-sm rounded-3xl mb-8">
+              <ShieldCheck className="w-14 h-14 text-emerald-400" />
+            </div>
+
+            {/* Title */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-white via-cyan-200 to-purple-200 bg-clip-text text-transparent">
+                Agent Management
+              </span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-6">
               Purchase access to specialized agents on a per-agent basis
             </p>
+
+            {/* Stats */}
             <div className="flex items-center justify-center gap-4 mb-8">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-6 py-3">
-                <p className="text-sm text-white/80">Active Agents</p>
-                <p className="text-3xl font-bold">{activeAgentCount}</p>
+              <div className="rounded-xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 px-6 py-3">
+                <p className="text-sm text-gray-400">Active Agents</p>
+                <p className="text-3xl font-bold text-emerald-400">{activeAgentCount}</p>
               </div>
               <button
                 onClick={handleRefreshSubscriptions}
                 disabled={isLoading}
-                className="p-3 rounded-xl bg-white/10 backdrop-blur-sm hover:bg-white/30 disabled:opacity-50 transition-colors"
+                className="p-3 rounded-xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-gray-700 disabled:opacity-50 transition-colors"
                 title="Refresh subscription status"
               >
-                <RefreshCw className={`w-6 h-6 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-6 h-6 text-gray-400 ${isLoading ? 'animate-spin' : ''}`} />
               </button>
             </div>
+
+            {/* Gradient Line */}
+            <div className="w-32 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-emerald-500 rounded-full mx-auto mb-8" />
+
             <Link
               href="/dashboard"
-              className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all"
             >
               Back to Dashboard
             </Link>
@@ -292,10 +322,10 @@ export default function AgentManagementPage() {
         </section>
 
         {/* Agent Cards Section */}
-        <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+        <section className="py-16 px-4 relative z-10">
           <div className="container-custom space-y-10">
             {error && (
-              <div className="bg-red-900/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl">
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl">
                 {error}
               </div>
             )}
@@ -316,15 +346,17 @@ export default function AgentManagementPage() {
                 return (
                   <div
                     key={agent.agentId}
-                    className={`relative rounded-2xl border p-6 shadow-sm transition-all duration-300 group ${
+                    className={`relative rounded-2xl border p-6 transition-all duration-300 group ${
                       agent.isUnlocked
-                        ? 'bg-white/5 border-green-500/30 hover:border-green-300'
-                        : 'bg-white/5 border-white/10 hover:border-purple-200'
+                        ? 'bg-gradient-to-br from-gray-900/90 to-gray-950 border-emerald-500/30 hover:border-emerald-400'
+                        : 'bg-gradient-to-br from-gray-900/90 to-gray-950 border-gray-800 hover:border-purple-500/50'
                     }`}
                   >
                     {!agent.isUnlocked && (
-                      <div className="absolute inset-0 rounded-2xl bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
-                        <Lock className="w-10 h-10 text-purple-400 mb-3" />
+                      <div className="absolute inset-0 rounded-2xl bg-gray-950/90 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
+                        <div className="w-14 h-14 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-4">
+                          <Lock className="w-7 h-7 text-purple-400" />
+                        </div>
                         <p className="font-semibold text-white mb-2">
                           Purchase Access to {agent.agentName}
                         </p>
@@ -335,7 +367,7 @@ export default function AgentManagementPage() {
                           onClick={() =>
                             handleCardClick(agent.agentId, agent.agentName)
                           }
-                          className="btn-primary inline-flex items-center gap-2"
+                          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all inline-flex items-center gap-2"
                         >
                           Purchase Access
                           <ArrowRight className="w-4 h-4" />
@@ -353,11 +385,11 @@ export default function AgentManagementPage() {
                         </h3>
                       </div>
                       {agent.isUnlocked ? (
-                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-green-600">
+                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                           <Unlock className="w-4 h-4" /> Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-500">
+                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-gray-800 border border-gray-700 text-gray-400">
                           <Lock className="w-4 h-4" /> Locked
                         </span>
                       )}
@@ -376,7 +408,7 @@ export default function AgentManagementPage() {
                         <>
                           <button
                             onClick={() => handleChatWithAgent(agent.agentId)}
-                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-purple-200 text-purple-400 hover:bg-purple-900/20"
+                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:bg-purple-500/20 transition-colors"
                           >
                             Chat with Agent
                             <MessageSquare className="w-4 h-4" />
@@ -389,7 +421,7 @@ export default function AgentManagementPage() {
                               )
                             }
                             disabled={cancellingAgentId === agent.agentId}
-                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-500/30 text-red-600 hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
                             {cancellingAgentId === agent.agentId ? (
                               <>
@@ -414,7 +446,7 @@ export default function AgentManagementPage() {
                         onClick={() =>
                           handleCardClick(agent.agentId, agent.agentName)
                         }
-                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-purple-200 text-purple-400 bg-purple-900/20 hover:bg-purple-900/30"
+                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:bg-purple-500/20 transition-colors"
                       >
                         Purchase Access
                         <ArrowRight className="w-4 h-4" />
@@ -426,21 +458,36 @@ export default function AgentManagementPage() {
             </div>
           )}
 
-          <div className="bg-white/5 rounded-2xl border border-white/10 p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-white mb-4">
+          <div className="rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 p-8 hover:border-gray-700 transition-all">
+            <h2 className="text-2xl font-bold text-white mb-6">
               How Agent Management Works
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {['Choose', 'Access', 'Renew'].map((step, index) => (
+              {[
+                { step: 'Choose', color: 'cyan', icon: '🎯' },
+                { step: 'Access', color: 'purple', icon: '🔓' },
+                { step: 'Renew', color: 'emerald', icon: '🔄' }
+              ].map((item, index) => (
                 <div
-                  key={step}
-                  className="p-5 rounded-xl border border-white/10"
+                  key={item.step}
+                  className={`p-5 rounded-xl border ${
+                    item.color === 'cyan' ? 'bg-cyan-500/10 border-cyan-500/30' :
+                    item.color === 'purple' ? 'bg-purple-500/10 border-purple-500/30' :
+                    'bg-emerald-500/10 border-emerald-500/30'
+                  }`}
                 >
-                  <p className="text-sm font-semibold text-purple-400 mb-2">
-                    Step {index + 1}
-                  </p>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">{item.icon}</span>
+                    <p className={`text-sm font-semibold ${
+                      item.color === 'cyan' ? 'text-cyan-400' :
+                      item.color === 'purple' ? 'text-purple-400' :
+                      'text-emerald-400'
+                    }`}>
+                      Step {index + 1}
+                    </p>
+                  </div>
                   <h3 className="text-xl font-semibold text-white mb-2">
-                    {step}
+                    {item.step}
                   </h3>
                   <p className="text-gray-400 text-sm">
                     {index === 0 &&

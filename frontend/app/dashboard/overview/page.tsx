@@ -191,9 +191,9 @@ export default function DashboardOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-500 mx-auto mb-4"></div>
           <p className="text-lg text-gray-400">Loading your dashboard...</p>
         </div>
       </div>
@@ -221,33 +221,33 @@ export default function DashboardOverviewPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-hidden">
+      {/* Animated Background - Agents Page Theme */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/15 blur-[150px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/15 blur-[120px]" />
+        <div className="absolute top-2/3 left-1/2 w-[400px] h-[400px] rounded-full bg-pink-500/10 blur-[100px]" />
+        <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+        ))}
+      </div>
+
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
-        {/* Decorative Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="overview-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <circle cx="20" cy="20" r="1.5" fill="currentColor" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#overview-grid)" />
-          </svg>
-        </div>
+      <section className="relative py-20 md:py-28 border-b border-cyan-500/10 overflow-hidden">
         <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
-            <UserIcon className="w-10 h-10" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-500/30 rounded-2xl mb-6">
+            <UserIcon className="w-10 h-10 text-cyan-400" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
             Dashboard Overview
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
             Get started with your analytics and insights
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
+            className="inline-flex items-center bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl shadow-lg shadow-cyan-500/25 transition-all"
           >
             Go to Dashboard
           </Link>
@@ -255,7 +255,7 @@ export default function DashboardOverviewPage() {
       </section>
 
       {/* Main Dashboard Sections */}
-      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <section className="py-16 px-4 relative z-10">
         <div className="container-custom">
           {error && (
             <div className="mb-8 bg-red-900/20 border border-red-500/30 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
@@ -263,11 +263,11 @@ export default function DashboardOverviewPage() {
                 <p className="font-semibold text-red-300">
                   Unable to refresh some account data
                 </p>
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-red-400">{error}</p>
               </div>
               <button
                 onClick={loadUserData}
-                className="px-4 py-2 bg-red-900/30 hover:bg-red-200 text-red-400 rounded-lg font-medium transition-colors self-start md:self-auto"
+                className="px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded-lg font-medium transition-colors self-start md:self-auto"
                 disabled={isLoading}
               >
                 {isLoading ? 'Refreshing...' : 'Retry'}
@@ -277,7 +277,7 @@ export default function DashboardOverviewPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* User Profile Section */}
             <Link href="/dashboard/profile" className="group">
-              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-purple-500/10 hover:shadow-xl hover:border-blue-300 transition-all">
+              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-cyan-500/10 hover:shadow-xl hover:border-blue-300 transition-all">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mr-4 shadow-2xl shadow-blue-500/25">
                     <UserIcon className="w-6 h-6 text-white" />
@@ -328,7 +328,7 @@ export default function DashboardOverviewPage() {
 
             {/* Security Settings Section */}
             <Link href="/dashboard/security" className="group">
-              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-purple-500/10 hover:shadow-xl hover:border-green-300 transition-all">
+              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-cyan-500/10 hover:shadow-xl hover:border-green-300 transition-all">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mr-4 shadow-2xl shadow-green-500/25">
                     <ShieldCheckIcon className="w-6 h-6 text-white" />
@@ -384,9 +384,9 @@ export default function DashboardOverviewPage() {
 
             {/* Preferences Section */}
             <Link href="/dashboard/preferences" className="group">
-              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-purple-500/10 hover:shadow-xl hover:border-purple-300 transition-all">
+              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-cyan-500/10 hover:shadow-xl hover:border-purple-300 transition-all">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4 shadow-2xl shadow-purple-500/25">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4 shadow-2xl shadow-cyan-500/25">
                     <CogIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -430,7 +430,7 @@ export default function DashboardOverviewPage() {
 
             {/* Rewards Center Section */}
             <Link href="/dashboard/rewards" className="group">
-              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-purple-500/10 hover:shadow-xl hover:border-yellow-300 transition-all relative overflow-hidden">
+              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-cyan-500/10 hover:shadow-xl hover:border-yellow-300 transition-all relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-bl-[4rem] opacity-10"></div>
 
                 <div className="flex items-center mb-6">
@@ -473,7 +473,7 @@ export default function DashboardOverviewPage() {
                       {rewards?.badges
                         ?.slice(0, 3)
                         .map((badge: any, idx: number) => (
-                          <div key={idx} className="text-center p-2 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] rounded-xl">
+                          <div key={idx} className="text-center p-2 bg-[#0a0a0f]/50 rounded-xl">
                             <div className="text-2xl mb-1">
                               {badge.icon || '🎖️'}
                             </div>
@@ -482,7 +482,7 @@ export default function DashboardOverviewPage() {
                             </p>
                           </div>
                         )) || (
-                        <div className="col-span-3 text-center text-gray-500 p-3 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] rounded-xl">
+                        <div className="col-span-3 text-center text-gray-500 p-3 bg-[#0a0a0f]/50 rounded-xl">
                           <div className="text-2xl mb-1">🎖️</div>
                           <p className="text-xs">No badges yet</p>
                         </div>
@@ -525,7 +525,7 @@ export default function DashboardOverviewPage() {
             {quickStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="bg-white/5 p-6 rounded-2xl shadow-2xl shadow-purple-500/10 border border-white/10 text-center hover:shadow-xl transition-shadow"
+                className="bg-white/5 p-6 rounded-2xl shadow-2xl shadow-cyan-500/10 border border-white/10 text-center hover:shadow-xl transition-shadow"
               >
                 <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
                   {typeof stat.value === 'number'

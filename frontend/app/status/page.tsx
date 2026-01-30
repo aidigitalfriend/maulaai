@@ -476,7 +476,7 @@ export default function StatusPage() {
             System Status
           </h1>
           <p className="text-xl opacity-90 max-w-3xl mx-auto mb-6">
-            Real-time monitoring of all One Last AI services
+            Real-time monitoring of all Maula AI services
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
             <StatusBadge status={overallStatus} />

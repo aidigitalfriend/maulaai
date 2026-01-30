@@ -437,11 +437,11 @@ function SubscriptionContent() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="text-center">
           <div className="relative w-16 h-16 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full border-4 border-blue-500/20" />
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin" />
+            <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20" />
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cyan-500 animate-spin" />
           </div>
           <p className="text-gray-400 text-lg">Checking access status...</p>
         </div>
@@ -450,23 +450,25 @@ function SubscriptionContent() {
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="subscribe-orb absolute -top-32 -left-32 w-[500px] h-[500px] bg-gradient-to-r from-blue-600/20 to-indigo-600/20 blur-3xl" />
-        <div className="subscribe-orb absolute top-1/2 -right-32 w-[400px] h-[400px] bg-gradient-to-r from-purple-500/15 to-pink-600/15 blur-3xl" />
-        <div className="subscribe-orb absolute -bottom-32 left-1/4 w-[350px] h-[350px] bg-gradient-to-r from-amber-500/10 to-orange-600/10 blur-3xl" />
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-hidden">
+      {/* Animated Background - Agents Page Theme */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="subscribe-orb absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/15 blur-[150px]" />
+        <div className="subscribe-orb absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/15 blur-[120px]" />
+        <div className="subscribe-orb absolute top-2/3 left-1/2 w-[400px] h-[400px] rounded-full bg-pink-500/10 blur-[100px]" />
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
       </div>
 
-      {/* Floating Particles */}
+      {/* Floating Particles - Cyan Theme */}
       <div className="fixed inset-0 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(15)].map((_, i) => (
           <div
             key={i}
-            className="particle absolute w-1.5 h-1.5 rounded-full bg-blue-400/40"
+            className="particle absolute w-1.5 h-1.5 rounded-full bg-cyan-400/40"
             style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`
+              left: `${5 + i * 6}%`,
+              top: `${10 + (i % 5) * 18}%`
             }}
           />
         ))}
@@ -484,13 +486,13 @@ function SubscriptionContent() {
       <div ref={heroRef} className="relative pt-24 pb-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           {/* Agent Icon */}
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl mb-8 shadow-2xl shadow-blue-500/30">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-500/30 rounded-3xl mb-8 shadow-2xl shadow-cyan-500/30">
             <span className="text-5xl">🤖</span>
           </div>
 
           <h1
             ref={titleRef}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-200 to-white bg-[length:200%_auto] bg-clip-text text-transparent"
+            className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-cyan-200 to-white bg-[length:200%_auto] bg-clip-text text-transparent"
           >
             {agentName}
           </h1>
@@ -505,7 +507,7 @@ function SubscriptionContent() {
           </p>
 
           {/* Warning Badge */}
-          <div className="badge-pill inline-flex items-center gap-2 px-6 py-3 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm opacity-0">
+          <div className="badge-pill inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-sm opacity-0">
             <span>⚠️</span>
             <span>One agent per purchase • No auto-renewal</span>
           </div>
@@ -514,8 +516,8 @@ function SubscriptionContent() {
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="max-w-3xl mx-auto mb-8 px-4">
-          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl text-center">
+        <div className="max-w-3xl mx-auto mb-8 px-4 relative z-10">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-2xl text-center backdrop-blur-sm">
             {errorMessage}
           </div>
         </div>
@@ -523,8 +525,8 @@ function SubscriptionContent() {
 
       {/* Active Subscription Card */}
       {activeSubscription && (
-        <div className="max-w-3xl mx-auto mb-16 px-4">
-          <div className="active-sub-card bg-white/5 backdrop-blur-sm border border-green-500/30 rounded-3xl p-8 opacity-0">
+        <div className="max-w-3xl mx-auto mb-16 px-4 relative z-10">
+          <div className="active-sub-card rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-green-500/30 backdrop-blur-sm p-8 shadow-2xl shadow-cyan-500/10 opacity-0">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm mb-3">
@@ -537,15 +539,15 @@ function SubscriptionContent() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="bg-white/5 rounded-xl p-4 border border-cyan-500/20">
                 <div className="text-sm text-gray-400 mb-1">Plan</div>
                 <div className="text-xl font-bold text-white capitalize">{activeSubscription.plan}</div>
               </div>
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="bg-white/5 rounded-xl p-4 border border-cyan-500/20">
                 <div className="text-sm text-gray-400 mb-1">Time Remaining</div>
-                <div className="text-xl font-bold text-blue-400">{activeSubscription.daysUntilRenewal || 0} days</div>
+                <div className="text-xl font-bold text-cyan-400">{activeSubscription.daysUntilRenewal || 0} days</div>
               </div>
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="bg-white/5 rounded-xl p-4 border border-cyan-500/20">
                 <div className="text-sm text-gray-400 mb-1">Status</div>
                 <div className="text-xl font-bold text-green-400">Active</div>
               </div>
@@ -554,14 +556,14 @@ function SubscriptionContent() {
             {/* Progress bar */}
             <div className="mb-8">
               <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                <div className="progress-fill h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full" style={{ width: 0 }} />
+                <div className="progress-fill h-full bg-gradient-to-r from-cyan-500 to-green-400 rounded-full" style={{ width: 0 }} />
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href={`/agents/${agentSlug}`}
-                className="flex-1 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white font-semibold text-center hover:from-blue-500 hover:to-indigo-500 transition-all duration-300"
+                className="flex-1 py-4 px-6 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl text-white font-semibold text-center hover:shadow-xl shadow-lg shadow-cyan-500/25 transition-all duration-300"
               >
                 Open Agent Chat
               </Link>
@@ -584,36 +586,40 @@ function SubscriptionContent() {
 
       {/* Pricing Plans */}
       {!activeSubscription && (
-        <div ref={cardsRef} className="relative px-4 pb-16">
+        <div ref={cardsRef} className="relative px-4 pb-16 z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {subscriptionPlans.map((plan, index) => (
                 <div
                   key={index}
-                  className={`plan-card group relative bg-white/5 backdrop-blur-sm border rounded-3xl p-8 opacity-0 ${
+                  className={`plan-card group relative rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-sm p-8 opacity-0 shadow-2xl shadow-cyan-500/10 ${
                     plan.recommended 
-                      ? 'border-blue-500/50 scale-105' 
-                      : 'border-white/10 hover:border-blue-500/30'
+                      ? 'border-2 border-cyan-500/50 scale-105' 
+                      : 'border border-gray-700/50 hover:border-cyan-500/30'
                   }`}
                   style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
                 >
+                  {/* Corner accents */}
+                  <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500/30 rounded-tl-2xl" />
+                  <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-purple-500/30 rounded-br-2xl" />
+                  
                   {/* Glow effect */}
-                  <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${plan.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-2xl`} />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                   {plan.recommended && (
-                    <div className="recommended-badge absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full text-white text-sm font-semibold shadow-lg">
+                    <div className="recommended-badge absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full text-white text-sm font-semibold shadow-lg shadow-cyan-500/30">
                       Most Popular
                     </div>
                   )}
 
                   <div className="relative z-10">
                     <div className="text-center mb-6">
-                      <div className={`plan-icon inline-flex text-4xl p-4 rounded-2xl bg-gradient-to-r ${plan.gradient} bg-opacity-20 mb-4`}>
+                      <div className={`plan-icon inline-flex text-4xl p-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 mb-4`}>
                         {plan.icon}
                       </div>
                       <h3 className="text-2xl font-bold text-white mb-2">{plan.type}</h3>
                       <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-4xl font-bold text-white">{plan.price}</span>
+                        <span className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">{plan.price}</span>
                         <span className="text-gray-400">{plan.period}</span>
                       </div>
                     </div>
@@ -621,7 +627,7 @@ function SubscriptionContent() {
                     <ul className="space-y-3 mb-8">
                       {plan.features.map((feature, i) => (
                         <li key={i} className="flex items-center gap-3 text-gray-300">
-                          <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                           {feature}
@@ -634,8 +640,8 @@ function SubscriptionContent() {
                       disabled={processingPlan !== null}
                       className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
                         plan.recommended
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 hover:from-blue-500 hover:to-indigo-500'
-                          : 'bg-white/10 text-white hover:bg-white/20'
+                          ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-lg shadow-cyan-500/25 hover:shadow-xl hover:shadow-cyan-500/40'
+                          : 'bg-white/10 text-white border border-gray-700/50 hover:bg-white/20 hover:border-cyan-500/30'
                       } ${processingPlan !== null ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {processingPlan === plan.billingCycle ? (
@@ -656,10 +662,14 @@ function SubscriptionContent() {
       )}
 
       {/* Info Section */}
-      <div className="info-section relative py-16 px-4">
+      <div className="info-section relative py-16 px-4 z-10">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-white mb-8 text-center">Important Information</h2>
+          <div className="rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-sm p-8 border border-gray-700/50 shadow-2xl shadow-cyan-500/10">
+            {/* Corner accents */}
+            <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-cyan-500/20 rounded-tl-2xl pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-purple-500/20 rounded-br-2xl pointer-events-none" />
+            
+            <h2 className="text-2xl font-bold text-white mb-8 text-center bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">Important Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
@@ -686,11 +696,11 @@ function SubscriptionContent() {
               ].map((item, i) => (
                 <div
                   key={item.title}
-                  className="info-card p-6 bg-white/5 rounded-2xl border border-white/10 opacity-0"
+                  className="info-card p-6 rounded-2xl bg-white/5 border border-gray-700/50 hover:border-cyan-500/30 transition-all opacity-0"
                   style={{ transform: 'translateY(30px)' }}
                 >
                   <div className="text-2xl mb-3">{item.icon}</div>
-                  <h3 className="font-bold text-blue-400 mb-2">{item.title}</h3>
+                  <h3 className="font-bold text-cyan-400 mb-2">{item.title}</h3>
                   <p className="text-sm text-gray-400">{item.desc}</p>
                 </div>
               ))}
@@ -700,10 +710,10 @@ function SubscriptionContent() {
       </div>
 
       {/* Back Link */}
-      <div className="relative py-12 px-4 text-center">
+      <div className="relative py-12 px-4 text-center z-10">
         <Link
           href="/agents"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -719,11 +729,11 @@ export default function SubscribePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
           <div className="text-center">
             <div className="relative w-16 h-16 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-blue-500/20" />
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin" />
+              <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cyan-500 animate-spin" />
             </div>
             <p className="text-gray-400">Loading...</p>
           </div>

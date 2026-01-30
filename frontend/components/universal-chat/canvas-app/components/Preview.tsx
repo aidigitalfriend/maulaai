@@ -50,7 +50,7 @@ const Preview: React.FC<PreviewProps> = ({ code }) => {
           <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
         </div>
         <div className="flex-1 text-center font-mono text-gray-600 opacity-80 truncate uppercase tracking-wider text-[10px]">
-          neural://localhost:3000/generated-app
+          neural://canvas.maula.ai/preview
         </div>
       </div>
       <iframe

@@ -53,7 +53,7 @@ export async function GET(
     badges.push({
       id: 'welcome',
       name: 'Welcome',
-      description: 'Joined One Last AI',
+      description: 'Joined Maula AI',
       icon: '🎉',
       category: 'milestone',
       earnedAt: user?.createdAt?.toISOString() || new Date().toISOString(),

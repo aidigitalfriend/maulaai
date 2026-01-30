@@ -15,7 +15,7 @@ if (typeof window !== 'undefined') {
 
 const newsItems = [
   { date: 'Jan 19, 2026', title: 'New Voice-to-Voice Agent Available', category: 'Feature' },
-  { date: 'Jan 15, 2026', title: 'One Last AI Reaches 10K Active Users', category: 'Milestone' },
+  { date: 'Jan 15, 2026', title: 'Maula AI Reaches 10K Active Users', category: 'Milestone' },
   { date: 'Jan 10, 2026', title: 'Enterprise Security Enhancements', category: 'Security' },
 ];
 
@@ -269,7 +269,7 @@ export default function NewsSection() {
               ref={descRef}
               className="text-lg text-gray-400 mb-8 leading-relaxed"
             >
-              Stay informed about new features, platform improvements, and exciting announcements from One Last AI.
+              Stay informed about new features, platform improvements, and exciting announcements from Maula AI.
             </p>
             
             <div ref={newsRef} className="space-y-4 mb-8">

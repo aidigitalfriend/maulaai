@@ -193,7 +193,7 @@ export default function ConversationHistoryPage() {
 
   if (!state.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">
             Please log in to view conversations
@@ -222,59 +222,74 @@ export default function ConversationHistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
-      {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
-        {/* Decorative Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <pattern id="conversation-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="currentColor"/>
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#conversation-grid)"/>
-          </svg>
+    <div className="min-h-screen bg-black text-white overflow-hidden">
+        {/* Background gradient orbs - Legal page theme */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-cyan-500/8 rounded-full blur-3xl" />
+          <div className="absolute bottom-40 right-1/4 w-[400px] h-[400px] bg-purple-500/8 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl" />
         </div>
+
+      {/* Hero Section */}
+      <section className="relative min-h-[50vh] flex items-center justify-center py-20 md:py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/50 via-black to-black" />
+        
+        {/* Floating particles */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                left: `${10 + (i * 7)}%`,
+                top: `${20 + (i % 4) * 18}%`,
+                background: i % 3 === 0 ? '#22d3ee' : i % 3 === 1 ? '#a855f7' : '#10b981',
+                opacity: 0.3
+              }}
+            />
+          ))}
+        </div>
+
         <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
-            <ChatBubbleLeftRightIcon className="w-10 h-10" />
+          <div className="inline-flex items-center justify-center w-28 h-28 rounded-3xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-purple-500/30 shadow-2xl shadow-purple-500/10 mb-8">
+            <ChatBubbleLeftRightIcon className="w-14 h-14 text-purple-400" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Conversation History</h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-4">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">Conversation History</h1>
+          <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-4 leading-relaxed">
             Review and manage your past interactions
             {pagination.total > 0 && (
-              <span className="block mt-2 text-white/80">
+              <span className="block mt-2 text-purple-300">
                 ({pagination.total} conversations)
               </span>
             )}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="w-40 h-1 bg-gradient-to-r from-purple-500 via-cyan-500 to-purple-500 mx-auto mb-10 rounded-full" />
+          <div className="flex flex-wrap items-center justify-center gap-4">
             {pagination.total > 0 && (
               <>
                 <button
                   onClick={() => handleExport('json')}
                   disabled={exporting}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
+                  className="hero-badge px-5 py-2.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-sm font-medium backdrop-blur-sm hover:bg-cyan-500/20 disabled:opacity-50 transition-colors"
                   title="Export as JSON"
                 >
-                  <DocumentTextIcon className="w-4 h-4" />
+                  <DocumentTextIcon className="w-4 h-4 inline mr-2" />
                   <span>JSON</span>
                 </button>
                 <button
                   onClick={() => handleExport('csv')}
                   disabled={exporting}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
+                  className="hero-badge px-5 py-2.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium backdrop-blur-sm hover:bg-purple-500/20 disabled:opacity-50 transition-colors"
                   title="Export as CSV"
                 >
-                  <TableCellsIcon className="w-4 h-4" />
+                  <TableCellsIcon className="w-4 h-4 inline mr-2" />
                   <span>CSV</span>
                 </button>
               </>
             )}
             <Link
               href="/dashboard"
-              className="inline-flex items-center bg-white/5 text-purple-500 px-6 py-2 rounded-lg font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
+              className="hero-badge px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-medium backdrop-blur-sm hover:bg-emerald-500/20 transition-colors"
             >
               Back to Dashboard
             </Link>
@@ -283,7 +298,7 @@ export default function ConversationHistoryPage() {
       </section>
 
       {/* Search Section */}
-      <section className="py-8 px-4 bg-white/5 border-b border-white/10">
+      <section className="py-8 px-4 border-b border-gray-800">
         <div className="container-custom">
           <form onSubmit={handleSearch} className="max-w-md mx-auto">
             <div className="relative">
@@ -293,12 +308,12 @@ export default function ConversationHistoryPage() {
                 placeholder="Search conversations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-20 py-3 bg-gray-900/50 border border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-500"
               />
               <button
                 type="submit"
                 disabled={searching}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-purple-900/200 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-purple-500/20 text-purple-300 text-sm rounded-lg hover:bg-purple-500/30 border border-purple-500/30 disabled:opacity-50 transition-colors"
               >
                 {searching ? '...' : 'Search'}
               </button>
@@ -308,11 +323,11 @@ export default function ConversationHistoryPage() {
       </section>
 
       {/* Conversations List */}
-      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
-        <div className="container-custom max-w-4xl">
+      <section className="relative py-16 px-6">
+        <div className="max-w-4xl mx-auto">
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
               <p className="text-gray-400">Loading your conversations...</p>
             </div>
           ) : conversations.length > 0 ? (
@@ -324,12 +339,17 @@ export default function ConversationHistoryPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="p-6 bg-white/5 rounded-lg border border-white/10 hover:border-purple-500 hover:shadow-xl shadow-purple-500/5 transition-all cursor-pointer"
+                    className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-purple-500/50 transition-all cursor-pointer group overflow-hidden"
                   >
-                    <div className="flex justify-between items-start mb-4">
+                    {/* Glow effect on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-5 blur-xl transition-opacity duration-500" />
+                    
+                    <div className="relative z-10 flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center mb-2">
-                          <ChatBubbleLeftRightIcon className="w-5 h-5 text-purple-400 mr-2" />
+                          <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mr-3">
+                            <ChatBubbleLeftRightIcon className="w-4 h-4 text-purple-400" />
+                          </div>
                           <h3 className="font-semibold text-white">
                             {conv.agent || 'Assistant'}
                           </h3>
@@ -361,7 +381,7 @@ export default function ConversationHistoryPage() {
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={!pagination.hasPrev}
-                    className="flex items-center px-4 py-2 border border-white/10 rounded-lg hover:bg-[#0a0a0f] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center px-4 py-2 rounded-xl bg-gray-900/50 border border-gray-800 hover:border-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronLeftIcon className="w-4 h-4 mr-1" />
                     Previous
@@ -374,7 +394,7 @@ export default function ConversationHistoryPage() {
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={!pagination.hasNext}
-                    className="flex items-center px-4 py-2 border border-white/10 rounded-lg hover:bg-[#0a0a0f] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center px-4 py-2 rounded-xl bg-gray-900/50 border border-gray-800 hover:border-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                     <ChevronRightIcon className="w-4 h-4 ml-1" />
@@ -385,14 +405,16 @@ export default function ConversationHistoryPage() {
           ) : (
             /* Empty state */
             <div className="text-center py-16">
-              <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <div className="w-20 h-20 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mx-auto mb-6">
+                <ChatBubbleLeftRightIcon className="w-10 h-10 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">
                 No conversations found
               </h3>
-              <p className="text-gray-400 mb-6">{emptyStateCopy}</p>
+              <p className="text-gray-400 mb-6 max-w-md mx-auto">{emptyStateCopy}</p>
               <Link
                 href="/dashboard/overview"
-                className="btn-primary inline-block"
+                className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all"
               >
                 Back to Dashboard
               </Link>

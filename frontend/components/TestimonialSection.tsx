@@ -286,7 +286,7 @@ export default function TestimonialSection() {
         {/* Bottom CTA */}
         <div ref={ctaRef} className="text-center mt-16">
           <p className="text-gray-400 mb-6">
-            Join 10,000+ companies transforming their business with One Last AI
+            Join 10,000+ companies transforming their business with Maula AI
           </p>
           <a
             href="/community"

@@ -52,9 +52,9 @@ export default function RewardsCenterPage() {
   // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
           <p className="text-gray-400">Loading your rewards...</p>
         </div>
       </div>
@@ -77,7 +77,18 @@ export default function RewardsCenterPage() {
       : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+    <div className="min-h-screen bg-[#0a0a0f]">
+        {/* Animated Background - Agents Page Theme */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/15 blur-[150px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/15 blur-[120px]" />
+          <div className="absolute top-2/3 left-1/2 w-[400px] h-[400px] rounded-full bg-pink-500/10 blur-[100px]" />
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+          {[...Array(15)].map((_, i) => (
+            <div key={i} className="absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+          ))}
+        </div>
+
       {/* Hero Section */}
       <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
         {/* Decorative Pattern */}
@@ -101,7 +112,7 @@ export default function RewardsCenterPage() {
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
+            className="inline-flex items-center bg-white/5 text-cyan-400 px-8 py-3 rounded-xl font-semibold hover:bg-[#0a0a0f]/50 transition-all shadow-2xl shadow-cyan-500/10"
           >
             Back to Dashboard
           </Link>
@@ -109,7 +120,7 @@ export default function RewardsCenterPage() {
       </section>
 
       {/* Rewards Content */}
-      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <section className="py-16 px-4 bg-[#0a0a0f]/50">
         <div className="container-custom max-w-6xl">
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

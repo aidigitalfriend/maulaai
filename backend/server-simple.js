@@ -1,5 +1,5 @@
 /**
- * ONE LAST AI - PRODUCTION SERVER
+ * MAULA AI - PRODUCTION SERVER
  * PostgreSQL/Prisma Backend
  */
 
@@ -39,8 +39,8 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.ALLOWED_ORIGINS?.split(',') || [
-      'https://onelastai.co',
-      'https://www.onelastai.co',
+      'https://maula.ai',
+      'https://www.maula.ai',
     ],
     credentials: true,
   },
@@ -53,8 +53,8 @@ app.use(helmet());
 // CORS configuration
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(',') || [
-    'https://onelastai.co',
-    'https://www.onelastai.co',
+    'https://maula.ai',
+    'https://www.maula.ai',
   ],
   credentials: true,
   optionsSuccessStatus: 200,
@@ -519,8 +519,8 @@ app.get('/api/status/stream', (req, res) => {
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
     'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS?.split(',') || [
-      'https://onelastai.co',
-      'https://www.onelastai.co',
+      'https://maula.ai',
+      'https://www.maula.ai',
     ],
     'Access-Control-Allow-Credentials': 'true',
   });
@@ -1237,16 +1237,25 @@ app.post('/api/auth/verify-2fa', rateLimiters.auth, async (req, res) => {
 app.get('/api/auth/session', async (req, res) => {
   try {
     const sessionId = req.cookies?.sessionId;
+    console.log('[/api/auth/session] Checking session, cookie present:', !!sessionId);
+    if (sessionId) {
+      console.log('[/api/auth/session] Session ID:', sessionId.substring(0, 10) + '... (length:', sessionId.length + ')');
+    }
+    
     if (!sessionId) {
       return res.json({ success: true, user: null });
     }
 
     const user = await db.User.findBySessionId(sessionId);
+    console.log('[/api/auth/session] User found:', !!user);
+    
     if (!user || (user.sessionExpiry && new Date(user.sessionExpiry) < new Date())) {
+      console.log('[/api/auth/session] Session invalid - user:', !!user, 'expired:', user?.sessionExpiry ? new Date(user.sessionExpiry) < new Date() : 'N/A');
       res.clearCookie('sessionId');
       return res.json({ success: true, user: null });
     }
 
+    console.log('[/api/auth/session] Valid session for user:', user.email);
     res.json({
       success: true,
       user: {
@@ -1536,7 +1545,7 @@ const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
 async function initializeServer() {
   try {
-    console.log('🔧 Initializing One Last AI Server...');
+    console.log('🔧 Initializing Maula AI Server...');
     console.log('📦 Database: PostgreSQL via Prisma');
 
     // Connect to PostgreSQL
@@ -1548,7 +1557,7 @@ async function initializeServer() {
 
     // Start server
     server.listen(PORT, host, () => {
-      console.log(`🚀 One Last AI Backend running on ${host}:${PORT}`);
+      console.log(`🚀 Maula AI Backend running on ${host}:${PORT}`);
       console.log(`📊 Health check: http://${host}:${PORT}/health`);
       console.log(`🔗 API: http://${host}:${PORT}/api`);
 

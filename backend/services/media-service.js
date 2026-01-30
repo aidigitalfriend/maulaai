@@ -42,7 +42,7 @@ const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
 // S3 Configuration for image storage
-const S3_BUCKET = process.env.AWS_S3_BUCKET || 'one-last-ai-bucket';
+const S3_BUCKET = process.env.AWS_S3_BUCKET || 'maula-ai-bucket';
 const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
 
 const s3Client = new S3Client({

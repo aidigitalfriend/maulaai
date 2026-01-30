@@ -121,6 +121,60 @@ const agents: Agent[] = [
     emoji: '🎮',
     hoverBadge: 'Pro Gamer',
   },
+  {
+    id: '13',
+    name: 'Ben Sega',
+    specialty: 'Retro Gaming',
+    description: 'Classic gaming nostalgia expert',
+    color: 'from-blue-500 to-purple-600',
+    emoji: '🕹️',
+    hoverBadge: 'Retro Master',
+  },
+  {
+    id: '14',
+    name: 'Bishop Burger',
+    specialty: 'Fast Food & Recipes',
+    description: 'Master of comfort food',
+    color: 'from-amber-500 to-red-600',
+    emoji: '🍔',
+    hoverBadge: 'Burger King',
+  },
+  {
+    id: '15',
+    name: 'Knight Logic',
+    specialty: 'Logic & Strategy',
+    description: 'Strategic thinking expert',
+    color: 'from-slate-500 to-gray-600',
+    emoji: '♞',
+    hoverBadge: 'Strategist',
+  },
+  {
+    id: '16',
+    name: 'Lazy Pawn',
+    specialty: 'Relaxation & Chill',
+    description: 'Master of taking it easy',
+    color: 'from-green-400 to-teal-500',
+    emoji: '😴',
+    hoverBadge: 'Chill Mode',
+  },
+  {
+    id: '17',
+    name: 'Rook Jokey',
+    specialty: 'Comedy & Jokes',
+    description: 'Never-ending humor and fun',
+    color: 'from-yellow-400 to-amber-500',
+    emoji: '🃏',
+    hoverBadge: 'Joke Master',
+  },
+  {
+    id: '18',
+    name: 'Chess Player',
+    specialty: 'Chess & Mind Games',
+    description: 'Grandmaster level chess AI',
+    color: 'from-gray-600 to-black',
+    emoji: '♟️',
+    hoverBadge: 'Grandmaster',
+  },
 ];
 
 const N = agents.length;
@@ -157,7 +211,7 @@ export default function AgentCardsMarquee() {
             Meet Our AI Agents
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-            12 Unique AI
+            18 Unique AI
             <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent"> Personalities</span>
           </h2>
           <p className="text-lg text-gray-400">
@@ -178,8 +232,7 @@ export default function AgentCardsMarquee() {
           maskImage: 'linear-gradient(90deg, transparent, black 5%, black 95%, transparent)',
           WebkitMaskImage: 'linear-gradient(90deg, transparent, black 5%, black 95%, transparent)',
         }}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+
       >
         {/* 3D Rotating Container */}
         <div 

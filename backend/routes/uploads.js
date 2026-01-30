@@ -84,7 +84,7 @@ router.get('/proxy-download', async (req, res) => {
       'openai.com',
       's3.amazonaws.com',
       's3.ap-southeast-1.amazonaws.com',
-      'one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com',
+      'maula-ai-bucket.s3.ap-southeast-1.amazonaws.com',
       'replicate.delivery',
       'pbxt.replicate.delivery',
       'cdn.midjourney.com',
@@ -111,7 +111,7 @@ router.get('/proxy-download', async (req, res) => {
     
     const proxyReq = protocol.get(decodedUrl, {
       headers: {
-        'User-Agent': 'OneLastAI-ImageProxy/1.0',
+        'User-Agent': 'MaulaAI-ImageProxy/1.0',
         'Accept': 'image/*,*/*',
       },
       timeout: 30000, // 30 second timeout

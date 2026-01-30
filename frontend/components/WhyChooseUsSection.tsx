@@ -345,7 +345,7 @@ export default function WhyChooseUsSection() {
             <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[500px]">
               <Image
                 src="/images/products/why-choose-us.jpeg"
-                alt="Why Choose One Last AI"
+                alt="Why Choose Maula AI"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"

@@ -14,11 +14,19 @@ async function proxyToBackend(request: NextRequest) {
     targetUrl.searchParams.append(key, value);
   });
 
+  // Log cookies for debugging session issues
+  const cookieHeader = request.headers.get('cookie') || '';
+  const hasSessionId = cookieHeader.includes('sessionId=');
+  console.log('[auth/verify] Cookie header present:', !!cookieHeader, 'has sessionId:', hasSessionId);
+  if (hasSessionId) {
+    console.log('[auth/verify] Session found in cookies, proxying to backend');
+  }
+
   try {
     const response = await fetch(targetUrl.toString(), {
       method: 'GET',
       headers: {
-        cookie: request.headers.get('cookie') || '',
+        cookie: cookieHeader,
       },
       cache: 'no-store',
     });

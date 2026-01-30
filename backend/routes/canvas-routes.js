@@ -82,7 +82,7 @@ function getGeminiClient() {
 
 // Professional system prompt for code generation
 const getSystemPrompt = (currentCode, history) => {
-  let prompt = `You are Nova, an expert web developer and UI/UX designer at One Last AI. You create stunning, production-ready web applications.
+  let prompt = `You are Nova, an expert web developer and UI/UX designer at Maula AI. You create stunning, production-ready web applications.
 
 ## Your Design Philosophy
 - Modern, clean aesthetics with attention to detail

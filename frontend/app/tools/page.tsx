@@ -549,12 +549,19 @@ export default function ToolsPage() {
   const currentTools = activeCategory === 'network' ? networkTools : developerTools;
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
       {/* Background Effects */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="hero-gradient-orb absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 blur-[120px]" />
-        <div className="hero-gradient-orb absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-cyan-600/15 to-blue-600/15 blur-[100px]" />
-        <div className="hero-gradient-orb absolute top-1/2 left-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-purple-600/10 to-pink-600/10 blur-[80px]" />
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-pink-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-15" style={{
+          backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)',
+          backgroundSize: '80px 80px'
+        }} />
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="particle absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+        ))}
       </div>
 
       {/* Floating Tool Icons */}

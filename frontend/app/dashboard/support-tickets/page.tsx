@@ -306,9 +306,9 @@ export default function SupportTicketsPage() {
 
   if (!authState.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 flex items-center justify-center p-4">
-        <div className="bg-[#13131a]800 rounded-2xl p-8 border border-neural-700 text-center max-w-md">
-          <TicketIcon className="w-16 h-16 mx-auto mb-4 text-brand-400" />
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
+        <div className="bg-[#13131a] rounded-2xl p-8 border border-white/10 text-center max-w-md">
+          <TicketIcon className="w-16 h-16 mx-auto mb-4 text-cyan-400" />
           <h1 className="text-2xl font-bold text-white mb-4">Support Tickets</h1>
           <p className="text-gray-400 mb-6">Please log in to view your support tickets.</p>
           <Link href="/auth/login" className="btn-primary">
@@ -320,8 +320,19 @@ export default function SupportTicketsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-[#0a0a0f] text-white">
+        {/* Animated Background - Agents Page Theme */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/15 blur-[150px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/15 blur-[120px]" />
+          <div className="absolute top-2/3 left-1/2 w-[400px] h-[400px] rounded-full bg-pink-500/10 blur-[100px]" />
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+          {[...Array(15)].map((_, i) => (
+            <div key={i} className="absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+          ))}
+        </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>

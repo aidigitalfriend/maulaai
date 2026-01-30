@@ -215,9 +215,10 @@ function DashboardContent() {
         // Stats cards entrance
         gsap.from('.stat-card', { opacity: 0, y: 40, stagger: 0.1, duration: 0.5, ease: 'power3.out', delay: 0.2 });
         
-        // Section cards entrance
+        // Section cards entrance - use set + from to ensure visibility
+        gsap.set('.section-card', { opacity: 1, y: 0 }); // Ensure visible by default
         gsap.from('.section-card', {
-          scrollTrigger: { trigger: '.sections-grid', start: 'top 85%' },
+          scrollTrigger: { trigger: '.sections-grid', start: 'top 95%', toggleActions: 'play none none none' },
           opacity: 0, y: 50, stagger: 0.12, duration: 0.6, ease: 'power3.out',
         });
       });
@@ -228,9 +229,9 @@ function DashboardContent() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Loading your dashboard...</p>
           </div>
         </div>
@@ -241,7 +242,7 @@ function DashboardContent() {
   if (!analyticsData) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
           <div className="text-center max-w-lg">
             <h2 className="text-2xl font-semibold text-white mb-3">
               {error || 'Unable to load analytics right now'}
@@ -251,7 +252,7 @@ function DashboardContent() {
             </p>
             <button
               onClick={() => fetchAnalytics()}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors"
+              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl transition-colors"
               disabled={isRefreshing}
             >
               {isRefreshing ? 'Refreshing...' : 'Retry'}
@@ -409,23 +410,25 @@ function DashboardContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] text-white overflow-hidden">
-        {/* Animated Background */}
+      <div className="min-h-screen bg-[#0a0a0f] text-white overflow-hidden">
+        {/* Animated Background - Agents Page Theme */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="dash-gradient-orb absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-r from-purple-600/20 to-violet-600/20 blur-[120px]" />
-          <div className="dash-gradient-orb absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-blue-600/15 to-cyan-600/15 blur-[100px]" />
-          <div className="dash-gradient-orb absolute top-2/3 left-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-pink-600/10 to-rose-600/10 blur-[80px]" />
-          <div className="dash-float-symbol absolute top-[15%] left-[10%] text-4xl opacity-20">📊</div>
-          <div className="dash-float-symbol absolute top-[25%] right-[12%] text-3xl opacity-15">🤖</div>
-          <div className="dash-float-symbol absolute bottom-[30%] left-[8%] text-5xl opacity-10">⚡</div>
-          <div className="dash-float-symbol absolute top-[50%] right-[8%] text-4xl opacity-20">💬</div>
+          <div className="dash-gradient-orb absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/15 blur-[150px]" />
+          <div className="dash-gradient-orb absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/15 blur-[120px]" />
+          <div className="dash-gradient-orb absolute top-2/3 left-1/2 w-[400px] h-[400px] rounded-full bg-pink-500/10 blur-[100px]" />
+          {/* Cyan Grid */}
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+          {/* Floating Particles */}
+          {[...Array(15)].map((_, i) => (
+            <div key={i} className="particle absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+          ))}
         </div>
 
         {/* Hero Section */}
-        <section className="relative py-20 md:py-28 border-b border-white/10 overflow-hidden">
+        <section className="relative py-20 md:py-28 border-b border-cyan-500/10 overflow-hidden">
           <div className="container-custom text-center relative z-10">
-            <div className="hero-dash-icon inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-600/30 to-violet-600/30 border border-purple-500/30 rounded-2xl mb-6">
-              <Activity className="w-10 h-10 text-purple-400" />
+            <div className="hero-dash-icon inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-500/30 rounded-2xl mb-6">
+              <Activity className="w-10 h-10 text-cyan-400" />
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
               Your Dashboard
@@ -501,7 +504,10 @@ function DashboardContent() {
             </div>
 
             {/* Agent Status Summary */}
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10 min-w-[280px]">
+            <div className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm min-w-[280px] overflow-hidden">
+              {/* Corner accents */}
+              <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-sm text-gray-400">Agent Status</p>
@@ -562,8 +568,11 @@ function DashboardContent() {
               return (
                 <div
                   key={index}
-                  className="stat-card bg-white/5 rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all"
+                  className="stat-card relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm hover:border-cyan-500/30 transition-all overflow-hidden"
                 >
+                  {/* Corner accents */}
+                  <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-cyan-500/20 rounded-tr-lg" />
+                  <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-cyan-500/20 rounded-bl-lg" />
                   <div className="flex items-center justify-between mb-4">
                     <div className={`p-3 rounded-lg bg-${stat.color}-500/20`}>
                       <Icon className={`w-6 h-6 text-${stat.color}-400`} />
@@ -595,12 +604,14 @@ function DashboardContent() {
           {/* Usage Analytics */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Usage Meters */}
-            <div className="bg-white/5 rounded-xl p-8 border border-white/10">
+            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white">
                   Resource Usage
                 </h2>
-                <Activity className="w-6 h-6 text-purple-400" />
+                <Activity className="w-6 h-6 text-cyan-400" />
               </div>
               <div className="space-y-6">
                 {Object.entries(analyticsData.usage).map(([key, value]) => (
@@ -635,12 +646,14 @@ function DashboardContent() {
             </div>
 
             {/* 7-Day Activity Chart */}
-            <div className="bg-white/5 rounded-xl p-8 border border-white/10">
+            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white">
                   7-Day Activity
                 </h2>
-                <TrendingUp className="w-6 h-6 text-green-400" />
+                <TrendingUp className="w-6 h-6 text-cyan-400" />
               </div>
               <div className="space-y-4">
                 {/* Chart */}
@@ -662,7 +675,7 @@ function DashboardContent() {
                         >
                           <div className="relative w-full">
                             <div
-                              className="w-full bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg transition-all duration-300 group-hover:from-purple-500 group-hover:to-purple-300 cursor-pointer"
+                              className="w-full bg-gradient-to-t from-cyan-600 to-cyan-400 rounded-t-lg transition-all duration-300 group-hover:from-cyan-500 group-hover:to-cyan-300 cursor-pointer"
                               style={{
                                 height: `${height}%`,
                                 minHeight: '20px',
@@ -716,7 +729,9 @@ function DashboardContent() {
           {/* Agent Performance & Cost Analysis */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* Top Performing Agents */}
-            <div className="bg-white/5 rounded-xl p-8 border border-white/10">
+            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <h2 className="text-2xl font-bold text-white mb-6">
                 Top Agents
               </h2>
@@ -728,13 +743,13 @@ function DashboardContent() {
                         <span className="text-sm font-medium text-gray-300">
                           {agent.name}
                         </span>
-                        <span className="text-sm font-semibold text-purple-400">
+                        <span className="text-sm font-semibold text-cyan-400">
                           {agent.usage}%
                         </span>
                       </div>
                       <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
                         <div
-                          className="h-2.5 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 transition-all duration-500"
+                          className="h-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all duration-500"
                           style={{ width: `${agent.usage}%` }}
                         ></div>
                       </div>
@@ -743,7 +758,7 @@ function DashboardContent() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <p className="text-sm">No agent subscriptions yet.</p>
-                    <Link href="/agents" className="text-purple-400 hover:underline text-sm mt-2 inline-block">
+                    <Link href="/agents" className="text-cyan-400 hover:underline text-sm mt-2 inline-block">
                       Browse available agents →
                     </Link>
                   </div>
@@ -752,17 +767,19 @@ function DashboardContent() {
             </div>
 
             {/* Cost Analysis */}
-            <div className="bg-white/5 rounded-xl p-8 border border-white/10">
+            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white">
                   Cost Analysis
                 </h2>
-                <DollarSign className="w-6 h-6 text-green-400" />
+                <DollarSign className="w-6 h-6 text-cyan-400" />
               </div>
               <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center p-4 bg-blue-900/200/10 border border-blue-500/30 rounded-lg">
+                <div className="flex justify-between items-center p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
                   <span className="text-sm text-gray-300">Current Month</span>
-                  <span className="text-2xl font-bold text-blue-400">
+                  <span className="text-2xl font-bold text-cyan-400">
                     ${analyticsData.costAnalysis.currentMonth}
                   </span>
                 </div>
@@ -808,14 +825,16 @@ function DashboardContent() {
           </div>
 
           {/* Agent Performance Table */}
-          <div className="bg-white/5 rounded-xl p-8 border border-white/10 mb-12">
+          <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden mb-12">
+            <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
             <h2 className="text-2xl font-bold text-white mb-6">
               Agent Performance Details
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/10">
+                  <tr className="border-b border-gray-700/50">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">
                       Agent Name
                     </th>
@@ -885,7 +904,9 @@ function DashboardContent() {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white/5 rounded-xl p-8 border border-white/10 mb-12">
+          <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden mb-12">
+            <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">
                 Recent Activity
@@ -901,18 +922,17 @@ function DashboardContent() {
                   ).map((activity, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-white/[0.02] rounded-lg hover:bg-white/5 transition-colors border border-white/5"
-                    >
+                      className="flex items-center justify-between p-4 bg-gray-800/40 rounded-lg hover:bg-gray-800/60 transition-colors border border-gray-700/50">
                       <div className="flex items-center gap-4">
                         <div
                           className={`w-2 h-2 rounded-full ${
                             activity.status === 'success' || activity.status === 'completed'
-                              ? 'bg-green-900/200'
+                              ? 'bg-green-500'
                               : activity.status === 'active'
-                              ? 'bg-blue-900/200 animate-pulse'
+                              ? 'bg-cyan-500 animate-pulse'
                               : activity.status === 'warning'
-                              ? 'bg-yellow-900/200'
-                              : 'bg-green-900/200'
+                              ? 'bg-yellow-500'
+                              : 'bg-green-500'
                           }`}
                         ></div>
                         <div>
@@ -963,15 +983,19 @@ function DashboardContent() {
               <Link
                 key={index}
                 href={section.href}
-                className="section-card group relative bg-white/5 rounded-2xl p-8 border border-white/10 hover:border-purple-500/30 transition-all duration-300"
+                className="section-card group relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm hover:border-cyan-500/30 transition-all duration-300 overflow-hidden"
+                style={{ opacity: 1 }}
               >
+                {/* Corner accents */}
+                <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-cyan-500/20 rounded-tr-lg" />
+                <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-cyan-500/20 rounded-bl-lg" />
                 {section.badge && (
-                  <div className="absolute top-4 right-4 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <div className="absolute top-4 right-16 bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                     {section.badge}
                   </div>
                 )}
                 <div className="text-4xl mb-4">{section.icon}</div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors">
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">
                   {section.title}
                 </h3>
                 <p className="text-gray-400 mb-4 leading-relaxed">
@@ -983,7 +1007,7 @@ function DashboardContent() {
                       key={statIndex}
                       className="text-sm text-gray-500 flex items-center"
                     >
-                      <span className="w-1.5 h-1.5 bg-purple-900/200 rounded-full mr-3"></span>
+                      <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full mr-3"></span>
                       {stat}
                     </li>
                   ))}
@@ -1052,7 +1076,7 @@ export default function Dashboard() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
           <div className="text-white">Loading...</div>
         </div>
       }

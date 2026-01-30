@@ -1,7 +1,7 @@
 // Real-time Chat Service with streaming support
 const API_BASE =
   process.env.NODE_ENV === 'production'
-    ? 'https://onelastai.co/api'
+    ? 'https://maula.ai/api'
     : '/api';  // Use relative path for local dev to avoid port issues
 
 export interface ChatMessage {

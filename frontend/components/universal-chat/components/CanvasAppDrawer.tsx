@@ -12,20 +12,19 @@ const CanvasAppDrawer: React.FC<CanvasAppDrawerProps> = ({ isOpen, onClose }) =>
   const [error, setError] = useState<string | null>(null);
 
   // Set canvas-app URL when drawer opens
-  // Canvas app runs on port 3002 by default
+  // Load the built canvas-studio app from the public folder
   useEffect(() => {
     if (!isOpen) return;
-    
-    // Default to port 3002 - the canvas-app dev server
-    const CANVAS_APP_PORT = 3002;
     
     setIsLoading(true);
     setError(null);
     
-    // Just set the URL directly - the iframe will show an error if it's not running
-    // This avoids CSP issues with fetch detection
+    // Use the canvas-studio static files served from public folder
+    // This is the built Vite app from universal-chat/canvas-app
     setTimeout(() => {
-      setCanvasAppUrl(`http://localhost:${CANVAS_APP_PORT}`);
+      // Get the base URL - works for both localhost dev and production domains
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      setCanvasAppUrl(`${baseUrl}/canvas-studio/index.html`);
       setIsLoading(false);
     }, 500); // Small delay for UX
     

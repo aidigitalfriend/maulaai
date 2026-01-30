@@ -7,7 +7,7 @@ import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { LockedCard } from '@/components/LockedCard';
 
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://onelastai.co';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://maula.ai';
 
 interface Experiment {
   id: string;
@@ -236,12 +236,12 @@ export default function AILabPage() {
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
       {/* Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="parallax-orb-1 absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-500/15 rounded-full blur-[150px]" />
-        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-cyan-500/15 rounded-full blur-[130px]" />
-        <div className="parallax-orb-3 absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-pink-500/10 rounded-full blur-[120px]" />
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(rgba(168, 85, 247, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(168, 85, 247, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
-        {[...Array(12)].map((_, i) => (
-          <div key={i} className="float-particle absolute w-2 h-2 bg-purple-400/30 rounded-full" style={{ left: `${8 + i * 7}%`, top: `${12 + (i % 5) * 16}%` }} />
+        <div className="parallax-orb-1 absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[150px]" />
+        <div className="parallax-orb-2 absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[120px]" />
+        <div className="parallax-orb-3 absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-pink-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="float-particle absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
         ))}
         <div className="orbit-beaker absolute top-40 left-1/3 w-4 h-4 bg-cyan-400/60 rounded-full" />
       </div>

@@ -45,9 +45,14 @@ export async function POST(request: NextRequest) {
           console.log('[auth-backend/login] Found', allMatches.length, 'sessionId cookies');
           console.log('[auth-backend/login] Using last sessionId:', sessionId.substring(0, 10) + '... (length:', sessionId.length + ')');
           
-          // Determine if we're in production (HTTPS)
-          const isProduction = request.headers.get('x-forwarded-proto') === 'https' || 
-                              request.url.startsWith('https://');
+          // In production with Cloudflare, always use Secure cookies
+          // Cloudflare terminates SSL and forwards to Nginx, which proxies to Next.js
+          const isProduction = process.env.NODE_ENV === 'production' ||
+                              request.headers.get('x-forwarded-proto') === 'https' || 
+                              request.url.startsWith('https://') ||
+                              request.headers.get('host')?.includes('maula.ai');
+          
+          console.log('[auth-backend/login] Setting cookie with secure:', isProduction, 'host:', request.headers.get('host'));
           
           // Set both cookie names for compatibility
           nextResponse.cookies.set('sessionId', sessionId, {

@@ -1,5 +1,5 @@
 
-import { GoogleGenAI } from "@google/genai";
+// Use the backend API to support all providers (Anthropic, OpenAI, Gemini, xAI, Groq, Mistral)
 
 const SYSTEM_INSTRUCTION = `You are a world-class senior frontend engineer and UI/UX designer. 
 Your task is to generate or modify a complete, high-quality, single-file HTML application.
@@ -13,6 +13,23 @@ Rules for generated code:
 6. Return ONLY the code. No explanations, no markdown blocks.
 7. Always return the FULL updated file.`;
 
+// Map frontend model IDs to backend provider/model format
+const MODEL_MAP: Record<string, { provider: string; model: string }> = {
+  // Anthropic
+  'claude-3-5-sonnet': { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
+  'claude-3-opus': { provider: 'anthropic', model: 'claude-opus-4-20250514' },
+  // OpenAI
+  'gpt-4o': { provider: 'openai', model: 'gpt-4o' },
+  'gpt-4o-mini': { provider: 'openai', model: 'gpt-4o-mini' },
+  // Gemini
+  'gemini-1.5-flash': { provider: 'google', model: 'gemini-1.5-flash' },
+  'gemini-1.5-pro': { provider: 'google', model: 'gemini-1.5-pro' },
+  // xAI
+  'grok-3': { provider: 'xai', model: 'grok-3' },
+  // Groq
+  'llama-3.3-70b': { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+};
+
 export async function generateAppCode(
   prompt: string, 
   modelId: string, 
@@ -20,43 +37,74 @@ export async function generateAppCode(
   currentCode?: string, 
   history: any[] = []
 ): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+  // Get the backend API base URL
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   
-  const contents: any[] = [];
+  // Map the model ID to backend format
+  const modelConfig = MODEL_MAP[modelId] || { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
   
+  // Build messages array for the backend
+  const messages: { role: string; content: string }[] = [];
+  
+  // Add system context
+  messages.push({
+    role: 'system',
+    content: SYSTEM_INSTRUCTION
+  });
+  
+  // Add current code context if exists
   if (currentCode) {
-    contents.push({ role: 'user', parts: [{ text: `Current code:\n${currentCode}` }] });
+    messages.push({
+      role: 'user',
+      content: `Current code:\n${currentCode}`
+    });
+    messages.push({
+      role: 'assistant',
+      content: 'I have the current code. What modifications would you like me to make?'
+    });
   }
 
+  // Add conversation history
   history.forEach(msg => {
-    contents.push({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.text }]
+    messages.push({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.text
     });
   });
 
-  contents.push({ role: 'user', parts: [{ text: prompt }] });
-
-  const config: any = {
-    systemInstruction: SYSTEM_INSTRUCTION,
-    temperature: isThinking ? 1 : 0.7,
-  };
-
-  if (isThinking) {
-    config.thinkingConfig = { thinkingBudget: 32768 };
-    // No maxOutputTokens allowed when thinkingBudget is set per instructions
-  }
+  // Add the current prompt
+  messages.push({
+    role: 'user',
+    content: prompt
+  });
 
   try {
-    const response = await ai.models.generateContent({
-      model: modelId,
-      contents,
-      config,
+    const response = await fetch(`${baseUrl}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        messages,
+        model: modelConfig.model,
+        provider: modelConfig.provider,
+        temperature: isThinking ? 1 : 0.7,
+        max_tokens: 16000,
+      }),
     });
-    return cleanCode(response.text || "");
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || `API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.content || data.message || data.response || '';
+    return cleanCode(content);
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    throw new Error("Failed to process request. Check if the selected model is available.");
+    console.error("API Error:", error);
+    throw new Error("Failed to process request. Please try again or select a different model.");
   }
 }
 

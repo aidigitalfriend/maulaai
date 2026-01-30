@@ -408,7 +408,7 @@ export default function SecuritySettingsPage() {
   const handleDownloadBackupCodes = () => {
     if (backupCodes.length === 0) return;
 
-    const content = `One Last AI - Two-Factor Authentication Backup Codes
+    const content = `Maula AI - Two-Factor Authentication Backup Codes
 ================================================
 Generated: ${new Date().toLocaleString()}
 Account: ${state.user?.email || 'Unknown'}
@@ -429,7 +429,7 @@ use one of these codes to sign in.
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `onelastai-backup-codes-${
+    a.download = `maula-ai-backup-codes-${
       new Date().toISOString().split('T')[0]
     }.txt`;
     document.body.appendChild(a);
@@ -619,7 +619,18 @@ use one of these codes to sign in.
   const lastPasswordChange = securityOverview?.lastPasswordChange;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+    <div className="min-h-screen bg-[#0a0a0f]">
+        {/* Animated Background - Agents Page Theme */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/15 blur-[150px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/15 blur-[120px]" />
+          <div className="absolute top-2/3 left-1/2 w-[400px] h-[400px] rounded-full bg-pink-500/10 blur-[100px]" />
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+          {[...Array(15)].map((_, i) => (
+            <div key={i} className="absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+          ))}
+        </div>
+
       {/* Hero Section */}
       <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
         {/* Decorative Pattern */}
@@ -643,7 +654,7 @@ use one of these codes to sign in.
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white/5 text-purple-500 px-8 py-3 rounded-xl font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
+            className="inline-flex items-center bg-white/5 text-cyan-400 px-8 py-3 rounded-xl font-semibold hover:bg-[#0a0a0f]/50 transition-all shadow-2xl shadow-cyan-500/10"
           >
             Back to Dashboard
           </Link>
@@ -651,7 +662,7 @@ use one of these codes to sign in.
       </section>
 
       {/* Security Content */}
-      <section className="py-16 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <section className="py-16 px-4 bg-[#0a0a0f]/50">
         <div className="container-custom max-w-6xl">
           {fetchState.error && (
             <div className="mb-6 rounded-xl border border-red-500/30 bg-red-900/20 px-4 py-3 text-red-300">

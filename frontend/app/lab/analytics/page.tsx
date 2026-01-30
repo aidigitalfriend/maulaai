@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { gsap, SplitText, ScrambleTextPlugin, ScrollTrigger, Flip, Observer, CustomWiggle, MotionPathPlugin, Draggable, InertiaPlugin, DrawSVGPlugin } from '@/lib/gsap';
 
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://onelastai.co';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://maula.ai';
 
 interface ExperimentStat {
   id: string;

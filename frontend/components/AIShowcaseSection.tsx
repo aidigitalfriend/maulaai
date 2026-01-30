@@ -324,7 +324,7 @@ export default function AIShowcaseSection() {
             ref={subtitleRef}
             className="text-lg text-gray-400 max-w-3xl mx-auto"
           >
-            From intelligent chat companions to code generation, One Last AI provides everything you need to supercharge your productivity.
+            From intelligent chat companions to code generation, Maula AI provides everything you need to supercharge your productivity.
           </p>
         </div>
 
@@ -344,7 +344,7 @@ export default function AIShowcaseSection() {
                   <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
                   <div className="w-3 h-3 rounded-full bg-green-400"></div>
                 </div>
-                <span className="text-xs text-gray-400 ml-2">onelastai.co</span>
+                <span className="text-xs text-gray-400 ml-2">maula.ai</span>
               </div>
               
               {/* Image Container with Animation */}

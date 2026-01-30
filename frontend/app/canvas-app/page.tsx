@@ -17,7 +17,7 @@ interface ChatMessage {
   isSystemMessage?: boolean;
 }
 
-type ModelProvider = 'One Last AI' | 'Image Generator' | 'Maula AI' | 'Code Builder' | 'Fast Coding' | 'Planner' | 'Designer';
+type ModelProvider = 'Maula AI' | 'Image Generator' | 'Maula AI' | 'Code Builder' | 'Fast Coding' | 'Planner' | 'Designer';
 
 interface ModelOption {
   id: string;
@@ -70,11 +70,11 @@ type ActivePanel = 'workspace' | 'assistant' | 'history' | 'tools' | 'files' | n
 type ConversationPhase = 'initial' | 'gathering' | 'confirming' | 'building' | 'editing';
 
 const MODELS: ModelOption[] = [
-  // One Last AI - Anthropic Claude (Best for app building)
+  // Maula AI - Anthropic Claude (Best for app building)
   {
     id: 'claude-sonnet-4-20250514',
     name: 'Nova',
-    provider: 'One Last AI',
+    provider: 'Maula AI',
     description: 'Best for building apps - highly recommended.',
     icon: '🌟',
     backendProvider: 'anthropic',
@@ -82,7 +82,7 @@ const MODELS: ModelOption[] = [
   {
     id: 'claude-opus-4-20250514',
     name: 'Nova Pro',
-    provider: 'One Last AI',
+    provider: 'Maula AI',
     description: 'Most powerful AI for complex apps.',
     icon: '💫',
     backendProvider: 'anthropic',
@@ -1621,7 +1621,7 @@ function CanvasAppInner() {
             <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
               <Image 
                 src="/images/logos/company-logo.png" 
-                alt="OneLast.AI" 
+                alt="Maula.AI" 
                 width={36}
                 height={36}
                 className={`w-9 h-9 object-contain ${sidebarAnimating ? 'sidebar-item-pulse' : ''}`}
@@ -2330,7 +2330,7 @@ function CanvasAppInner() {
                       <p className={`text-[10px] ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedModel.description}</p>
                       <div className="mt-2 flex items-center gap-2">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          selectedModel.provider === 'One Last AI' ? darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700' :
+                          selectedModel.provider === 'Maula AI' ? darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700' :
                           selectedModel.provider === 'Image Generator' ? darkMode ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-700' :
                           selectedModel.provider === 'Designer' ? darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700' :
                           selectedModel.provider === 'Planner' ? darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700' :
@@ -2348,7 +2348,7 @@ function CanvasAppInner() {
                     
                     {/* Provider Tabs */}
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {(['One Last AI', 'Maula AI', 'Image Generator', 'Designer', 'Planner', 'Code Builder', 'Fast Coding'] as ModelProvider[]).map((provider) => (
+                      {(['Maula AI', 'Maula AI', 'Image Generator', 'Designer', 'Planner', 'Code Builder', 'Fast Coding'] as ModelProvider[]).map((provider) => (
                         <button
                           key={provider}
                           onClick={() => {
@@ -2357,7 +2357,7 @@ function CanvasAppInner() {
                           }}
                           className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${
                             selectedModel.provider === provider
-                              ? provider === 'One Last AI' ? darkMode ? 'bg-purple-900/50 text-purple-300 ring-1 ring-purple-700' : 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
+                              ? provider === 'Maula AI' ? darkMode ? 'bg-purple-900/50 text-purple-300 ring-1 ring-purple-700' : 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
                                 provider === 'Image Generator' ? darkMode ? 'bg-emerald-900/50 text-emerald-300 ring-1 ring-emerald-700' : 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' :
                                 provider === 'Designer' ? darkMode ? 'bg-green-900/50 text-green-300 ring-1 ring-green-700' : 'bg-green-100 text-green-700 ring-1 ring-green-300' :
                                 provider === 'Planner' ? darkMode ? 'bg-blue-900/50 text-blue-300 ring-1 ring-blue-700' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' :

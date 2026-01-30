@@ -65,7 +65,7 @@ export default function DemoPage() {
             Schedule Your Personal Demo
           </h1>
           <p className="text-xl text-neural-600 leading-relaxed mb-8">
-            Experience One Last AI firsthand. Our product experts will show you exactly how our AI agents can transform your business.
+            Experience Maula AI firsthand. Our product experts will show you exactly how our AI agents can transform your business.
           </p>
         </div>
 
@@ -78,7 +78,7 @@ export default function DemoPage() {
                 {[
                   { icon: "🤖", title: "AI Agent Capabilities", desc: "See how our 20+ AI agents can solve your specific challenges" },
                   { icon: "📊", title: "Real-time Analytics", desc: "Explore powerful dashboards and performance metrics" },
-                  { icon: "🔧", title: "Easy Integration", desc: "Learn how to integrate One Last AI into your workflow" },
+                  { icon: "🔧", title: "Easy Integration", desc: "Learn how to integrate Maula AI into your workflow" },
                   { icon: "💰", title: "ROI & Pricing", desc: "Understand pricing models and expected returns" }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-start gap-4">
@@ -311,11 +311,11 @@ export default function DemoPage() {
               },
               {
                 q: "Can multiple team members join?",
-                a: "Absolutely! We encourage team members from different departments to join and see how One Last AI can help them."
+                a: "Absolutely! We encourage team members from different departments to join and see how Maula AI can help them."
               },
               {
                 q: "Will I get a trial account after the demo?",
-                a: "Yes! Qualified leads receive a 14-day free trial to experience One Last AI firsthand."
+                a: "Yes! Qualified leads receive a 14-day free trial to experience Maula AI firsthand."
               }
             ].map((item, idx) => (
               <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-neural-100">

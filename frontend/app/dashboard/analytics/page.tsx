@@ -220,9 +220,9 @@ export default function DashboardAnalyticsPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Loading analytics...</p>
           </div>
         </div>
@@ -233,7 +233,7 @@ export default function DashboardAnalyticsPage() {
   if (!analyticsData) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center px-4">
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
           <div className="max-w-lg text-center">
             <h2 className="text-2xl font-semibold text-white mb-3">
               {error || 'We could not load your analytics.'}
@@ -243,7 +243,7 @@ export default function DashboardAnalyticsPage() {
             </p>
             <button
               onClick={() => fetchAnalytics()}
-              className="btn-primary"
+              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl transition-colors"
               disabled={isRefreshing}
             >
               {isRefreshing ? 'Refreshing…' : 'Retry fetch'}
@@ -258,30 +258,47 @@ export default function DashboardAnalyticsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
+      <div className="min-h-screen bg-black text-white overflow-hidden">
+        {/* Background gradient orbs - Legal page theme */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="gradient-orb-1 absolute top-20 left-1/4 w-[500px] h-[500px] bg-cyan-500/8 rounded-full blur-3xl" />
+          <div className="gradient-orb-2 absolute bottom-40 right-1/4 w-[400px] h-[400px] bg-purple-500/8 rounded-full blur-3xl" />
+          <div className="gradient-orb-3 absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl" />
+        </div>
+
         {/* Hero Section */}
-        <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
-          {/* Decorative Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <defs>
-                <pattern id="analytics-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="1" fill="currentColor"/>
-                </pattern>
-              </defs>
-              <rect width="100" height="100" fill="url(#analytics-grid)"/>
-            </svg>
+        <section className="relative min-h-[50vh] flex items-center justify-center py-20 md:py-28 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/50 via-black to-black" />
+          
+          {/* Floating particles */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(12)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-2 h-2 rounded-full"
+                style={{
+                  left: `${10 + (i * 7)}%`,
+                  top: `${20 + (i % 4) * 18}%`,
+                  background: i % 3 === 0 ? '#22d3ee' : i % 3 === 1 ? '#a855f7' : '#10b981',
+                  opacity: 0.3
+                }}
+              />
+            ))}
           </div>
+
           <div className="container-custom text-center relative z-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
-              <Activity className="w-10 h-10" />
+            <div className="inline-flex items-center justify-center w-28 h-28 rounded-3xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 shadow-2xl shadow-cyan-500/10 mb-8">
+              <Activity className="w-14 h-14 text-cyan-400" />
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Analytics & Insights</h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-4">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-white via-cyan-200 to-purple-200 bg-clip-text text-transparent">Analytics & Insights</h1>
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-6 leading-relaxed">
               Real-time visibility into usage, performance, and costs
             </p>
+            <div className="w-40 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 mx-auto mb-10 rounded-full" />
+            <div className="w-40 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 mx-auto mb-10 rounded-full" />
+
             {lastUpdated && (
-              <p className="text-sm text-white/70 mb-6">
+              <p className="text-sm text-gray-500 mb-6">
                 Last updated{' '}
                 {lastUpdated.toLocaleTimeString([], {
                   hour: 'numeric',
@@ -289,26 +306,26 @@ export default function DashboardAnalyticsPage() {
                 })}
               </p>
             )}
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-4">
               <button
                 onClick={handleExportPDF}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                className="hero-badge px-5 py-2.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-sm font-medium backdrop-blur-sm hover:bg-cyan-500/20 transition-colors"
                 disabled={!analyticsData}
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4 inline mr-2" />
                 Export PDF
               </button>
               <button
                 onClick={() => fetchAnalytics()}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                className="hero-badge px-5 py-2.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium backdrop-blur-sm hover:bg-purple-500/20 transition-colors"
                 disabled={isRefreshing}
               >
-                <RefreshCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCcw className={`w-4 h-4 inline mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? 'Refreshing…' : 'Refresh'}
               </button>
               <Link
                 href="/dashboard"
-                className="inline-flex items-center bg-white/5 text-purple-500 px-6 py-2 rounded-lg font-semibold hover:bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] transition-all shadow-2xl shadow-purple-500/10"
+                className="hero-badge px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-medium backdrop-blur-sm hover:bg-emerald-500/20 transition-colors"
               >
                 Back to Dashboard
               </Link>
@@ -317,16 +334,15 @@ export default function DashboardAnalyticsPage() {
         </section>
 
         {error && (
-          <section className="py-4 px-4 bg-yellow-900/20 border-b border-yellow-200">
-            <div className="container-custom">
-              <p className="font-medium text-yellow-800">Live data warning</p>
-              <p className="text-sm mt-1 text-yellow-400">{error}</p>
+          <section className="py-4 px-4 bg-amber-500/10 border-b border-amber-500/30">
+            <div className="container-custom text-center">
+              <p className="font-medium text-amber-400">⚠️ Live data warning: {error}</p>
             </div>
           </section>
         )}
 
-        <section className="py-12 px-4 bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12]">
-          <div className="container-custom space-y-10">
+        <section className="relative py-16 px-6">
+          <div className="max-w-6xl mx-auto space-y-10">
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
               {metricCards.map((metric, index) => (
                 <motion.div
@@ -334,33 +350,40 @@ export default function DashboardAnalyticsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="p-6 bg-white/5 rounded-2xl border border-white/10 shadow-sm"
+                  className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-gray-700 transition-colors overflow-hidden group"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-gray-500">{metric.label}</p>
-                    <metric.icon className="w-5 h-5 text-purple-400" />
+                  {/* Glow effect on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-purple-500 opacity-0 group-hover:opacity-5 blur-xl transition-opacity duration-500" />
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-gray-400">{metric.label}</p>
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                        <metric.icon className="w-5 h-5 text-purple-400" />
+                      </div>
+                    </div>
+                    <p className="text-3xl font-bold text-white">
+                      {metric.value}
+                    </p>
+                    <p className="text-sm text-emerald-400 mt-2 flex items-center gap-1">
+                      <TrendingUp className="w-4 h-4" />
+                      {metric.delta}
+                    </p>
                   </div>
-                  <p className="text-3xl font-bold text-white">
-                    {metric.value}
-                  </p>
-                  <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
-                    <TrendingUp className="w-4 h-4" />
-                    {metric.delta}
-                  </p>
                 </motion.div>
               ))}
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 bg-white/5 rounded-3xl border border-white/10 p-6">
+              <div className="lg:col-span-2 p-8 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-gray-700 transition-colors">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Usage overview</p>
+                    <p className="text-sm text-gray-400">Usage overview</p>
                     <h3 className="text-xl font-semibold text-white">
                       Last 7 days traffic
                     </h3>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-sm text-green-600">
+                  <span className="inline-flex items-center gap-1 text-sm text-emerald-400">
                     <TrendingUp className="w-4 h-4" />
                     {analyticsData.weeklyTrend.conversationsChange} vs last week
                   </span>
@@ -375,9 +398,9 @@ export default function DashboardAnalyticsPage() {
                     );
                     return (
                       <div key={day.date} className="flex-1">
-                        <div className="w-full h-40 bg-[#13131a]100/70 rounded-2xl relative overflow-hidden">
+                        <div className="w-full h-40 bg-gray-800/50 rounded-2xl relative overflow-hidden border border-gray-700/50">
                           <div
-                            className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-600 via-brand-500 to-brand-400"
+                            className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-cyan-500 via-purple-500 to-purple-400"
                             style={{ height: `${height}%` }}
                           ></div>
                         </div>
@@ -392,26 +415,26 @@ export default function DashboardAnalyticsPage() {
                   })}
                 </div>
                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-500">Conversations</p>
+                  <div className="p-3 rounded-xl bg-gray-800/30 border border-gray-700/50">
+                    <p className="text-gray-400">Conversations</p>
                     <p className="text-lg font-semibold text-white">
                       {(analyticsData?.usage?.conversations?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-gray-500">Messages</p>
+                  <div className="p-3 rounded-xl bg-gray-800/30 border border-gray-700/50">
+                    <p className="text-gray-400">Messages</p>
                     <p className="text-lg font-semibold text-white">
                       {(analyticsData?.usage?.messages?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-gray-500">API Calls</p>
+                  <div className="p-3 rounded-xl bg-gray-800/30 border border-gray-700/50">
+                    <p className="text-gray-400">API Calls</p>
                     <p className="text-lg font-semibold text-white">
                       {(analyticsData?.usage?.apiCalls?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-gray-500">Total messages (30d)</p>
+                  <div className="p-3 rounded-xl bg-gray-800/30 border border-gray-700/50">
+                    <p className="text-gray-400">Total messages (30d)</p>
                     <p className="text-lg font-semibold text-white">
                       {(totalMessages ?? 0).toLocaleString()}
                     </p>
@@ -419,15 +442,17 @@ export default function DashboardAnalyticsPage() {
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-gray-700 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm text-gray-500">Cost analysis</p>
+                    <p className="text-sm text-gray-400">Cost analysis</p>
                     <h3 className="text-xl font-semibold text-white">
                       Spend overview
                     </h3>
                   </div>
-                  <DollarSign className="w-5 h-5 text-purple-400" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-emerald-400" />
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <div>
@@ -451,7 +476,7 @@ export default function DashboardAnalyticsPage() {
                   {analyticsData.costAnalysis.breakdown.map((item) => (
                     <li
                       key={item.category}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between text-sm p-3 rounded-xl bg-gray-800/30 border border-gray-700/50"
                     >
                       <div>
                         <p className="font-medium text-white">
@@ -461,7 +486,7 @@ export default function DashboardAnalyticsPage() {
                           {item.percentage}% of spend
                         </p>
                       </div>
-                      <span className="font-semibold">
+                      <span className="font-semibold text-emerald-400">
                         {formatCurrency(item.cost)}
                       </span>
                     </li>
@@ -475,22 +500,22 @@ export default function DashboardAnalyticsPage() {
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
-              <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-gray-700 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm text-gray-500">Team performance</p>
+                    <p className="text-sm text-gray-400">Team performance</p>
                     <h3 className="text-xl font-semibold text-white">
                       Agent response quality
                     </h3>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-sm text-green-600">
+                  <span className="inline-flex items-center gap-1 text-sm text-emerald-400">
                     {successRate}% avg success
                   </span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead>
-                      <tr className="text-gray-500">
+                      <tr className="text-gray-400">
                         <th className="py-3 text-left font-medium">Agent</th>
                         <th className="py-3 text-left font-medium">
                           Conversations
@@ -505,7 +530,7 @@ export default function DashboardAnalyticsPage() {
                       {analyticsData.agentPerformance.map((agent) => (
                         <tr
                           key={agent.name}
-                          className="border-t border-white/10"
+                          className="border-t border-gray-800"
                         >
                           <td className="py-3">
                             <p className="font-medium text-white">
@@ -523,9 +548,9 @@ export default function DashboardAnalyticsPage() {
                           </td>
                           <td className="py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-24 h-2 bg-[#13131a]200 rounded-full overflow-hidden">
+                              <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
                                 <div
-                                  className="h-2 bg-purple-900/200"
+                                  className="h-2 bg-gradient-to-r from-cyan-500 to-purple-500"
                                   style={{
                                     width: `${Math.min(
                                       100,
@@ -546,15 +571,17 @@ export default function DashboardAnalyticsPage() {
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-3xl border border-white/10 p-6">
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-gray-900/90 to-gray-950 border border-gray-800 hover:border-gray-700 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm text-gray-500">Latest activity</p>
+                    <p className="text-sm text-gray-400">Latest activity</p>
                     <h3 className="text-xl font-semibold text-white">
                       Audit trail
                     </h3>
                   </div>
-                  <TrendingDown className="w-5 h-5 text-purple-400" />
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5 text-purple-400" />
+                  </div>
                 </div>
                 <ul className="space-y-4">
                   {analyticsData.recentActivity.length > 0 ? (
@@ -564,11 +591,11 @@ export default function DashboardAnalyticsPage() {
                       : '';
                     const badgeClass =
                       statusColorMap[statusKey] ||
-                      'bg-[#13131a]100 text-gray-400 border-white/10';
+                      'bg-gray-800 text-gray-400 border-gray-700';
                     return (
                       <li
                         key={`${activity.timestamp}-${activity.agent}`}
-                        className="flex items-start justify-between gap-4 border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
+                        className="flex items-start justify-between gap-4 border-b border-gray-800 pb-4 last:border-b-0 last:pb-0"
                       >
                         <div>
                           <p className="font-medium text-white">
@@ -596,8 +623,8 @@ export default function DashboardAnalyticsPage() {
                       <div className="text-gray-400 mb-2">
                         <Activity className="w-12 h-12 mx-auto opacity-50" />
                       </div>
-                      <p className="text-gray-500 font-medium">No recent activity</p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="text-gray-400 font-medium">No recent activity</p>
+                      <p className="text-sm text-gray-500 mt-1">
                         Start chatting with AI agents to see your activity here
                       </p>
                     </li>
@@ -610,7 +637,7 @@ export default function DashboardAnalyticsPage() {
             <div className="mt-12">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-white">
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-200 to-purple-200 bg-clip-text text-transparent">
                     Advanced Analytics
                   </h2>
                   <p className="text-gray-400">
@@ -619,7 +646,7 @@ export default function DashboardAnalyticsPage() {
                 </div>
                 <button
                   onClick={() => fetchAnalytics()}
-                  className="btn-secondary inline-flex items-center gap-2"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-sm font-medium hover:bg-cyan-500/20 transition-colors"
                   disabled={isRefreshing}
                 >
                   <RefreshCcw

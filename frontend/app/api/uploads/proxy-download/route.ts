@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     'oaidalleapiprodscus.blob.core.windows.net', // DALL-E images
     'dalleproduse.blob.core.windows.net', // DALL-E alternate
     'onelastai-bucket.s3.ap-southeast-1.amazonaws.com', // Our S3 bucket
-    'one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com', // Our S3 bucket alternate
+    'maula-ai-bucket.s3.ap-southeast-1.amazonaws.com', // Our S3 bucket alternate
     's3.ap-southeast-1.amazonaws.com', // S3 alternate
     'replicate.delivery', // Replicate AI
     'pbxt.replicate.delivery', // Replicate alternate
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     // Fetch the image from the original source
     const response = await fetch(imageUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; OnelastAI/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; MaulaAI/1.0)',
       },
     });
 

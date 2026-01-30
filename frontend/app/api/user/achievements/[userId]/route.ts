@@ -96,7 +96,7 @@ const ACHIEVEMENT_DEFINITIONS = [
   {
     id: 'early_adopter',
     name: 'Early Adopter',
-    description: 'Joined One Last AI in the early days',
+    description: 'Joined Maula AI in the early days',
     category: 'special',
     icon: '🚀',
     points: 200,

@@ -105,7 +105,7 @@ export async function POST(
       newAchievements.push({
         id: 'early_adopter',
         name: 'Early Adopter',
-        description: 'Joined One Last AI in the early days',
+        description: 'Joined Maula AI in the early days',
         points: 200,
         completed: true,
         completedAt: user.createdAt.toISOString(),

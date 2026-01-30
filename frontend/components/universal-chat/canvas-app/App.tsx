@@ -13,17 +13,17 @@ import CanvasNavDrawer from './components/CanvasNavDrawer';
 
 // AI Models - 5 Providers, 8 Models
 const MODELS: ModelOption[] = [
-  // Anthropic
+  // Anthropic - Claude models
   {
-    id: 'claude-3-5-sonnet',
-    name: 'Claude 3.5 Sonnet',
-    provider: 'Anthropic',
+    id: 'claude-sonnet-4-20250514',
+    name: 'Claude Sonnet 4',
+    provider: 'anthropic',
     description: 'Best for coding - highly recommended.',
   },
   {
-    id: 'claude-3-opus',
-    name: 'Claude 3 Opus',
-    provider: 'Anthropic',
+    id: 'claude-opus-4-20250514',
+    name: 'Claude Opus 4',
+    provider: 'anthropic',
     description: 'Most powerful reasoning model.',
     isThinking: true,
   },
@@ -31,42 +31,49 @@ const MODELS: ModelOption[] = [
   {
     id: 'gpt-4o',
     name: 'GPT-4o',
-    provider: 'OpenAI',
+    provider: 'openai',
     description: 'Most capable OpenAI model.',
   },
   {
     id: 'gpt-4o-mini',
     name: 'GPT-4o Mini',
-    provider: 'OpenAI',
+    provider: 'openai',
     description: 'Fast and efficient.',
   },
   // Gemini
   {
     id: 'gemini-1.5-flash',
     name: 'Gemini 1.5 Flash',
-    provider: 'Gemini',
+    provider: 'gemini',
     description: 'Fast multimodal model.',
   },
   {
     id: 'gemini-1.5-pro',
     name: 'Gemini 1.5 Pro',
-    provider: 'Gemini',
+    provider: 'gemini',
     description: 'Advanced reasoning capabilities.',
     isThinking: true,
   },
-  // xAI
+  // xAI - Grok
   {
     id: 'grok-3',
     name: 'Grok 3',
-    provider: 'xAI',
+    provider: 'xai',
     description: 'Strong reasoning and coding.',
   },
-  // Groq
+  // Groq - Llama (ultra-fast)
   {
-    id: 'llama-3.3-70b',
+    id: 'llama-3.3-70b-versatile',
     name: 'Llama 3.3 70B',
-    provider: 'Groq',
+    provider: 'groq',
     description: 'Ultra-fast inference.',
+  },
+  // Mistral
+  {
+    id: 'mistral-large-latest',
+    name: 'Mistral Large',
+    provider: 'mistral',
+    description: 'Powerful open-weight model.',
   },
 ];
 
@@ -527,8 +534,8 @@ const App: React.FC = () => {
           <div className={`py-3 border-b ${isDarkMode ? 'border-gray-800/50' : 'border-gray-200'} w-full flex justify-center`}>
             <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-cyan-900/30">
               <img 
-                src="/logo.png" 
-                alt="OneLast.AI" 
+                src={import.meta.env.BASE_URL + 'logo.png'} 
+                alt="Maula.AI" 
                 className="w-full h-full object-cover"
               />
             </div>
