@@ -253,15 +253,16 @@ export default function AgentManagementPage() {
           <div className="absolute bottom-40 right-1/4 w-[400px] h-[400px] bg-purple-500/8 rounded-full blur-3xl" />
           <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl" />
           {/* Floating particles */}
-          {[...Array(20)].map((_, i) => (
+          {[...Array(15)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+              className="absolute w-1.5 h-1.5 rounded-full animate-pulse"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 3}s`
+                left: `${5 + i * 6}%`,
+                top: `${10 + (i % 5) * 18}%`,
+                background: i % 3 === 0 ? '#22d3ee' : i % 3 === 1 ? '#a855f7' : '#10b981',
+                opacity: 0.4,
+                animationDelay: `${i * 0.2}s`
               }}
             />
           ))}
