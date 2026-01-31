@@ -109,8 +109,9 @@ export default function SecuritySettingsPage() {
     },
   ];
 
-  const normalizeDevices = useCallback((devices: any[] = []): TrustedDevice[] =>
-    devices.map((device, index) => ({
+  const normalizeDevices = useCallback((devices: any): TrustedDevice[] => {
+    const arr = Array.isArray(devices) ? devices : [];
+    return arr.map((device, index) => ({
       id: String(device.id ?? device._id ?? index),
       name:
         device.name || device.deviceName || device.model || 'Unknown Device',
@@ -120,10 +121,12 @@ export default function SecuritySettingsPage() {
       browser: device.browser || device.userAgent || 'Unknown browser',
       current: Boolean(device.current ?? device.isCurrent ?? false),
       ipAddress: device.ipAddress || device.ip || '',
-    })), []);
+    }));
+  }, []);
 
-  const normalizeSessions = useCallback((sessions: any[] = []): ActiveSession[] =>
-    sessions.map((session, index) => ({
+  const normalizeSessions = useCallback((sessions: any): ActiveSession[] => {
+    const arr = Array.isArray(sessions) ? sessions : [];
+    return arr.map((session, index) => ({
       id: String(session.id ?? session._id ?? index),
       createdAt: session.createdAt || new Date().toISOString(),
       lastActivity:
@@ -134,17 +137,20 @@ export default function SecuritySettingsPage() {
       browser: detectBrowser(session.userAgent || ''),
       device: detectDevice(session.userAgent || ''),
       location: session.location || 'Current Session',
-    })), []);
+    }));
+  }, []);
 
-  const normalizeLoginHistory = useCallback((history: any[] = []): LoginHistoryEntry[] =>
-    history.map((entry, index) => ({
+  const normalizeLoginHistory = useCallback((history: any): LoginHistoryEntry[] => {
+    const arr = Array.isArray(history) ? history : [];
+    return arr.map((entry, index) => ({
       id: String(entry.id ?? entry._id ?? index),
       date: entry.date || entry.timestamp || new Date().toISOString(),
       device: entry.device || entry.deviceName || 'Unknown Device',
       location: entry.location || 'Unknown location',
       status: entry.status || (entry.success === false ? 'blocked' : 'success'),
       ip: entry.ip || entry.ipAddress || '—',
-    })), []);
+    }));
+  }, []);
 
   function detectBrowser(userAgent: string): string {
     if (userAgent.includes('Chrome')) return 'Chrome';
