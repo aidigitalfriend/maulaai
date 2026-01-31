@@ -12,6 +12,35 @@ interface NavigationDrawerProps {
   onSettingsChange: (settings: SettingsState) => void;
 }
 
+// Model display name mapping for user-friendly names
+export const MODEL_DISPLAY_NAMES: Record<string, string> = {
+  // Maula AI (Cerebras)
+  'llama-3.3-70b': 'Ultra Fast',
+  // One Last AI (Groq)
+  'llama-3.3-70b-specdec': 'Power Mode',
+  'mixtral-8x7b-32768': 'Quick Reply',
+  'gemma-7b-it': 'Light Speed',
+  // Planner (xAI)
+  'grok-3': 'Master Plan',
+  'grok-2-mini': 'Quick Plan',
+  // Code Expert (Anthropic)
+  'claude-sonnet-4-20250514': 'Pro Coder',
+  'claude-3-opus-20240229': 'Senior Dev',
+  'claude-3-haiku-20240307': 'Quick Fix',
+  // Designer (OpenAI)
+  'gpt-4.1': 'Creative Pro',
+  'gpt-4-turbo': 'Fast Design',
+  'gpt-3.5-turbo': 'Quick Sketch',
+  // Writer (Mistral)
+  'mistral-large-2411': 'Bestseller',
+  'mistral-medium-latest': 'Story Mode',
+  'mixtral-8x7b-instruct': 'Quick Draft',
+  // Researcher (Gemini)
+  'gemini-2.0-flash': 'Deep Dive',
+  'gemini-1.5-pro': 'Analysis Pro',
+  'gemini-1.5-flash': 'Quick Search',
+};
+
 // AI Providers with their models - exported for use in SettingsPanel
 export const AI_PROVIDERS = [
   { id: 'cerebras', name: 'Maula AI', icon: '🧠', color: 'from-purple-500 to-pink-600', models: ['llama-3.3-70b'], defaultModel: 'llama-3.3-70b', description: 'Ultra Fast', status: 'active' },
@@ -183,7 +212,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose, on
           <span className="text-[9px] text-gray-600 font-mono uppercase tracking-wider mr-2">Models:</span>
           {currentProvider?.models.map((model) => {
             const modelId = typeof model === 'object' ? model.id : model;
-            const modelName = typeof model === 'object' ? model.name : model;
+            const modelName = typeof model === 'object' ? model.name : MODEL_DISPLAY_NAMES[model] || model;
             return (
               <button
                 key={modelId}
@@ -209,7 +238,7 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose, on
             <div className="flex items-center gap-4">
               <span className="text-4xl">{currentProvider?.icon}</span>
               <div>
-                <div className="text-lg font-bold text-white">{selectedModel}</div>
+                <div className="text-lg font-bold text-white">{MODEL_DISPLAY_NAMES[selectedModel] || selectedModel}</div>
                 <div className="text-[10px] text-gray-300 uppercase tracking-widest">{currentProvider?.name} • Active Session</div>
               </div>
             </div>
