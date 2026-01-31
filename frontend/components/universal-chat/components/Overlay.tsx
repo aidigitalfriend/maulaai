@@ -21,17 +21,17 @@ const Overlay: React.FC<OverlayProps> = ({ active, onActivate }) => {
 
       <div className="max-w-md w-full flex flex-col items-center relative z-10">
         <pre className="text-green-400 text-[10px] sm:text-xs md:text-sm leading-tight glow-green text-center font-mono mb-8 select-none">
-          {`▖  ▖    ▜     ▄▖▄▖
-▛▖▞▌▀▌▌▌▐ ▀▌  ▌▌▐ 
-▌▝ ▌█▌▙▌▐▖█▌  ▛▌▟▖
---- NEURAL INTERFACE ---`}
+          {`▄▖   ▄▖   ▜    ▄▖▄▖
+▌▌▛▌▛▌▐ ▀▌▀▌▐   ▌▌▐ 
+▙▌▌▌▙▌▐▖█▌▄▌▐▖  ▛▌▟▖
+--- ONE LAST AI ---`}
         </pre>
         <h1 className="text-4xl sm:text-6xl font-bold text-gray-200 text-center tracking-tighter">
-          <span className="text-green-400 glow-green">Neural</span> 
-          <span className="text-cyan-400 glow-cyan ml-2">Link</span>
+          <span className="text-green-400 glow-green">One Last</span> 
+          <span className="text-cyan-400 glow-cyan ml-2">AI</span>
         </h1>
         <p className="text-gray-500 mt-6 italic font-mono text-xs sm:text-sm uppercase tracking-[0.3em] animate-pulse">
-          Standby for Core Initialization
+          AI Digital Friend Zone
         </p>
         
         <div className="mt-12 relative">
