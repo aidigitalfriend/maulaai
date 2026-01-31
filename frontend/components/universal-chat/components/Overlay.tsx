@@ -21,10 +21,10 @@ const Overlay: React.FC<OverlayProps> = ({ active, onActivate }) => {
 
       <div className="max-w-md w-full flex flex-col items-center relative z-10">
         <pre className="text-green-400 text-[10px] sm:text-xs md:text-sm leading-tight glow-green text-center font-mono mb-8 select-none">
-          {`▄▖   ▄▖   ▜    ▄▖▄▖
-▌▌▛▌▛▌▐ ▀▌▀▌▐   ▌▌▐ 
-▙▌▌▌▙▌▐▖█▌▄▌▐▖  ▛▌▟▖
---- ONE LAST AI ---`}
+          {`▖  ▖    ▜     ▄▖▄▖
+▛▖▞▌▀▌▌▌▐ ▀▌  ▌▌▐ 
+▌▝ ▌█▌▙▌▐▖█▌  ▛▌▟▖
+--- NEURAL INTERFACE ---`}
         </pre>
         <h1 className="text-4xl sm:text-6xl font-bold text-gray-200 text-center tracking-tighter">
           <span className="text-green-400 glow-green">One Last</span> 
