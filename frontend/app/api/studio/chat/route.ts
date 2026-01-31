@@ -11,8 +11,8 @@ const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW = 30 * 60 * 1000; // 30 minutes
-const RATE_LIMIT_MAX_MESSAGES = 100; // 100 messages per 30 min window for better UX
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour - One Last AI style 🔥
+const RATE_LIMIT_MAX_MESSAGES = 1000; // 1000 messages per hour - no restrictions baby!
 
 function getRateLimitKey(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -241,9 +241,9 @@ const mistralProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'mistral-large-2411',
+        model: 'mistral-large-latest',
         messages,
-        max_tokens: 4096,
+        max_tokens: 32768,
         temperature: 0.7,
       }),
     });
