@@ -267,12 +267,18 @@ function SubscriptionSuccessContent() {
   // Loading state
   if (verificationStatus === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        {/* Animated Background */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[120px]" />
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        </div>
+        <div className="relative z-10 text-center">
           <div className="relative w-20 h-20 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full border-4 border-green-500/20" />
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 animate-spin" />
-            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-green-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+            <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20" />
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cyan-500 animate-spin" />
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-cyan-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
           </div>
           <p className="text-gray-400 text-lg">Verifying your subscription...</p>
           <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
@@ -284,53 +290,70 @@ function SubscriptionSuccessContent() {
   // Error state
   if (verificationStatus === 'error') {
     return (
-      <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] overflow-hidden">
-        {/* Animated Background */}
+      <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] overflow-hidden">
+        {/* Animated Background - Agents Page Theme */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="success-orb absolute -top-32 -left-32 w-[500px] h-[500px] bg-gradient-to-r from-red-600/20 to-rose-600/20 blur-3xl" />
-          <div className="success-orb absolute top-1/2 -right-32 w-[400px] h-[400px] bg-gradient-to-r from-orange-500/15 to-red-600/15 blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-red-500/15 rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[120px]" />
+          <div className="absolute top-2/3 left-1/2 w-[400px] h-[400px] bg-pink-500/10 rounded-full blur-[100px]" />
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+          {[...Array(15)].map((_, i) => (
+            <div key={i} className="absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+          ))}
         </div>
 
         <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
-          <div className="success-icon w-24 h-24 rounded-full bg-gradient-to-br from-red-500/20 to-rose-600/20 flex items-center justify-center text-5xl mb-8 border border-red-500/30">
-            ❌
+          {/* Error Icon */}
+          <div className="success-icon inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-red-500/20 to-rose-500/20 backdrop-blur-sm rounded-2xl border border-red-500/30 mb-8">
+            <span className="text-5xl">❌</span>
           </div>
 
-          <h1 ref={titleRef} className="text-4xl md:text-5xl font-bold text-white mb-6 text-center">
-            Verification Failed
+          <h1 ref={titleRef} className="text-4xl md:text-6xl font-bold mb-6 text-center">
+            <span className="bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent">Verification Failed</span>
           </h1>
 
-          <p className="text-xl text-red-400 max-w-2xl text-center mb-12">
+          <p className="text-xl text-red-400 max-w-2xl text-center mb-8">
             {errorMessage || 'We could not verify your subscription. Please try again or contact support.'}
           </p>
+
+          <div className="flex justify-center gap-3 flex-wrap mb-12">
+            <span className="px-4 py-1.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-mono">ERROR</span>
+            <span className="px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm font-mono">VERIFICATION</span>
+          </div>
 
           <div className="flex flex-col md:flex-row gap-4 w-full max-w-xl">
             <Link
               href="/dashboard"
-              className="action-btn flex-1 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white font-semibold text-center hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 opacity-0"
+              className="action-btn flex-1 py-4 px-8 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl text-white font-bold text-center hover:shadow-xl shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-105"
             >
               Go to Dashboard
             </Link>
             <Link
               href="/support/contact-us"
-              className="action-btn flex-1 py-4 px-6 bg-white/5 border border-red-500/30 rounded-xl text-red-400 font-semibold text-center hover:bg-red-500/10 transition-all duration-300 opacity-0"
+              className="action-btn flex-1 py-4 px-8 bg-white/5 backdrop-blur-sm border border-gray-700/50 rounded-xl text-white font-bold text-center hover:bg-white/10 transition-all"
             >
               Contact Support
             </Link>
           </div>
         </div>
+
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
       </div>
     )
   }
 
   // Success state
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] overflow-hidden">
-      {/* Animated Background */}
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0f] overflow-hidden">
+      {/* Animated Background - Agents Page Theme */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="success-orb absolute -top-32 -left-32 w-[500px] h-[500px] bg-gradient-to-r from-green-600/20 to-emerald-600/20 blur-3xl" />
-        <div className="success-orb absolute top-1/2 -right-32 w-[400px] h-[400px] bg-gradient-to-r from-blue-500/15 to-cyan-600/15 blur-3xl" />
-        <div className="success-orb absolute -bottom-32 left-1/4 w-[350px] h-[350px] bg-gradient-to-r from-purple-500/10 to-pink-600/10 blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[120px]" />
+        <div className="absolute top-2/3 left-1/2 w-[400px] h-[400px] bg-green-500/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        {[...Array(15)].map((_, i) => (
+          <div key={`particle-${i}`} className="absolute w-1.5 h-1.5 bg-cyan-400/40 rounded-full" style={{ left: `${5 + i * 6}%`, top: `${10 + (i % 5) * 18}%` }} />
+        ))}
       </div>
 
       {/* Confetti */}
@@ -342,7 +365,7 @@ function SubscriptionSuccessContent() {
             style={{
               top: '30%',
               left: `${30 + Math.random() * 40}%`,
-              backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6'][i % 5],
+              backgroundColor: ['#22c55e', '#06b6d4', '#a855f7', '#ec4899', '#8b5cf6'][i % 5],
               borderRadius: i % 2 === 0 ? '50%' : '0'
             }}
           />
@@ -351,47 +374,57 @@ function SubscriptionSuccessContent() {
 
       <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-16">
         {/* Success Icon */}
-        <div className="success-icon w-24 h-24 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-600/20 flex items-center justify-center text-5xl mb-8 border border-green-500/30">
-          ✅
+        <div className="success-icon inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-500/20 to-cyan-500/20 backdrop-blur-sm rounded-2xl border border-green-500/30 mb-8">
+          <span className="text-5xl">✅</span>
         </div>
 
         <h1
           ref={titleRef}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-center"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-center"
         >
-          Subscription Confirmed!
+          <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">Subscription Confirmed!</span>
         </h1>
 
         <p
           ref={subtitleRef}
-          className="text-xl text-gray-400 max-w-2xl text-center mb-12"
+          className="text-xl text-gray-400 max-w-2xl text-center mb-8"
         >
-          You now have full access to <span className="text-green-400 font-semibold">{agentName}</span>.
+          You now have full access to <span className="text-cyan-400 font-semibold">{agentName}</span>.
         </p>
+
+        <div className="flex justify-center gap-3 flex-wrap mb-12">
+          <span className="px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-mono">SUCCESS</span>
+          <span className="px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-mono">SUBSCRIBED</span>
+          <span className="px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm font-mono">ACTIVE</span>
+        </div>
 
         {/* Subscription Details Card */}
         {subscriptionData?.subscription && (
-          <div className="success-card w-full max-w-2xl bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10 mb-10 opacity-0">
+          <div className="success-card relative w-full max-w-2xl rounded-2xl p-8 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm mb-10 overflow-hidden">
+            {/* Corner Accents */}
+            <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+            <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
+            
             <h3 className="text-xl font-bold text-white mb-6 text-center">Subscription Details</h3>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="detail-row flex justify-between p-4 bg-white/5 rounded-xl opacity-0">
+              <div className="detail-row flex justify-between p-4 bg-white/5 rounded-xl border border-gray-700/30">
                 <span className="text-gray-400">Plan</span>
                 <span className="font-semibold text-white capitalize">{subscriptionData.subscription.plan}</span>
               </div>
-              <div className="detail-row flex justify-between p-4 bg-white/5 rounded-xl opacity-0">
+              <div className="detail-row flex justify-between p-4 bg-white/5 rounded-xl border border-gray-700/30">
                 <span className="text-gray-400">Status</span>
                 <span className={`font-semibold capitalize ${subscriptionData.subscription.status === 'active' ? 'text-green-400' : 'text-red-400'}`}>
                   {subscriptionData.subscription.status}
                 </span>
               </div>
-              <div className="detail-row flex justify-between p-4 bg-white/5 rounded-xl opacity-0">
+              <div className="detail-row flex justify-between p-4 bg-white/5 rounded-xl border border-gray-700/30">
                 <span className="text-gray-400">Price</span>
                 <span className="font-semibold text-white">${subscriptionData.subscription.price}</span>
               </div>
-              <div className="detail-row flex justify-between p-4 bg-white/5 rounded-xl opacity-0">
+              <div className="detail-row flex justify-between p-4 bg-white/5 rounded-xl border border-gray-700/30">
                 <span className="text-gray-400">Access Period</span>
-                <span className="font-semibold text-blue-400">
+                <span className="font-semibold text-cyan-400">
                   {subscriptionData.subscription.daysRemaining || subscriptionData.subscription.daysUntilRenewal || 0} days
                 </span>
               </div>
@@ -400,17 +433,22 @@ function SubscriptionSuccessContent() {
         )}
 
         {/* What's Next Card */}
-        <div className="success-card w-full max-w-2xl bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10 mb-10 opacity-0">
+        <div className="success-card relative w-full max-w-2xl rounded-2xl p-8 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm mb-10 overflow-hidden">
+          {/* Corner Accents */}
+          <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+          <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
+          
           <h2 className="text-2xl font-bold text-white mb-6 text-center">What's next?</h2>
           
           <ul className="space-y-4">
             {[
-              '• Enjoy unlimited conversations with your subscribed agent.',
-              '• Manage billing or cancel anytime from your dashboard.',
-              '• Need help? Visit the support center for quick assistance.'
+              { icon: '💬', text: 'Enjoy unlimited conversations with your subscribed agent.' },
+              { icon: '⚙️', text: 'Manage billing or cancel anytime from your dashboard.' },
+              { icon: '🆘', text: 'Need help? Visit the support center for quick assistance.' }
             ].map((step, i) => (
-              <li key={i} className="next-step text-gray-300 p-3 bg-white/5 rounded-xl opacity-0">
-                {step}
+              <li key={i} className="next-step flex items-center gap-4 text-gray-300 p-4 bg-white/5 rounded-xl border border-gray-700/30">
+                <span className="text-2xl">{step.icon}</span>
+                <span>{step.text}</span>
               </li>
             ))}
           </ul>
@@ -420,18 +458,18 @@ function SubscriptionSuccessContent() {
         <div className="flex flex-col md:flex-row gap-4 w-full max-w-xl">
           <Link
             href="/dashboard"
-            className="action-btn flex-1 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white font-semibold text-center hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 shadow-lg shadow-blue-500/25 opacity-0"
+            className="action-btn flex-1 py-4 px-8 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl text-white font-bold text-center hover:shadow-xl shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-105"
           >
             Go to Dashboard
           </Link>
           <button
             onClick={handleAgentRedirect}
             disabled={!agentSlug}
-            className={`action-btn flex-1 py-4 px-6 bg-white/5 border border-green-500/30 rounded-xl text-green-400 font-semibold text-center hover:bg-green-500/10 transition-all duration-300 opacity-0 ${
+            className={`action-btn flex-1 py-4 px-8 bg-white/5 backdrop-blur-sm border border-green-500/30 rounded-xl text-green-400 font-bold text-center hover:bg-green-500/10 transition-all transform hover:scale-105 ${
               !agentSlug ? 'opacity-60 cursor-not-allowed' : ''
             }`}
           >
-            Open Agent Chat
+            🤖 Open Agent Chat
           </button>
         </div>
 
@@ -441,6 +479,8 @@ function SubscriptionSuccessContent() {
           </p>
         )}
       </div>
+
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
     </div>
   )
 }
@@ -449,11 +489,17 @@ export default function SubscriptionSuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#13131a] to-[#0d0d12] flex items-center justify-center">
-          <div className="text-center">
+        <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+          {/* Animated Background */}
+          <div className="fixed inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[150px]" />
+            <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[120px]" />
+            <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+          </div>
+          <div className="relative z-10 text-center">
             <div className="relative w-16 h-16 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-green-500/20" />
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 animate-spin" />
+              <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cyan-500 animate-spin" />
             </div>
             <p className="text-gray-400">Loading subscription details...</p>
           </div>
