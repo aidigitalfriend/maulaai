@@ -6,18 +6,21 @@ export interface ChatMessage {
 }
 
 export type ModelProvider =
-  | 'OpenAI'
-  | 'Anthropic'
-  | 'Groq'
-  | 'Mistral'
-  | 'Cohere'
-  | 'xAI'
-  | 'Gemini'
-  | 'google'
+  | 'Maula AI'
+  | 'One Last AI'
+  | 'Designer'
+  | 'Planner'
+  | 'Code Expert'
+  | 'Speed AI'
+  | 'Research'
+  // Backend provider mappings (internal use)
+  | 'anthropic'
+  | 'mistral'
   | 'openai'
-  | 'groq'
+  | 'gemini'
   | 'xai'
-  | 'anthropic';
+  | 'groq'
+  | 'cerebras';
 
 export interface ModelOption {
   id: string;

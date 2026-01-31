@@ -11,69 +11,69 @@ import CodeView from './components/CodeView';
 import ChatBox from './components/ChatBox';
 import CanvasNavDrawer from './components/CanvasNavDrawer';
 
-// AI Models - 5 Providers, 8 Models
+// AI Models - User-Friendly Names
 const MODELS: ModelOption[] = [
-  // Anthropic - Claude models
+  // Maula AI - Anthropic Claude
   {
     id: 'claude-sonnet-4-20250514',
-    name: 'Claude Sonnet 4',
-    provider: 'anthropic',
-    description: 'Best for coding - highly recommended.',
+    name: 'Nova',
+    provider: 'Maula AI',
+    description: 'Best for building apps - highly recommended.',
   },
   {
     id: 'claude-opus-4-20250514',
-    name: 'Claude Opus 4',
-    provider: 'anthropic',
-    description: 'Most powerful reasoning model.',
+    name: 'Nova Pro',
+    provider: 'Maula AI',
+    description: 'Most powerful AI for complex apps.',
     isThinking: true,
   },
-  // OpenAI
+  // One Last AI - Mistral
+  {
+    id: 'mistral-large-latest',
+    name: 'Maula Large',
+    provider: 'One Last AI',
+    description: 'Creative and versatile AI assistant.',
+  },
+  // Designer - OpenAI
   {
     id: 'gpt-4o',
-    name: 'GPT-4o',
-    provider: 'openai',
-    description: 'Most capable OpenAI model.',
+    name: 'Vision Pro',
+    provider: 'Designer',
+    description: 'Best for visual and image-rich apps.',
   },
   {
     id: 'gpt-4o-mini',
-    name: 'GPT-4o Mini',
-    provider: 'openai',
-    description: 'Fast and efficient.',
+    name: 'Vision Fast',
+    provider: 'Designer',
+    description: 'Fast and cost-effective visuals.',
   },
-  // Gemini
+  // Designer - Gemini
   {
     id: 'gemini-1.5-flash',
-    name: 'Gemini 1.5 Flash',
-    provider: 'gemini',
-    description: 'Fast multimodal model.',
+    name: 'Design Flash',
+    provider: 'Designer',
+    description: 'Fast UI design and layouts.',
   },
   {
     id: 'gemini-1.5-pro',
-    name: 'Gemini 1.5 Pro',
-    provider: 'gemini',
-    description: 'Advanced reasoning capabilities.',
+    name: 'Design Pro',
+    provider: 'Designer',
+    description: 'Advanced reasoning for complex UI.',
     isThinking: true,
   },
-  // xAI - Grok
+  // Planner - xAI Grok
   {
     id: 'grok-3',
-    name: 'Grok 3',
-    provider: 'xai',
-    description: 'Strong reasoning and coding.',
+    name: 'Architect',
+    provider: 'Planner',
+    description: 'Strategic planning and architecture.',
   },
-  // Groq - Llama (ultra-fast)
+  // Code Expert - Groq (ultra-fast)
   {
     id: 'llama-3.3-70b-versatile',
-    name: 'Llama 3.3 70B',
-    provider: 'groq',
-    description: 'Ultra-fast inference.',
-  },
-  // Mistral
-  {
-    id: 'mistral-large-latest',
-    name: 'Mistral Large',
-    provider: 'mistral',
-    description: 'Powerful open-weight model.',
+    name: 'Turbo Code',
+    provider: 'Code Expert',
+    description: 'Ultra-fast code generation.',
   },
 ];
 
@@ -113,7 +113,7 @@ type ConversationPhase = 'initial' | 'gathering' | 'confirming' | 'building' | '
 const App: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState<ModelOption>(MODELS[0]);
-  const [selectedProvider, setSelectedProvider] = useState('Anthropic');
+  const [selectedProvider, setSelectedProvider] = useState('Maula AI');
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.PREVIEW);
   const [currentApp, setCurrentApp] = useState<GeneratedApp | null>(null);
   const [history, setHistory] = useState<GeneratedApp[]>([]);
@@ -200,10 +200,7 @@ const App: React.FC = () => {
   }, []);
 
   // Filter models by selected provider
-  const filteredModels = MODELS.filter(m => m.provider.toLowerCase() === selectedProvider.toLowerCase() || 
-    (selectedProvider === 'Gemini' && m.provider === 'google') ||
-    (selectedProvider === 'xAI' && m.provider === 'xai') ||
-    (selectedProvider === 'Groq' && m.provider === 'groq'));
+  const filteredModels = MODELS.filter(m => m.provider === selectedProvider);
 
   useEffect(() => {
     const saved = localStorage.getItem('gencraft_v4_history');
@@ -1139,7 +1136,7 @@ const App: React.FC = () => {
 
                       {/* Provider Tabs */}
                       <div className="flex gap-1 mb-3 flex-wrap">
-                        {['Anthropic', 'OpenAI', 'Gemini', 'xAI', 'Groq'].map((provider) => (
+                        {['Maula AI', 'One Last AI', 'Designer', 'Planner', 'Code Expert'].map((provider) => (
                           <button
                             key={provider}
                             onClick={() => setSelectedProvider(provider)}

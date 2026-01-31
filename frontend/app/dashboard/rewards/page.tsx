@@ -90,58 +90,60 @@ export default function RewardsCenterPage() {
         </div>
 
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 bg-gradient-to-r from-purple-900/50 to-[#0d0d12] text-white overflow-hidden">
-        {/* Decorative Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <pattern id="rewards-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="currentColor"/>
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#rewards-grid)"/>
-          </svg>
-        </div>
-        <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl mb-6">
-            <TrophyIcon className="w-10 h-10" />
+      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+        <div className="relative z-10 text-center px-6 max-w-5xl mx-auto py-16">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-500/30 rounded-2xl mb-6">
+            <TrophyIcon className="w-10 h-10 text-cyan-400" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">My Rewards</h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">My Rewards</span>
+          </h1>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8">
             Track your progress, earn rewards, and unlock achievements
           </p>
+          <div className="flex justify-center gap-3 flex-wrap mb-8">
+            <span className="px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-mono">REWARDS</span>
+            <span className="px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm font-mono">ACHIEVEMENTS</span>
+            <span className="px-4 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/30 text-pink-400 text-sm font-mono">POINTS</span>
+          </div>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white/5 text-cyan-400 px-8 py-3 rounded-xl font-semibold hover:bg-[#0a0a0f]/50 transition-all shadow-2xl shadow-cyan-500/10"
+            className="inline-flex items-center justify-center px-8 py-4 bg-white/5 backdrop-blur-sm text-white font-bold rounded-xl border border-gray-700/50 hover:bg-white/10 transition-all"
           >
-            Back to Dashboard
+            ← Back to Dashboard
           </Link>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
       </section>
 
       {/* Rewards Content */}
-      <section className="py-16 px-4 bg-[#0a0a0f]/50">
-        <div className="container-custom max-w-6xl">
+      <section className="relative z-10 max-w-6xl mx-auto px-6 py-16">
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white">
+            <div className="relative rounded-2xl p-6 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              {/* Corner Accents */}
+              <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-purple-500/50 rounded-tr-lg" />
+              <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-purple-500/50 rounded-bl-lg" />
               <div className="flex items-center justify-between mb-4">
-                <TrophyIcon className="w-8 h-8" />
-                <span className="text-2xl font-bold">Lv.{currentLevel}</span>
+                <TrophyIcon className="w-8 h-8 text-purple-400" />
+                <span className="text-2xl font-bold text-white">Lv.{currentLevel}</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Current Level</h3>
-              <div className="w-full bg-white/10 rounded-full h-2 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">Current Level</h3>
+              <div className="w-full bg-gray-700/50 rounded-full h-2 mb-2">
                 <div
-                  className="bg-white/5 rounded-full h-2 transition-all duration-300"
+                  className="bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full h-2 transition-all duration-300"
                   style={{ width: `${levelProgress}%` }}
                 ></div>
               </div>
-              <p className="text-sm opacity-90">
+              <p className="text-sm text-gray-400">
                 {pointsToNextLevel} points to next level
               </p>
             </div>
 
-            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+            <div className="relative rounded-2xl p-6 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              {/* Corner Accents */}
+              <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center justify-between mb-4">
                 <StarIcon className="w-8 h-8 text-yellow-500" />
                 <span className="text-2xl font-bold text-white">
@@ -154,7 +156,10 @@ export default function RewardsCenterPage() {
               <p className="text-sm text-gray-400">Lifetime points earned</p>
             </div>
 
-            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+            <div className="relative rounded-2xl p-6 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              {/* Corner Accents */}
+              <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center justify-between mb-4">
                 <SparklesIcon className="w-8 h-8 text-purple-500" />
                 <span className="text-2xl font-bold text-white">
@@ -169,7 +174,10 @@ export default function RewardsCenterPage() {
               </p>
             </div>
 
-            <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+            <div className="relative rounded-2xl p-6 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              {/* Corner Accents */}
+              <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center justify-between mb-4">
                 <ChartBarIcon className="w-8 h-8 text-green-500" />
                 <span className="text-2xl font-bold text-white">
@@ -212,7 +220,10 @@ export default function RewardsCenterPage() {
           {/* Tab Content */}
           <div className="space-y-8">
             {activeTab === 'overview' && (
-              <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+              <div className="relative rounded-2xl p-8 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+                {/* Corner Accents */}
+                <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
                 <h3 className="text-xl font-semibold text-white mb-6">
                   Recent Activity
                 </h3>
@@ -288,7 +299,10 @@ export default function RewardsCenterPage() {
 
             {activeTab !== 'overview' && (
               <div className="text-center py-16">
-                <div className="bg-white/5 rounded-2xl p-12 border border-white/10 max-w-2xl mx-auto">
+                <div className="relative rounded-2xl p-12 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm max-w-2xl mx-auto overflow-hidden">
+                  {/* Corner Accents */}
+                  <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                  <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
                   <div className="w-20 h-20 bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                     <SparklesIcon className="w-10 h-10 text-purple-400" />
                   </div>
@@ -316,7 +330,6 @@ export default function RewardsCenterPage() {
               </div>
             )}
           </div>
-        </div>
       </section>
     </div>
   );

@@ -32,60 +32,60 @@ export interface ProviderModelOption {
 // Users only see ONE default model per provider - backend handles fallbacks
 function createAgentOptions(agentName: string): ProviderModelOption[] {
   return [
-    // 1. Agent Character - Anthropic Claude
+    // 1. Maula AI - Anthropic Claude (Main platform AI)
     {
       provider: 'anthropic',
-      label: agentName,
-      models: [
-        { value: 'claude-opus-4-20250514', label: 'Claude Opus 4' },
-      ],
-    },
-    // 2. Maula AI - Mistral
-    {
-      provider: 'mistral',
       label: 'Maula AI',
       models: [
-        { value: 'mistral-large-2501', label: 'Mistral Large 2501' },
+        { value: 'claude-opus-4-20250514', label: 'Nova Pro' },
       ],
     },
-    // 3. Image Generator - OpenAI
+    // 2. One Last AI - Mistral (Platform Branding)
     {
-      provider: 'openai',
-      label: 'Image Generator',
+      provider: 'mistral',
+      label: 'One Last AI',
       models: [
-        { value: 'gpt-4.5-preview', label: 'GPT-4.5 Preview' },
+        { value: 'mistral-large-2501', label: 'Maula Large' },
       ],
     },
-    // 4. Code Builder - Cerebras
-    {
-      provider: 'cerebras',
-      label: 'Code Builder',
-      models: [
-        { value: 'llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout' },
-      ],
-    },
-    // 5. Fast Response - Groq
-    {
-      provider: 'groq',
-      label: 'Fast Response',
-      models: [
-        { value: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout' },
-      ],
-    },
-    // 6. Planner - xAI Grok
+    // 3. Planner - xAI Grok (Strategic planning)
     {
       provider: 'xai',
       label: 'Planner',
       models: [
-        { value: 'grok-3-beta', label: 'Grok 3 Beta' },
+        { value: 'grok-3-beta', label: 'Architect' },
       ],
     },
-    // 7. Research Helper - xAI Grok
+    // 4. Code Expert - Cerebras (Fastest for code)
+    {
+      provider: 'cerebras',
+      label: 'Code Expert',
+      models: [
+        { value: 'llama-4-scout-17b-16e-instruct', label: 'Fast Code' },
+      ],
+    },
+    // 5. Designer - OpenAI (Best for visuals)
+    {
+      provider: 'openai',
+      label: 'Designer',
+      models: [
+        { value: 'gpt-4.5-preview', label: 'Vision Pro' },
+      ],
+    },
+    // 6. Speed AI - Groq (Ultra-fast inference)
+    {
+      provider: 'groq',
+      label: 'Speed AI',
+      models: [
+        { value: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Turbo' },
+      ],
+    },
+    // 7. Research - xAI Grok (Deep analysis)
     {
       provider: 'xai',
-      label: 'Research Helper',
+      label: 'Research',
       models: [
-        { value: 'grok-3', label: 'Grok 3' },
+        { value: 'grok-3', label: 'Deep Thinker' },
       ],
     },
   ];
@@ -253,32 +253,32 @@ export function getAgentProviderOptions(agentId: string): ProviderModelOption[] 
 // ============================================================================
 export function getAgentCanvasProviders(agentId: string, agentName?: string): Record<string, { name: string; models: { id: string; name: string }[] }> {
   return {
-    // 1. Code Builder - Cerebras (fastest for code generation)
+    // 1. Code Expert - Cerebras (fastest for code generation)
     cerebras: {
-      name: '⚡ Fast Code',
+      name: '⚡ Code Expert',
       models: [
-        { id: 'llama-3.3-70b', name: 'Llama 3.3 70B' },
+        { id: 'llama-3.3-70b', name: 'Fast Code' },
       ],
     },
-    // 2. Grok - xAI (great for planning & reasoning)
+    // 2. Planner - xAI Grok (great for planning & reasoning)
     xai: {
       name: '🧠 Planner',
       models: [
-        { id: 'grok-3', name: 'Grok 3' },
+        { id: 'grok-3', name: 'Architect' },
       ],
     },
-    // 3. Gemini - Google (multimodal, good for UI)
+    // 3. Designer - Gemini (multimodal, good for UI)
     gemini: {
       name: '🎨 Designer',
       models: [
-        { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+        { id: 'gemini-2.0-flash', name: 'Design Flash' },
       ],
     },
-    // 4. Anthropic - Claude (fallback, high quality)
+    // 4. Maula AI - Claude (high quality)
     anthropic: {
-      name: '✨ Smart Code',
+      name: '✨ Maula AI',
       models: [
-        { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
+        { id: 'claude-sonnet-4-20250514', name: 'Nova' },
       ],
     },
   };
@@ -341,60 +341,60 @@ export function getAgentDefaultModel(agentId: string, provider?: string): string
 // Users see SIMPLE options - backend handles model fallback automatically
 // ============================================================================
 export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
-  // 1. AI Assistant - Anthropic Claude
+  // 1. Maula AI - Anthropic Claude
   {
     provider: 'anthropic',
-    label: 'AI Assistant',
-    models: [
-      { value: 'claude-opus-4-20250514', label: 'Claude Opus 4' },
-    ],
-  },
-  // 2. Maula AI - Mistral
-  {
-    provider: 'mistral',
     label: 'Maula AI',
     models: [
-      { value: 'mistral-large-2501', label: 'Mistral Large 2501' },
+      { value: 'claude-opus-4-20250514', label: 'Nova Pro' },
     ],
   },
-  // 3. Image Generator - OpenAI
+  // 2. One Last AI - Mistral
   {
-    provider: 'openai',
-    label: 'Image Generator',
+    provider: 'mistral',
+    label: 'One Last AI',
     models: [
-      { value: 'gpt-4.5-preview', label: 'GPT-4.5 Preview' },
+      { value: 'mistral-large-2501', label: 'Maula Large' },
     ],
   },
-  // 4. Code Builder - Cerebras
-  {
-    provider: 'cerebras',
-    label: 'Code Builder',
-    models: [
-      { value: 'llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout' },
-    ],
-  },
-  // 5. Fast Response - Groq
-  {
-    provider: 'groq',
-    label: 'Fast Response',
-    models: [
-      { value: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout' },
-    ],
-  },
-  // 6. Planner - xAI Grok
+  // 3. Planner - xAI Grok
   {
     provider: 'xai',
     label: 'Planner',
     models: [
-      { value: 'grok-3-beta', label: 'Grok 3 Beta' },
+      { value: 'grok-3-beta', label: 'Architect' },
     ],
   },
-  // 7. Research Helper - xAI Grok
+  // 4. Code Expert - Cerebras
+  {
+    provider: 'cerebras',
+    label: 'Code Expert',
+    models: [
+      { value: 'llama-4-scout-17b-16e-instruct', label: 'Fast Code' },
+    ],
+  },
+  // 5. Designer - OpenAI
+  {
+    provider: 'openai',
+    label: 'Designer',
+    models: [
+      { value: 'gpt-4.5-preview', label: 'Vision Pro' },
+    ],
+  },
+  // 6. Speed AI - Groq
+  {
+    provider: 'groq',
+    label: 'Speed AI',
+    models: [
+      { value: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Turbo' },
+    ],
+  },
+  // 7. Research - xAI Grok
   {
     provider: 'xai',
-    label: 'Research Helper',
+    label: 'Research',
     models: [
-      { value: 'grok-3-beta', label: 'Grok 3 Beta' },
+      { value: 'grok-3-beta', label: 'Deep Thinker' },
     ],
   },
 ];

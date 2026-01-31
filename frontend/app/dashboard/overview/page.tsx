@@ -234,29 +234,33 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 border-b border-cyan-500/10 overflow-hidden">
-        <div className="container-custom text-center relative z-10">
+      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+        <div className="relative z-10 text-center px-6 max-w-5xl mx-auto py-16">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-500/30 rounded-2xl mb-6">
             <UserIcon className="w-10 h-10 text-cyan-400" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
-            Dashboard Overview
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">Dashboard Overview</span>
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8">
             Get started with your analytics and insights
           </p>
+          <div className="flex justify-center gap-3 flex-wrap mb-8">
+            <span className="px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-mono">OVERVIEW</span>
+            <span className="px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm font-mono">ANALYTICS</span>
+          </div>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-xl shadow-lg shadow-cyan-500/25 transition-all"
+            className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-xl hover:shadow-xl shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-105"
           >
             Go to Dashboard
           </Link>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
       </section>
 
       {/* Main Dashboard Sections */}
-      <section className="py-16 px-4 relative z-10">
-        <div className="container-custom">
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-16">
           {error && (
             <div className="mb-8 bg-red-900/20 border border-red-500/30 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
               <div>
@@ -277,7 +281,10 @@ export default function DashboardOverviewPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* User Profile Section */}
             <Link href="/dashboard/profile" className="group">
-              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-cyan-500/10 hover:shadow-xl hover:border-blue-300 transition-all">
+              <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm hover:border-cyan-500/50 transition-all overflow-hidden">
+                {/* Corner Accents */}
+                <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mr-4 shadow-2xl shadow-blue-500/25">
                     <UserIcon className="w-6 h-6 text-white" />
@@ -328,7 +335,10 @@ export default function DashboardOverviewPage() {
 
             {/* Security Settings Section */}
             <Link href="/dashboard/security" className="group">
-              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-cyan-500/10 hover:shadow-xl hover:border-green-300 transition-all">
+              <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm hover:border-cyan-500/50 transition-all overflow-hidden">
+                {/* Corner Accents */}
+                <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mr-4 shadow-2xl shadow-green-500/25">
                     <ShieldCheckIcon className="w-6 h-6 text-white" />
@@ -384,7 +394,10 @@ export default function DashboardOverviewPage() {
 
             {/* Preferences Section */}
             <Link href="/dashboard/preferences" className="group">
-              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-cyan-500/10 hover:shadow-xl hover:border-purple-300 transition-all">
+              <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm hover:border-cyan-500/50 transition-all overflow-hidden">
+                {/* Corner Accents */}
+                <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4 shadow-2xl shadow-cyan-500/25">
                     <CogIcon className="w-6 h-6 text-white" />
@@ -430,7 +443,10 @@ export default function DashboardOverviewPage() {
 
             {/* Rewards Center Section */}
             <Link href="/dashboard/rewards" className="group">
-              <div className="p-8 bg-white/5 rounded-2xl border border-white/10 shadow-2xl shadow-cyan-500/10 hover:shadow-xl hover:border-yellow-300 transition-all relative overflow-hidden">
+              <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm hover:border-cyan-500/50 transition-all overflow-hidden">
+                {/* Corner Accents */}
+                <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-bl-[4rem] opacity-10"></div>
 
                 <div className="flex items-center mb-6">
@@ -506,12 +522,11 @@ export default function DashboardOverviewPage() {
               </div>
             </Link>
           </div>
-        </div>
       </section>
 
       {/* Quick Stats Section */}
-      <section className="py-16 px-6 bg-white/50">
-        <div className="container mx-auto max-w-4xl">
+      <section className="relative z-10 py-16 px-6">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">
               Your Activity Overview
@@ -525,8 +540,11 @@ export default function DashboardOverviewPage() {
             {quickStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="bg-white/5 p-6 rounded-2xl shadow-2xl shadow-cyan-500/10 border border-white/10 text-center hover:shadow-xl transition-shadow"
+                className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm text-center hover:border-cyan-500/50 transition-all overflow-hidden"
               >
+                {/* Corner Accents */}
+                <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+                <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
                 <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
                   {typeof stat.value === 'number'
                     ? stat.value.toLocaleString()

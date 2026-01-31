@@ -276,27 +276,34 @@ export default function PreferencesPage() {
         </div>
 
       {/* Hero Section */}
-      <section className="relative py-20 md:py-28 border-b border-white/10 overflow-hidden">
-        <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-600/30 to-violet-600/30 border border-purple-500/30 rounded-2xl mb-6">
-            <Cog6ToothIcon className="w-10 h-10 text-purple-400" />
+      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+        <div className="relative z-10 text-center px-6 max-w-5xl mx-auto py-16">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-cyan-500/30 rounded-2xl mb-6">
+            <Cog6ToothIcon className="w-10 h-10 text-cyan-400" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">Preferences</h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">Preferences</span>
+          </h1>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8">
             Customize your experience and interface settings
           </p>
+          <div className="flex justify-center gap-3 flex-wrap mb-8">
+            <span className="px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-mono">SETTINGS</span>
+            <span className="px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm font-mono">CUSTOMIZE</span>
+          </div>
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white/10 hover:bg-white/10 text-white px-8 py-3 rounded-xl font-semibold transition-all border border-white/10"
+            className="inline-flex items-center justify-center px-8 py-4 bg-white/5 backdrop-blur-sm text-white font-bold rounded-xl border border-gray-700/50 hover:bg-white/10 transition-all"
           >
-            Back to Dashboard
+            ← Back to Dashboard
           </Link>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
       </section>
 
       {/* Status Section */}
-      <section className="py-6 px-4 bg-white/5 border-b border-white/10 relative z-10">
-        <div className="container-custom">
+      <section className="relative z-10 py-6 px-4">
+        <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-end space-x-4">
             {saving && (
               <div className="flex items-center text-cyan-400">
@@ -324,11 +331,13 @@ export default function PreferencesPage() {
       </section>
 
       {/* Preferences Content */}
-      <section className="py-16 px-4 relative z-10">
-        <div className="container-custom max-w-4xl">
-          <div className="space-y-8">
+      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
+        <div className="space-y-8">
             {/* Appearance Settings */}
-            <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <div className="relative rounded-2xl p-8 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              {/* Corner Accents */}
+              <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center mb-6">
                 <PaintBrushIcon className="w-6 h-6 text-purple-400 mr-3" />
                 <h3 className="text-xl font-semibold text-white">
@@ -411,7 +420,10 @@ export default function PreferencesPage() {
             </div>
 
             {/* Notification Settings */}
-            <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <div className="relative rounded-2xl p-8 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              {/* Corner Accents */}
+              <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center mb-6">
                 <BellIcon className="w-6 h-6 text-purple-400 mr-3" />
                 <h3 className="text-xl font-semibold text-white">
@@ -610,7 +622,10 @@ export default function PreferencesPage() {
             </div>
 
             {/* Language & Region */}
-            <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <div className="relative rounded-2xl p-8 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              {/* Corner Accents */}
+              <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center mb-6">
                 <GlobeAltIcon className="w-6 h-6 text-purple-400 mr-3" />
                 <h3 className="text-xl font-semibold text-white">
@@ -688,7 +703,10 @@ export default function PreferencesPage() {
             </div>
 
             {/* Accessibility */}
-            <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <div className="relative rounded-2xl p-8 bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 backdrop-blur-sm overflow-hidden">
+              {/* Corner Accents */}
+              <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-cyan-500/30 rounded-tr-lg" />
+              <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-cyan-500/30 rounded-bl-lg" />
               <div className="flex items-center mb-6">
                 <EyeIcon className="w-6 h-6 text-purple-400 mr-3" />
                 <h3 className="text-xl font-semibold text-white">
@@ -746,7 +764,6 @@ export default function PreferencesPage() {
               <button className="btn-primary">Save Preferences</button>
             </div>
           </div>
-        </div>
       </section>
     </div>
   );
