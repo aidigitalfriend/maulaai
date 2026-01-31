@@ -42,6 +42,7 @@ export interface CanvasState {
 export interface SettingsState {
   customPrompt: string;
   agentName: string;
+  agentId: string;
   temperature: number;
   maxTokens: number;
   provider: string;

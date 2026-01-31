@@ -24,11 +24,13 @@ import {
   RefreshCw,
   Share2,
   Volume2,
+  VolumeX,
+  Loader2,
   Pencil,
   ChevronDown
 } from 'lucide-react';
 import { Message, SettingsState, WorkspaceMode } from '../types';
-import { PROVIDER_CONFIG } from '../constants';
+import { PROVIDER_CONFIG, AGENT_VOICE_MAP } from '../constants';
 
 interface ChatBoxProps {
   messages: Message[];
@@ -66,10 +68,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set());
   const [dislikedMessages, setDislikedMessages] = useState<Set<string>>(new Set());
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [isTTSLoading, setIsTTSLoading] = useState<string | null>(null);
   const [showProviderDropdown, setShowProviderDropdown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const providerDropdownRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Get current provider info
   const currentProvider = PROVIDER_CONFIG.find(p => p.id === agentSettings.provider) || PROVIDER_CONFIG[0];
@@ -163,22 +167,98 @@ const ChatBox: React.FC<ChatBoxProps> = ({
     }
   };
 
-  // Text-to-speech for agent messages
-  const handleSpeak = (messageId: string, text: string) => {
+  // Text-to-speech for agent messages using ElevenLabs with agent-specific voices
+  const handleSpeak = async (messageId: string, text: string) => {
+    // If already playing this message, stop it
     if (speakingMessageId === messageId) {
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       setSpeakingMessageId(null);
       return;
     }
     
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.onend = () => setSpeakingMessageId(null);
-    utterance.onerror = () => setSpeakingMessageId(null);
-    setSpeakingMessageId(messageId);
-    window.speechSynthesis.speak(utterance);
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    
+    // Get voice for current agent
+    const agentId = agentSettings.agentId || 'default';
+    const voiceConfig = AGENT_VOICE_MAP[agentId] || AGENT_VOICE_MAP['default'];
+    
+    setIsTTSLoading(messageId);
+    
+    try {
+      // Call ElevenLabs TTS API
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: text.slice(0, 5000), // Limit text length
+          voiceId: voiceConfig.voiceId
+        })
+      });
+      
+      if (!response.ok) {
+        // Fallback to browser speech synthesis if API fails
+        console.warn('ElevenLabs TTS failed, using browser fallback');
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.onend = () => setSpeakingMessageId(null);
+        utterance.onerror = () => setSpeakingMessageId(null);
+        setSpeakingMessageId(messageId);
+        setIsTTSLoading(null);
+        window.speechSynthesis.speak(utterance);
+        return;
+      }
+      
+      // Get audio blob and create URL
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Create and play audio
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      
+      audio.onended = () => {
+        setSpeakingMessageId(null);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+      
+      audio.onerror = () => {
+        setSpeakingMessageId(null);
+        setIsTTSLoading(null);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+        // Fallback to browser synthesis
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.onend = () => setSpeakingMessageId(null);
+        window.speechSynthesis.speak(utterance);
+      };
+      
+      setSpeakingMessageId(messageId);
+      setIsTTSLoading(null);
+      await audio.play();
+      
+    } catch (error) {
+      console.error('TTS error:', error);
+      setIsTTSLoading(null);
+      // Fallback to browser speech synthesis
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.onend = () => setSpeakingMessageId(null);
+      utterance.onerror = () => setSpeakingMessageId(null);
+      setSpeakingMessageId(messageId);
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
   // Start editing a user message
@@ -368,10 +448,29 @@ const ChatBox: React.FC<ChatBoxProps> = ({
                       </button>
                       <button
                         onClick={() => handleSpeak(msg.id, msg.text)}
-                        className={`p-1.5 rounded transition-all ${speakingMessageId === msg.id ? 'text-cyan-400 bg-cyan-500/10 animate-pulse' : 'text-gray-600 hover:text-cyan-400 hover:bg-cyan-500/10'}`}
-                        title={speakingMessageId === msg.id ? "Stop Speaking" : "Listen to Response"}
+                        disabled={isTTSLoading === msg.id}
+                        className={`p-1.5 rounded transition-all ${
+                          isTTSLoading === msg.id 
+                            ? 'text-yellow-400 bg-yellow-500/10 cursor-wait' 
+                            : speakingMessageId === msg.id 
+                              ? 'text-cyan-400 bg-cyan-500/10 animate-pulse' 
+                              : 'text-gray-600 hover:text-cyan-400 hover:bg-cyan-500/10'
+                        }`}
+                        title={
+                          isTTSLoading === msg.id 
+                            ? "Loading voice..." 
+                            : speakingMessageId === msg.id 
+                              ? "Stop Speaking" 
+                              : "Listen to Response"
+                        }
                       >
-                        <Volume2 size={14} />
+                        {isTTSLoading === msg.id ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : speakingMessageId === msg.id ? (
+                          <VolumeX size={14} />
+                        ) : (
+                          <Volume2 size={14} />
+                        )}
                       </button>
                     </>
                   ) : (

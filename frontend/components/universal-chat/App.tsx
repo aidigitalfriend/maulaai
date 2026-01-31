@@ -14,7 +14,17 @@ import { DEFAULT_SETTINGS, NEURAL_PRESETS } from './constants';
 import { sendMessage, formatConversationHistory } from './services/chatService';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 
-const App: React.FC = () => {
+interface AppProps {
+  initialAgentId?: string;
+  initialAgentName?: string;
+  initialSystemPrompt?: string;
+}
+
+const App: React.FC<AppProps> = ({ 
+  initialAgentId = 'default',
+  initialAgentName = 'Neural Companion',
+  initialSystemPrompt
+}) => {
   // UI State
   const [isOverlayActive, setIsOverlayActive] = useState(true);
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
@@ -32,6 +42,14 @@ const App: React.FC = () => {
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const nextStartTimeRef = useRef<number>(0);
 
+  // Create initial settings with agent-specific values
+  const initialSettings: SettingsState = {
+    ...DEFAULT_SETTINGS,
+    agentId: initialAgentId,
+    agentName: initialAgentName,
+    customPrompt: initialSystemPrompt || DEFAULT_SETTINGS.customPrompt
+  };
+
   // Default session for SSR and first load
   // Use static timestamp to avoid hydration mismatch
   const defaultSessions: ChatSession[] = [
@@ -47,7 +65,7 @@ const App: React.FC = () => {
           timestamp: '--:--:-- --'  // Static for SSR, will be updated on client
         }
       ],
-      settings: { ...DEFAULT_SETTINGS }
+      settings: initialSettings
     }
   ];
 
@@ -273,7 +291,7 @@ const App: React.FC = () => {
     setSessions(prev => {
       const filtered = prev.filter(s => s.id !== id);
       if (filtered.length === 0) return [
-        { id: Date.now().toString(), name: "NEW_PROTOCOL", active: true, messages: [], settings: { ...DEFAULT_SETTINGS } }
+        { id: Date.now().toString(), name: "NEW_PROTOCOL", active: true, messages: [], settings: initialSettings }
       ];
       if (prev.find(s => s.id === id)?.active) filtered[0].active = true;
       return filtered;
@@ -291,7 +309,7 @@ const App: React.FC = () => {
     const newSession: ChatSession = {
       id, name: `PROTOCOL_LOG_${id.slice(-4)}`, active: true, 
       messages: [{ id: `init-${id}`, sender: 'AGENT', text: 'New neural channel opened. Workspace ready.', timestamp: new Date().toLocaleTimeString() }],
-      settings: { ...DEFAULT_SETTINGS }
+      settings: initialSettings
     };
     setSessions(prev => prev.map(s => ({ ...s, active: false })).concat(newSession));
   };

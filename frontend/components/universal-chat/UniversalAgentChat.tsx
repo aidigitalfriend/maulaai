@@ -12,7 +12,9 @@ import App from './App';
 
 // Legacy interface for backwards compatibility
 export interface AgentChatConfig {
+  id?: string;
   agentId?: string;
+  name?: string;
   agentName?: string;
   systemPrompt?: string;
   provider?: string;
@@ -26,6 +28,7 @@ export interface AgentChatConfig {
 
 interface UniversalAgentChatProps {
   config?: AgentChatConfig;
+  agent?: AgentChatConfig;
 }
 
 /**
@@ -34,13 +37,20 @@ interface UniversalAgentChatProps {
  * Wrapper that accepts the old config format and renders the new Neural-Link App.
  * The new App manages its own state internally.
  */
-const UniversalAgentChat: React.FC<UniversalAgentChatProps> = ({ config }) => {
-  // The new App component is self-contained with its own state management
-  // Config props can be used in the future to customize the App
+const UniversalAgentChat: React.FC<UniversalAgentChatProps> = ({ config, agent }) => {
+  // Merge config and agent props, with agent taking precedence
+  const mergedConfig = { ...config, ...agent };
+  const agentId = mergedConfig?.id || mergedConfig?.agentId || 'default';
+  const agentName = mergedConfig?.name || mergedConfig?.agentName || 'Neural Companion';
+  const systemPrompt = mergedConfig?.systemPrompt;
   
   return (
-    <div className={`universal-agent-chat ${config?.className || ''}`} style={{ height: config?.maxHeight || '100vh' }}>
-      <App />
+    <div className={`universal-agent-chat ${mergedConfig?.className || ''}`} style={{ height: mergedConfig?.maxHeight || '100vh' }}>
+      <App 
+        initialAgentId={agentId}
+        initialAgentName={agentName}
+        initialSystemPrompt={systemPrompt}
+      />
     </div>
   );
 };
