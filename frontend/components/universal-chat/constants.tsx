@@ -21,8 +21,8 @@ export const PROVIDER_CONFIG = [
     id: 'groq',
     name: 'Groq',
     icon: '⚡',
-    models: ['llama-3.3-70b-specdec', 'mixtral-8x7b-32768', 'gemma-7b-it'],
-    defaultModel: 'llama-3.3-70b-specdec',
+    models: ['llama-3.1-70b-versatile', 'mixtral-8x7b-32768', 'gemma-7b-it'],
+    defaultModel: 'llama-3.1-70b-versatile',
     description: 'Lightning fast LPU inference',
     status: 'active'
   },
