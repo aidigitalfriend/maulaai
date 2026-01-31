@@ -75,7 +75,8 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose, on
   const handleProviderChange = (providerId: string, model?: string) => {
     const provider = AI_PROVIDERS.find(p => p.id === providerId);
     if (provider) {
-      const newModel = model || provider.models[0];
+      const firstModel = typeof provider.models[0] === 'object' ? provider.models[0].id : provider.models[0];
+      const newModel = model || firstModel;
       setSelectedProvider(providerId);
       setSelectedModel(newModel);
       onSettingsChange({
@@ -180,19 +181,23 @@ const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose, on
         {/* Model Selection for Current Provider */}
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <span className="text-[9px] text-gray-600 font-mono uppercase tracking-wider mr-2">Models:</span>
-          {currentProvider?.models.map((model) => (
-            <button
-              key={model}
-              onClick={() => handleModelChange(model)}
-              className={`px-3 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all ${
-                selectedModel === model
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                  : 'bg-gray-900/50 text-gray-500 border border-gray-800 hover:border-emerald-500/30 hover:text-gray-400'
-              }`}
-            >
-              {model}
-            </button>
-          ))}
+          {currentProvider?.models.map((model) => {
+            const modelId = typeof model === 'object' ? model.id : model;
+            const modelName = typeof model === 'object' ? model.name : model;
+            return (
+              <button
+                key={modelId}
+                onClick={() => handleModelChange(modelId)}
+                className={`px-3 py-1.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all ${
+                  selectedModel === modelId
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                    : 'bg-gray-900/50 text-gray-500 border border-gray-800 hover:border-emerald-500/30 hover:text-gray-400'
+                }`}
+              >
+                {modelName}
+              </button>
+            );
+          })}
         </div>
       </div>
 

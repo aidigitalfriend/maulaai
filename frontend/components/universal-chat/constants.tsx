@@ -6,69 +6,95 @@ import { SettingsState, NavItem } from './types';
  * 
  * No API keys needed here - all calls go through secure backend
  * Backend route: /api/studio/chat
+ * 
+ * One Last AI - Earn the name, not just money! ✌️
  */
 export const PROVIDER_CONFIG = [
   {
     id: 'cerebras',
-    name: 'Cerebras',
+    name: 'Maula AI',
     icon: '🧠',
-    models: ['llama-3.3-70b'],
+    models: [
+      { id: 'llama-3.3-70b', name: 'Ultra Fast' }
+    ],
     defaultModel: 'llama-3.3-70b',
-    description: 'Ultra-fast inference (~10ms)',
+    description: 'Lightning speed reasoning (~10ms)',
     status: 'active'
   },
   {
     id: 'groq',
-    name: 'Groq',
+    name: 'One Last AI',
     icon: '⚡',
-    models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'],
+    models: [
+      { id: 'llama-3.3-70b-versatile', name: 'Power Mode' },
+      { id: 'llama-3.1-8b-instant', name: 'Quick Reply' }
+    ],
     defaultModel: 'llama-3.3-70b-versatile',
-    description: 'Lightning fast LPU inference',
+    description: 'Your AI digital friend zone',
     status: 'active'
   },
   {
     id: 'xai',
-    name: 'xAI (Grok)',
-    icon: '✖️',
-    models: ['grok-3', 'grok-2-mini'],
+    name: 'Planner',
+    icon: '📋',
+    models: [
+      { id: 'grok-3', name: 'Master Plan' },
+      { id: 'grok-2-mini', name: 'Quick Plan' }
+    ],
     defaultModel: 'grok-3',
-    description: 'Grok AI by xAI',
+    description: 'Strategic thinking & planning',
     status: 'active'
   },
   {
     id: 'anthropic',
-    name: 'Anthropic',
-    icon: '🅰️',
-    models: ['claude-sonnet-4-20250514', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'],
+    name: 'Code Expert',
+    icon: '💻',
+    models: [
+      { id: 'claude-sonnet-4-20250514', name: 'Pro Coder' },
+      { id: 'claude-3-opus-20240229', name: 'Senior Dev' },
+      { id: 'claude-3-haiku-20240307', name: 'Quick Fix' }
+    ],
     defaultModel: 'claude-sonnet-4-20250514',
-    description: 'Claude AI - Safe & helpful',
+    description: 'Expert coding assistant',
     status: 'active'
   },
   {
     id: 'openai',
-    name: 'OpenAI',
-    icon: '🤖',
-    models: ['gpt-4.1', 'gpt-4-turbo', 'gpt-3.5-turbo'],
+    name: 'Designer',
+    icon: '🎨',
+    models: [
+      { id: 'gpt-4.1', name: 'Creative Pro' },
+      { id: 'gpt-4-turbo', name: 'Fast Design' },
+      { id: 'gpt-3.5-turbo', name: 'Quick Sketch' }
+    ],
     defaultModel: 'gpt-4.1',
-    description: 'GPT-4 and beyond',
+    description: 'Creative design & content',
     status: 'active'
   },
   {
     id: 'mistral',
-    name: 'Mistral',
-    icon: '🌀',
-    models: ['mistral-large-2411', 'mistral-medium-latest', 'mixtral-8x7b-instruct'],
-    defaultModel: 'mistral-large-2411',
-    description: 'European AI excellence',
+    name: 'Writer',
+    icon: '✍️',
+    models: [
+      { id: 'mistral-large-latest', name: 'Bestseller' },
+      { id: 'mistral-medium-latest', name: 'Story Mode' },
+      { id: 'mixtral-8x7b-instruct', name: 'Blog Post' }
+    ],
+    defaultModel: 'mistral-large-latest',
+    description: 'Professional writing & content',
     status: 'active'
   },
   {
     id: 'gemini',
-    name: 'Gemini',
-    icon: '💎',
-    models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+    name: 'Researcher',
+    icon: '🔬',
+    models: [
+      { id: 'gemini-2.0-flash', name: 'Deep Dive' },
+      { id: 'gemini-1.5-pro', name: 'Analysis Pro' },
+      { id: 'gemini-1.5-flash', name: 'Quick Search' }
+    ],
     defaultModel: 'gemini-2.0-flash',
-    description: 'Google DeepMind',
+    description: 'Research & analysis',
     status: 'active'
   }
 ];

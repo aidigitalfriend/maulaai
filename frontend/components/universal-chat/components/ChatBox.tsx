@@ -494,19 +494,23 @@ const ChatBox: React.FC<ChatBoxProps> = ({
                     {/* Models for this provider */}
                     {agentSettings.provider === provider.id && provider.models.length > 1 && (
                       <div className="bg-black/30 px-4 py-2 space-y-1">
-                        {provider.models.map((model) => (
-                          <button
-                            key={model}
-                            onClick={() => handleProviderChange(provider.id, model)}
-                            className={`w-full text-left px-2 py-1.5 rounded text-xs font-mono transition-all ${
-                              agentSettings.model === model 
-                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
-                                : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
-                            }`}
-                          >
-                            {model}
-                          </button>
-                        ))}
+                        {provider.models.map((model) => {
+                          const modelId = typeof model === 'object' ? model.id : model;
+                          const modelName = typeof model === 'object' ? model.name : model;
+                          return (
+                            <button
+                              key={modelId}
+                              onClick={() => handleProviderChange(provider.id, modelId)}
+                              className={`w-full text-left px-2 py-1.5 rounded text-xs transition-all ${
+                                agentSettings.model === modelId 
+                                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
+                                  : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
+                              }`}
+                            >
+                              {modelName}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
