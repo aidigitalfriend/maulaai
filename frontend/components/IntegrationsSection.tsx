@@ -19,7 +19,7 @@ const integrations = [
   { name: 'Zapier', icon: '⚡' },
   { name: 'Discord', icon: '👾' },
   { name: 'Twilio', icon: '📞' },
-  { name: 'OpenAI', icon: '🧠' },
+  { name: 'Maula AI', icon: '🧠' },
 ];
 
 export default function IntegrationsSection() {

@@ -14,7 +14,7 @@ if (typeof window !== 'undefined') {
 
 const features = [
   'Generate complete web apps from text prompts',
-  'Multiple AI models including Gemini Pro',
+  'Multiple AI models including Code Expert & Designer',
   'Live preview with code export',
   'Iterative refinement with AI assistant',
   'Pre-built templates for quick starts',

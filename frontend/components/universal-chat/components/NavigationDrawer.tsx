@@ -14,13 +14,13 @@ interface NavigationDrawerProps {
 
 // AI Providers with their models - exported for use in SettingsPanel
 export const AI_PROVIDERS = [
-  { id: 'cerebras', name: 'Cerebras', icon: '🧠', color: 'from-purple-500 to-pink-600', models: ['llama-3.3-70b'], defaultModel: 'llama-3.3-70b', description: 'Ultra-fast ~10ms', status: 'active' },
-  { id: 'groq', name: 'Groq', icon: '⚡', color: 'from-green-500 to-emerald-600', models: ['llama-3.3-70b-specdec', 'mixtral-8x7b-32768', 'gemma-7b-it'], defaultModel: 'llama-3.3-70b-specdec', description: 'LPU speed', status: 'active' },
-  { id: 'xai', name: 'xAI (Grok)', icon: '✖️', color: 'from-gray-400 to-gray-600', models: ['grok-3', 'grok-2-mini'], defaultModel: 'grok-3', description: 'Grok AI', status: 'active' },
-  { id: 'anthropic', name: 'Anthropic', icon: '🅰️', color: 'from-orange-500 to-amber-600', models: ['claude-sonnet-4-20250514', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'], defaultModel: 'claude-sonnet-4-20250514', description: 'Claude AI', status: 'active' },
-  { id: 'openai', name: 'OpenAI', icon: '🤖', color: 'from-teal-500 to-cyan-600', models: ['gpt-4.1', 'gpt-4-turbo', 'gpt-3.5-turbo'], defaultModel: 'gpt-4.1', description: 'GPT-4', status: 'active' },
-  { id: 'mistral', name: 'Mistral', icon: '🌀', color: 'from-blue-500 to-indigo-600', models: ['mistral-large-2411', 'mistral-medium-latest', 'mixtral-8x7b-instruct'], defaultModel: 'mistral-large-2411', description: 'EU AI', status: 'active' },
-  { id: 'gemini', name: 'Gemini', icon: '💎', color: 'from-blue-400 to-violet-600', models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'], defaultModel: 'gemini-2.0-flash', description: 'Google', status: 'active' },
+  { id: 'cerebras', name: 'Maula AI', icon: '🧠', color: 'from-purple-500 to-pink-600', models: ['llama-3.3-70b'], defaultModel: 'llama-3.3-70b', description: 'Ultra Fast', status: 'active' },
+  { id: 'groq', name: 'One Last AI', icon: '⚡', color: 'from-green-500 to-emerald-600', models: ['llama-3.3-70b-specdec', 'mixtral-8x7b-32768', 'gemma-7b-it'], defaultModel: 'llama-3.3-70b-specdec', description: 'Power Mode', status: 'active' },
+  { id: 'xai', name: 'Planner', icon: '📋', color: 'from-gray-400 to-gray-600', models: ['grok-3', 'grok-2-mini'], defaultModel: 'grok-3', description: 'Master Plan', status: 'active' },
+  { id: 'anthropic', name: 'Code Expert', icon: '💻', color: 'from-orange-500 to-amber-600', models: ['claude-sonnet-4-20250514', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'], defaultModel: 'claude-sonnet-4-20250514', description: 'Pro Coder', status: 'active' },
+  { id: 'openai', name: 'Designer', icon: '🎨', color: 'from-teal-500 to-cyan-600', models: ['gpt-4.1', 'gpt-4-turbo', 'gpt-3.5-turbo'], defaultModel: 'gpt-4.1', description: 'Creative Pro', status: 'active' },
+  { id: 'mistral', name: 'Writer', icon: '✍️', color: 'from-blue-500 to-indigo-600', models: ['mistral-large-2411', 'mistral-medium-latest', 'mixtral-8x7b-instruct'], defaultModel: 'mistral-large-2411', description: 'Bestseller', status: 'active' },
+  { id: 'gemini', name: 'Researcher', icon: '🔬', color: 'from-blue-400 to-violet-600', models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'], defaultModel: 'gemini-2.0-flash', description: 'Deep Dive', status: 'active' },
 ];
 
 const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ isOpen, onClose, onModuleSelect, currentSettings, onSettingsChange }) => {
